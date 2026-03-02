@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { TextButton } from './components/TextButton'
 import { IconButton } from './components/IconButton'
-import PlusIcon from './assets/svg/PlusIcon'
-import TrashIcon from './assets/svg/TrashIcon'
+import PlusIcon from './assets/svg/PlusIcon.svg?react'
+import TrashIcon from './assets/svg/TrashIcon.svg?react'
 import './App.css'
 
 interface Race {
