@@ -64,7 +64,7 @@ function App() {
               </div>
               <div className="race-actions">
                 <TextButton onClick={() => {}} className="secondary">Otwórz</TextButton>
-                <IconButton onClick={() => handleDelete(race.id)} icon={<TrashIcon />} title="Usuń" />
+                <IconButton onClick={() => handleDelete(race.id)} icon={TrashIcon} title="Usuń" />
               </div>
             </div>
           ))}
