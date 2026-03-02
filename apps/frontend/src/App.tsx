@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
-import { AddButton, OpenButton, DeleteButton } from './components'
+import { AddButton } from './components/AddButton'
+import { OpenButton } from './components/OpenButton'
+import { DeleteButton } from './components/DeleteButton'
 import './App.css'
 
 interface Race {
