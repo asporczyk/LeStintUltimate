@@ -1,0 +1,243 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600&display=swap');
+
+:root {
+  --primary: #FF1D44;
+  --bg-dark: #000833;
+}
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #000833 0%, #001244 50%, #000833 100%);
+}
+
+.landing-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.title {
+  font-family: 'Anton', sans-serif;
+  font-size: 4rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  color: #FF1D44;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-family: 'Hanken Grotesk', sans-serif;
+  color: #8899aa;
+  font-size: 1rem;
+  margin-bottom: 3rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.input-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.input-group .race-input {
+  width: 240px;
+}
+
+.race-input {
+  font-family: 'Hanken Grotesk', sans-serif;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  border: 2px solid #334466;
+  border-radius: 4px;
+  background-color: rgba(0, 8, 51, 0.8);
+  color: #fff;
+  width: 320px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.race-input:focus {
+  border-color: #FF1D44;
+  box-shadow: 0 0 20px rgba(255, 29, 68, 0.3);
+}
+
+.race-input::placeholder {
+  color: #556677;
+}
+
+.start-button {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  padding: 1rem 3rem;
+  font-size: 1rem;
+  background: #FF1D44;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.start-button:hover {
+  background: #ff3355;
+  box-shadow: 0 0 30px rgba(255, 29, 68, 0.5);
+  transform: translateY(-2px);
+}
+
+.start-button:active {
+  transform: translateY(0);
+}
+
+.races-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  width: 90%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.race-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #334466;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.race-item:hover {
+  border-color: #FF1D44;
+}
+
+.race-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  text-align: left;
+}
+
+.race-name {
+  font-family: 'Hanken Grotesk', sans-serif;
+  color: #fff;
+  font-weight: 500;
+}
+
+.race-date {
+  font-family: 'Hanken Grotesk', sans-serif;
+  color: #667788;
+  font-size: 0.85rem;
+}
+
+.race-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  color: #667788;
+  border: 1px solid #667788;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+  color: #FF1D44;
+  border-color: #FF1D44;
+}
+
+.open-button {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  background: transparent;
+  color: #FF1D44;
+  border: 1px solid #FF1D44;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.open-button:hover {
+  background: #FF1D44;
+  color: #fff;
+}
+
+.add-icon {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .input-group {
+    flex-wrap: wrap;
+  }
+
+  .input-group .race-input {
+    width: 100%;
+    flex: 1;
+  }
+
+  .add-button {
+    padding: 1rem 1.25rem;
+  }
+
+  .add-text {
+    display: none;
+  }
+
+  .add-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .race-item {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .race-info {
+    flex: none;
+  }
+
+  .race-actions {
+    justify-content: flex-end;
+  }
+
+  .open-button,
+  .delete-button {
+    padding: 0.6rem 0.8rem;
+  }
+}
