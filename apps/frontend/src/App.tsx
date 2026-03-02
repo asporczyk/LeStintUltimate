@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { TextButton } from './components/TextButton'
 import { IconButton } from './components/IconButton'
-import PlusIcon from './assets/svg/PlusIcon.svg?react'
-import TrashIcon from './assets/svg/TrashIcon.svg?react'
+import PlusIcon from './assets/svg/PlusIcon.svg'
+import TrashIcon from './assets/svg/TrashIcon.svg'
 import './App.css'
 
 interface Race {
@@ -51,7 +51,7 @@ function App() {
           />
           <TextButton onClick={handleAdd} className="add-button">
             <span className="add-text">Dodaj</span>
-            <PlusIcon className="add-icon" />
+            <img src={PlusIcon} alt="" className="add-icon" />
           </TextButton>
         </div>
 
