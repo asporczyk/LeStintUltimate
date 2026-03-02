@@ -71,7 +71,7 @@
   color: #556677;
 }
 
-.start-button {
+.text-button {
   font-family: 'Hanken Grotesk', sans-serif;
   font-weight: 600;
   letter-spacing: 0.15em;
@@ -84,15 +84,18 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.start-button:hover {
+.text-button:hover {
   background: #ff3355;
   box-shadow: 0 0 30px rgba(255, 29, 68, 0.5);
   transform: translateY(-2px);
 }
 
-.start-button:active {
+.text-button:active {
   transform: translateY(0);
 }
 
@@ -148,7 +151,7 @@
   align-items: center;
 }
 
-.delete-button {
+.icon-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,12 +164,20 @@
   transition: all 0.2s ease;
 }
 
-.delete-button:hover {
+.icon-button img {
+  filter: invert(100%);
+}
+
+.icon-button:hover {
   color: #FF1D44;
   border-color: #FF1D44;
 }
 
-.open-button {
+.icon-button:hover img {
+  filter: invert(36%) sepia(98%) saturate(1848%) hue-rotate(329deg) brightness(101%) contrast(101%);
+}
+
+.text-button.secondary {
   font-family: 'Hanken Grotesk', sans-serif;
   font-weight: 500;
   padding: 0.5rem 1rem;
@@ -174,15 +185,21 @@
   background: transparent;
   color: #FF1D44;
   border: 1px solid #FF1D44;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
 }
 
-.open-button:hover {
+.text-button.secondary:hover {
   background: #FF1D44;
   color: #fff;
+}
+
+.text-button.add-button {
+  padding: 1rem 3rem;
+}
+
+.text-button.add-button:hover {
+  background: #ff3355;
+  box-shadow: 0 0 30px rgba(255, 29, 68, 0.5);
+  transform: translateY(-2px);
 }
 
 .add-icon {
@@ -208,7 +225,7 @@
     flex: 1;
   }
 
-  .add-button {
+  .text-button.add-button {
     padding: 1rem 1.25rem;
   }
 
@@ -236,8 +253,8 @@
     justify-content: flex-end;
   }
 
-  .open-button,
-  .delete-button {
+  .icon-button,
+  .text-button.secondary {
     padding: 0.6rem 0.8rem;
   }
 }

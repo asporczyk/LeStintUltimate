@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "pnpm --parallel dev"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}
