@@ -169,6 +169,10 @@
   border-color: #FF1D44;
 }
 
+.icon-button:hover img {
+  filter: invert(36%) sepia(98%) saturate(1848%) hue-rotate(329deg) brightness(101%) contrast(101%);
+}
+
 .text-button.secondary {
   font-family: 'Hanken Grotesk', sans-serif;
   font-weight: 500;
