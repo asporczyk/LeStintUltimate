@@ -58,11 +58,7 @@ LeStintUltimate/
 # Instalacja zależności
 pnpm install
 
-# Uruchomienie frontend
-pnpm dev
-
-# Uruchomienie backend (w osobnym terminalu)
-cd apps/backend
+# Uruchomienie wszystkiego (frontend + backend)
 pnpm dev
 ```
 
