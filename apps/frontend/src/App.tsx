@@ -56,7 +56,7 @@ function App() {
         </div>
 
         <div className="races-list">
-          {races.map((race) => (
+          {[...races].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).map((race) => (
             <div key={race.id} className="race-item">
               <div className="race-info">
                 <span className="race-name">{race.name}</span>
