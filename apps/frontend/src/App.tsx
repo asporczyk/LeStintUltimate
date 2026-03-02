@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
-import { AddButton } from './components/AddButton'
-import { OpenButton } from './components/OpenButton'
-import { DeleteButton } from './components/DeleteButton'
+import { TextButton } from './components/TextButton'
+import { IconButton } from './components/IconButton'
+import PlusIcon from './assets/svg/PlusIcon'
+import TrashIcon from './assets/svg/TrashIcon'
 import './App.css'
 
 interface Race {
@@ -48,7 +49,10 @@ function App() {
             onChange={(e) => setRaceName(e.target.value)}
             className="race-input"
           />
-          <AddButton onClick={handleAdd} />
+          <TextButton onClick={handleAdd} className="add-button">
+            <span className="add-text">Dodaj</span>
+            <PlusIcon className="add-icon" />
+          </TextButton>
         </div>
 
         <div className="races-list">
@@ -59,8 +63,8 @@ function App() {
                 <span className="race-date">{race.createdAt.toLocaleDateString('pl-PL')}</span>
               </div>
               <div className="race-actions">
-                <OpenButton onClick={() => {}} />
-                <DeleteButton onClick={() => handleDelete(race.id)} />
+                <TextButton onClick={() => {}} className="secondary">Otwórz</TextButton>
+                <IconButton onClick={() => handleDelete(race.id)} icon={<TrashIcon />} title="Usuń" />
               </div>
             </div>
           ))}
