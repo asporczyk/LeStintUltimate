@@ -7,8 +7,14 @@ interface RacesDashboardProps {
   initialRaces?: Race[]
 }
 
-export function RacesDashboard({ initialRaces = [] }: RacesDashboardProps) {
-  const [races, setRaces] = useState<Race[]>(initialRaces)
+export function RacesDashboard({ initialRaces }: RacesDashboardProps) {
+  const defaultRaces: Race[] = [
+    { id: '1', name: '24h Le Mans 2025', createdAt: new Date('2025-01-15') },
+    { id: '2', name: 'Sebring 12h', createdAt: new Date('2025-02-20') },
+    { id: '3', name: 'Monza 6h', createdAt: new Date('2025-03-01') },
+  ]
+
+  const [races, setRaces] = useState<Race[]>(initialRaces ?? defaultRaces)
 
   const handleAdd = useCallback((raceName: string) => {
     if (raceName.trim()) {
