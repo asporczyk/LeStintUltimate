@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { TextButton } from '../../atoms/TextButton/TextButton.tsx'
-import { IconButton } from '../../atoms/IconButton/IconButton.tsx'
-import {RaceActions, RaceDate, RaceInfo, RaceItemContainer, RaceName} from './RaceItem.styles.ts'
-import { type Race } from '../../../types/Race.ts'
-import TrashIcon from '../../../assets/svg/trash.svg'
+import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { IconButton } from 'components/atoms/IconButton/IconButton'
+import {RaceActions, RaceDate, RaceInfo, RaceItemContainer, RaceName} from './RaceItem.styles'
+import { type Race } from 'types/Race'
+import TrashIcon from 'assets/svg/trash.svg'
 
 interface RaceItemProps {
   race: Race

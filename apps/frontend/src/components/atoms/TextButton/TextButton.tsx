@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { TextButton as StyledTextButton } from './TextButton.styles.ts'
+import { TextButton as StyledTextButton } from './TextButton.styles'
 
 interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode

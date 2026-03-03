@@ -1,11 +1,11 @@
 import { useState, useCallback, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TextButton } from '../components/atoms/TextButton/TextButton'
-import { TextInput } from '../components/atoms/TextInput/TextInput.styles.ts'
-import { RacesList } from '../components/organisms/RacesList/RacesList.tsx'
-import { type Race } from '../types/Race'
-import {Landing, LandingContent, Title, Subtitle, InputGroup, AddText, AddIcon} from './HomePage.styles'
-import PlusIcon from '../assets/svg/plus.svg'
+import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { TextInput } from 'components/atoms/TextInput/TextInput.styles'
+import { RacesList } from 'components/organisms/RacesList/RacesList'
+import { type Race } from 'types/Race'
+import {Landing, LandingContent, Title, Subtitle, InputGroup, AddText, AddIcon} from 'pages/HomePage.styles'
+import PlusIcon from 'assets/svg/plus.svg'
 
 export function HomePage() {
   const { t } = useTranslation('home')
