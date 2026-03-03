@@ -1,6 +1,6 @@
-import { RaceItem } from 'components/molecules/RaceItem/RaceItem'
-import { RacesListContainer } from './RacesList.styles'
-import { type Race } from 'types/Race'
+import { RaceItem } from 'components/molecules/RaceItem/RaceItem.tsx'
+import { RacesListContainer } from './RacesList.styles.ts'
+import { type Race } from 'types/Race.ts'
 
 interface RacesListProps {
   races: Race[]
