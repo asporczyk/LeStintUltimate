@@ -36,7 +36,7 @@ LeStintUltimate/
 │   │
 │   └── backend/          # API serwer
 │       ├── src/
-│       │   ├── index.ts  # Entry point
+│       │   ├── i18n.ts  # Entry point
 │       │   ├── server.ts # Konfiguracja Fastify
 │       │   ├── db.ts     # Połączenie z MongoDB
 │       │   ├── routes/   # API endpoints
