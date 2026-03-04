@@ -1,13 +1,14 @@
 import type { ButtonHTMLAttributes } from 'react'
+import { IconButton as StyledIconButton } from './IconButton.styles'
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string
 }
 
-export function IconButton({ icon, className = '', ...props }: IconButtonProps) {
+export function IconButton({ icon, ...props }: IconButtonProps) {
   return (
-    <button className={`icon-button ${className}`} {...props}>
+    <StyledIconButton {...props}>
       <img src={icon} alt="" />
-    </button>
+    </StyledIconButton>
   )
 }
