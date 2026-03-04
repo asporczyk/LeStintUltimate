@@ -12,7 +12,7 @@ interface RacesListProps {
 
 export function RacesList({ races, onDelete, onOpen }: RacesListProps) {
   const { t } = useTranslation('home')
-  const sortedRaces = [...races].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  const sortedRaces = [...races].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   return (
     <RacesListContainer>
@@ -20,7 +20,7 @@ export function RacesList({ races, onDelete, onOpen }: RacesListProps) {
         <Caption>{t('no-races')}</Caption>
       ) : (
         sortedRaces.map((race) => (
-          <RaceItem key={race.id} race={race} onDelete={onDelete} onOpen={onOpen} />
+          <RaceItem key={race._id} race={race} onDelete={onDelete} onOpen={onOpen} />
         ))
       )}
     </RacesListContainer>

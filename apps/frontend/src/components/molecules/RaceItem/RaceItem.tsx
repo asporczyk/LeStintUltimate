@@ -19,11 +19,11 @@ export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
     <RaceItemContainer>
       <RaceInfo>
         <RaceName>{race.name}</RaceName>
-        <RaceDate>{race.createdAt.toLocaleDateString('pl-PL')}</RaceDate>
+        <RaceDate>{new Date(race.createdAt).toLocaleDateString('pl-PL')}</RaceDate>
       </RaceInfo>
       <RaceActions>
-        <TextButton onClick={() => onOpen(race.id)} $variant="secondary">{t('open-race')}</TextButton>
-        <IconButton onClick={() => onDelete(race.id)} title={tCommon('delete')} icon={TrashIcon} />
+        <TextButton onClick={() => onOpen(race._id)} $variant="secondary">{t('open-race')}</TextButton>
+        <IconButton onClick={() => onDelete(race._id)} title={tCommon('delete')} icon={TrashIcon} />
       </RaceActions>
     </RaceItemContainer>
   )
