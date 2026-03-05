@@ -1,5 +1,6 @@
 export interface Race {
-  id: string
+  _id: string
   name: string
   createdAt: Date
+  startDate: Date
 }
