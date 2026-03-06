@@ -23,4 +23,13 @@ export default async function raceRoutes(app: FastifyInstance) {
         await Race.findByIdAndDelete(id);
         return { success: true };
     });
+
+    app.get("/races/:id", async (req, reply) => {
+        const { id } = req.params as any;
+        const race = await Race.findById(id);
+        if (!race) {
+            return reply.status(404).send({ error: "Wyścig nie znaleziony" });
+        }
+        return race;
+    });
 }

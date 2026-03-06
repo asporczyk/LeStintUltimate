@@ -26,4 +26,12 @@ export const RacesApi = {
   delete: async (id: string): Promise<void> => {
     await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
   },
+
+  getById: async (id: string): Promise<Race> => {
+    const res = await fetch(`${API_URL}/${id}`)
+    if (!res.ok) {
+      throw new Error('Race not found')
+    }
+    return res.json()
+  },
 }

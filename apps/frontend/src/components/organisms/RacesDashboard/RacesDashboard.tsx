@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { RaceInputGroup } from 'components/molecules/RaceInputGroup/RaceInputGroup'
 import { RacesList } from 'components/molecules/RacesList/RacesList'
 import { Loader } from 'components/atoms/Loader/Loader'
@@ -11,6 +12,7 @@ interface RacesDashboardProps {
 }
 
 export function RacesDashboard({ initialRaces }: RacesDashboardProps) {
+  const navigate = useNavigate()
   const [races, setRaces] = useState<Race[]>(initialRaces ?? [])
   const [raceCount, setRaceCount] = useState(0)
   const [raceLimit] = useState(100)
@@ -41,8 +43,8 @@ export function RacesDashboard({ initialRaces }: RacesDashboardProps) {
   }, [fetchRaces])
 
   const handleOpen = useCallback((id: string) => {
-    console.log('Open race:', id)
-  }, [])
+    navigate(`/race/${id}`)
+  }, [navigate])
 
   return (
     <DashboardContainer>

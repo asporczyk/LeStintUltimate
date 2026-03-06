@@ -1,0 +1,9 @@
+{
+  "title": "Szczegóły wyścigu",
+  "created": "Utworzono",
+  "startDate": "Data startu",
+  "notSet": "Nie ustawiono",
+  "notFound": "Nie znaleziono wyścigu",
+  "failedToLoad": "Nie udało się pobrać wyścigu",
+  "back": "Wróć"
+}
