@@ -1,0 +1,9 @@
+{
+  "title": "Race Details",
+  "created": "Created",
+  "startDate": "Start date",
+  "notSet": "Not set",
+  "notFound": "Race not found",
+  "failedToLoad": "Failed to load race",
+  "back": "Back"
+}
