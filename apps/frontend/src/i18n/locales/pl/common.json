@@ -8,5 +8,7 @@
   "close": "Zamknij",
   "loading": "Ładowanie...",
   "error": "Błąd",
-  "success": "Sukces"
+  "success": "Sukces",
+  "confirm-delete": "Czy na pewno chcesz usunąć ten wyścig?",
+  "delete-confirm-title": "Usuń wyścig"
 }
