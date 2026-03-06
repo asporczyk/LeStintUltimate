@@ -41,8 +41,8 @@ export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
       </RaceItemContainer>
       <ConfirmModal
         isOpen={showConfirm}
-        title={tCommon('delete-confirm-title') || 'Usuń wyścig'}
-        message={tCommon('confirm-delete') || 'Czy na pewno chcesz usunąć ten wyścig?'}
+        title={tCommon('delete-confirm-title')}
+        message={tCommon('confirm-delete')}
         onConfirm={handleConfirm}
         onCancel={() => setShowConfirm(false)}
       />
