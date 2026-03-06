@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
@@ -18,14 +18,18 @@ export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
   const { t: tCommon } = useTranslation('common')
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     setShowConfirm(true)
-  }
+  }, [])
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     onDelete(race._id)
     setShowConfirm(false)
-  }
+  }, [onDelete, race._id])
+
+  const handleCancel = useCallback(() => {
+    setShowConfirm(false)
+  }, [])
 
   return (
     <>
@@ -44,7 +48,7 @@ export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
         title={tCommon('delete-confirm-title')}
         message={tCommon('confirm-delete')}
         onConfirm={handleConfirm}
-        onCancel={() => setShowConfirm(false)}
+        onCancel={handleCancel}
       />
     </>
   )
