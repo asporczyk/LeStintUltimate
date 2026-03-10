@@ -5,5 +5,8 @@
   "add-race": "Add",
   "open-race": "Open",
   "delete-race": "Delete",
-  "no-races": "No races yet. Add your first race above."
+  "no-races": "No races yet. Add your first race above.",
+  "race-name-max-length": "Name can be maximum {{max}} characters",
+  "race-name-invalid-chars": "Only Latin letters, numbers, spaces and basic characters allowed",
+  "race-name-required": "Enter at least one word"
 }
