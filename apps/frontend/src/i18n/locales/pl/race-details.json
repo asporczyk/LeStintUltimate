@@ -17,5 +17,8 @@
   "edit": "Edytuj",
   "delete": "Usuń",
   "add": "Dodaj stint",
-  "editRace": "Edytuj wyścig"
+  "addStint": "Dodaj stint",
+  "editRace": "Edytuj wyścig",
+  "insertBetween": "Stint zostanie dodany pomiędzy stintem {{after}} a {{before}}",
+  "insertAfter": "Stint zostanie dodany po stincie {{after}}"
 }

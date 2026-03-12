@@ -25,6 +25,7 @@ export const Table = styled.table`
   border-spacing: 0;
   background: rgba(255, 255, 255, 0.03);
   min-width: 700px;
+  max-width: 100%;
 `
 
 export const TableHead = styled.thead`
@@ -152,6 +153,10 @@ export const AddIcon = styled.div<{ $visible?: boolean }>`
     height: 12px;
     stroke: white;
     stroke-width: 3;
+  }
+
+  @media (max-width: 600px) {
+    opacity: 1;
   }
 
   ${({ $visible }) => $visible && `

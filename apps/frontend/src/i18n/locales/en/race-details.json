@@ -17,5 +17,8 @@
   "edit": "Edit",
   "delete": "Delete",
   "add": "Add stint",
-  "editRace": "Edit race"
+  "addStint": "Add stint",
+  "editRace": "Edit race",
+  "insertBetween": "Stint will be added between stint {{after}} and {{before}}",
+  "insertAfter": "Stint will be added after stint {{after}}"
 }

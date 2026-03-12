@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
+import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -185,6 +186,8 @@ export function StintSchedule() {
     return Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000))
   })
   const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [addAfterStint, setAddAfterStint] = useState(0)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -247,7 +250,10 @@ export function StintSchedule() {
                         $visible={hoveredSeparatorIndex === index + 1}
                         onMouseEnter={() => setHoveredSeparatorIndex(index + 1)}
                         onMouseLeave={() => setHoveredSeparatorIndex(null)}
-                        onClick={() => console.log('Add after', index + 1)}
+                        onClick={() => {
+                          setAddAfterStint(index + 1)
+                          setAddModalOpen(true)
+                        }}
                       >
                         <AddIcon $visible={hoveredSeparatorIndex === index + 1}>
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -264,6 +270,16 @@ export function StintSchedule() {
           </TableBody>
         </Table>
       </TableWrapper>
+      <AddStintModal 
+        isOpen={addModalOpen}
+        insertAfterStint={addAfterStint}
+        totalStints={mockStints.length}
+        onConfirm={() => {
+          console.log('Add stint after', addAfterStint)
+          setAddModalOpen(false)
+        }}
+        onCancel={() => setAddModalOpen(false)}
+      />
     </ScheduleContainer>
   )
 }
