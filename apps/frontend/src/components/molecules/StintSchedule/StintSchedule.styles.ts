@@ -16,7 +16,7 @@ export const ScheduleTitle = styled.h2`
 export const TableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   padding-right: 24px;
   margin-right: -24px;
 `
