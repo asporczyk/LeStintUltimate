@@ -17,8 +17,6 @@ export const TableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-right: 24px;
-  margin-right: -24px;
 `
 
 export const Table = styled.table`
@@ -64,7 +62,7 @@ export const TableCell = styled.td`
   font-size: 0.9rem;
   color: #fff;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
 `
 
@@ -104,11 +102,11 @@ export const TableRowWrapper = styled.div`
 `
 
 export const AddButtonWrapper = styled.div<{ $visible: boolean }>`
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 36px;
+  height: 100%;
   opacity: 0;
   transition: opacity 0.2s;
   cursor: pointer;
@@ -118,6 +116,51 @@ export const AddButtonWrapper = styled.div<{ $visible: boolean }>`
   ${({ $visible }) => $visible && `
     opacity: 1;
   `}
+`
+
+export const RowSeparator = styled.div<{ $visible?: boolean }>`
+  height: 24px;
+  cursor: pointer;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ $visible }) => $visible ? 'rgba(255, 29, 68, 0.15)' : 'transparent'};
+  border-top: 1px dashed ${({ $visible }) => $visible ? '#FF1D44' : 'rgba(255, 255, 255, 0.1)'};
+  border-bottom: 1px dashed ${({ $visible }) => $visible ? '#FF1D44' : 'rgba(255, 255, 255, 0.1)'};
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 29, 68, 0.15);
+    border-color: #FF1D44;
+  }
+`
+
+export const AddIcon = styled.div<{ $visible?: boolean }>`
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #FF1D44;
+  
+  svg {
+    width: 12px;
+    height: 12px;
+    stroke: white;
+    stroke-width: 3;
+  }
+
+  ${({ $visible }) => $visible && `
+    opacity: 1;
+  `}
+
+  ${RowSeparator}:hover & {
+    opacity: 1;
+  }
 `
 
 export const AddButton = styled.button`
@@ -142,20 +185,6 @@ export const AddButton = styled.button`
     height: 14px;
     stroke: white;
   }
-`
-
-export const RowSeparator = styled.div<{ $visible?: boolean }>`
-  height: 8px;
-  position: relative;
-  margin: -4px 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 1.5rem;
-  background: ${({ $visible }) => $visible ? 'rgba(255, 29, 68, 0.15)' : 'transparent'};
-  border-top: ${({ $visible }) => $visible ? '2px dashed #FF1D44' : '2px solid transparent'};
-  border-bottom: ${({ $visible }) => $visible ? '2px dashed #FF1D44' : '2px solid transparent'};
 `
 
 export const HoverZonesWrapper = styled.div`

@@ -17,9 +17,8 @@ import {
   ActiveIndicator,
   ActionsCell,
   ActionButtonsWrapper,
-  AddButtonWrapper,
   RowSeparator,
-  AddButton
+  AddIcon
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -185,8 +184,7 @@ export function StintSchedule() {
     raceStart.setHours(17, 30, 0, 0)
     return Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000))
   })
-  const [hoveredRow, setHoveredRow] = useState<number | null>(null)
-  const [hoveredAddButton, setHoveredAddButton] = useState<number | null>(null)
+  const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -225,12 +223,7 @@ export function StintSchedule() {
               const isActive = isStintActive(stint.startTime, stint.duration)
               return (
                 <>
-                  <TableRow 
-                    key={stint._id} 
-                    $isActive={isActive}
-                    onMouseEnter={() => setHoveredRow(index)}
-                    onMouseLeave={() => setHoveredRow(null)}
-                  >
+                  <TableRow key={stint._id} $isActive={isActive}>
                     <StintNumberCell>{index + 1}</StintNumberCell>
                     <TableCell>{formatTime(stint.startTime)}</TableCell>
                     <TableCell>{formatDuration(stint.duration)}</TableCell>
@@ -249,20 +242,19 @@ export function StintSchedule() {
                     </ActionsCell>
                   </TableRow>
                   <TableRow key={`separator-${stint._id}`}>
-                    <ActionsCell colSpan={8} style={{ padding: 0, border: 'none', height: 0 }}>
-                      <RowSeparator $visible={hoveredAddButton === index}>
-                        <AddButtonWrapper 
-                          $visible={hoveredRow === index}
-                          onMouseEnter={() => setHoveredAddButton(index)}
-                          onMouseLeave={() => setHoveredAddButton(null)}
-                        >
-                          <AddButton onClick={() => console.log('Add after', index + 1)} title={t('add')}>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="12" y1="5" x2="12" y2="19"></line>
-                              <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                          </AddButton>
-                        </AddButtonWrapper>
+                    <ActionsCell colSpan={8} style={{ padding: 0, border: 'none' }}>
+                      <RowSeparator 
+                        $visible={hoveredSeparatorIndex === index + 1}
+                        onMouseEnter={() => setHoveredSeparatorIndex(index + 1)}
+                        onMouseLeave={() => setHoveredSeparatorIndex(null)}
+                        onClick={() => console.log('Add after', index + 1)}
+                      >
+                        <AddIcon $visible={hoveredSeparatorIndex === index + 1}>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                        </AddIcon>
                       </RowSeparator>
                     </ActionsCell>
                   </TableRow>
