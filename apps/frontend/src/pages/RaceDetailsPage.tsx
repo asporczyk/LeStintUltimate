@@ -1,13 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PageTitle, RaceDetailsContainer } from './RaceDetailsPage.styles'
+import { PageTitle, RaceDetailsContainer, RaceInfo, HeaderRow, HeaderLeft, EditRaceButton } from './RaceDetailsPage.styles'
 import { Loader } from 'components/atoms/Loader/Loader'
 import { BodyM } from 'components/atoms/Typography/Typography.styles'
 import { IconTextButton } from 'components/atoms/IconTextButton/IconTextButton'
+import { StintSchedule } from 'components/molecules/StintSchedule/StintSchedule'
 import { RacesApi } from 'api/RacesApi'
 import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
+import EditIcon from 'assets/svg/edit.svg'
 
 export function RaceDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -58,9 +60,20 @@ export function RaceDetailsPage() {
       >
         {t('back')}
       </IconTextButton>
-      <PageTitle>{race.name}</PageTitle>
-      <BodyM>{t('created')}: {new Date(race.createdAt).toLocaleDateString('pl-PL')}</BodyM>
-      <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') : t('notSet')}</BodyM>
+      <HeaderRow>
+        <HeaderLeft>
+          <PageTitle>{race.name}</PageTitle>
+          <RaceInfo>
+            <BodyM>{t('created')}: {new Date(race.createdAt).toLocaleDateString('pl-PL')}</BodyM>
+            <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') : t('notSet')}</BodyM>
+          </RaceInfo>
+        </HeaderLeft>
+        <EditRaceButton onClick={() => console.log('Edit race')}>
+          <img src={EditIcon} alt="" />
+          <span>{t('editRace')}</span>
+        </EditRaceButton>
+      </HeaderRow>
+      <StintSchedule />
     </RaceDetailsContainer>
   )
 }

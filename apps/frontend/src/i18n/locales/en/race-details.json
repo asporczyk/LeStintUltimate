@@ -5,5 +5,17 @@
   "notSet": "Not set",
   "notFound": "Race not found",
   "failedToLoad": "Failed to load race",
-  "back": "Back"
+  "back": "Back",
+  "stintSchedule": "Stint Schedule",
+  "stint": "Stint",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "duration": "Duration",
+  "driver": "Driver",
+  "pitstopLap": "Pitstop Lap",
+  "tires": "Tires",
+  "edit": "Edit",
+  "delete": "Delete",
+  "add": "Add stint",
+  "editRace": "Edit race"
 }

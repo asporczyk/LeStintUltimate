@@ -5,5 +5,17 @@
   "notSet": "Nie ustawiono",
   "notFound": "Nie znaleziono wyścigu",
   "failedToLoad": "Nie udało się pobrać wyścigu",
-  "back": "Wróć"
+  "back": "Wróć",
+  "stintSchedule": "Harmonogram stintów",
+  "stint": "Stint",
+  "startTime": "Godzina startu",
+  "endTime": "Godzina zakończenia",
+  "duration": "Czas trwania",
+  "driver": "Kierowca",
+  "pitstopLap": "Okrążenie pitstopu",
+  "tires": "Opony",
+  "edit": "Edytuj",
+  "delete": "Usuń",
+  "add": "Dodaj stint",
+  "editRace": "Edytuj wyścig"
 }
