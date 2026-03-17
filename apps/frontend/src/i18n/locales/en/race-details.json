@@ -12,7 +12,10 @@
   "endTime": "End Time",
   "duration": "Duration",
   "driver": "Driver",
+  "spotter": "Spotter",
   "pitstopLap": "Pitstop Lap",
+  "fuel": "Fuel",
+  "usedTires": "Tires",
   "tires": "Tires",
   "edit": "Edit",
   "delete": "Delete",
@@ -20,5 +23,13 @@
   "addStint": "Add stint",
   "editRace": "Edit race",
   "insertBetween": "Stint will be added between stint {{after}} and {{before}}",
-  "insertAfter": "Stint will be added after stint {{after}}"
+  "insertAfter": "Stint will be added after stint {{after}}",
+  "notes": "Notes",
+  "notesPlaceholder": "Add notes for the race...",
+  "raceLength": "Race length",
+  "drivers": "Drivers",
+  "tireSets": "Tires",
+  "avgLapTime": "Avg lap time",
+  "avgFuelPerLap": "Avg fuel per lap",
+  "avgStintTime": "Avg stint time"
 }

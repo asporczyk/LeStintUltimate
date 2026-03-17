@@ -16,6 +16,10 @@ export const IconTextButton = styled.button`
   align-items: center;
   gap: 0.5rem;
 
+  img {
+    filter: brightness(0) invert(1);
+  }
+
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: #fff;

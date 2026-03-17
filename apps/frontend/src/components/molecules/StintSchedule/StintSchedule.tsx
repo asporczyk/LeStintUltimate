@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
@@ -19,7 +19,11 @@ import {
   ActionsCell,
   ActionButtonsWrapper,
   RowSeparator,
-  AddIcon
+  AddIcon,
+  NotesContainer,
+  NotesLabel,
+  NotesTextarea,
+  CharCount
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -31,8 +35,14 @@ const mockStints: Stint[] = [
     startTime: 0,
     duration: 45,
     driver: 'Max Verstappen',
-    fuelLaps: 22,
-    tires: 'Soft',
+    spotter: 'Mick',
+    fuelLaps: 0,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 30,
     lockedBy: 'team'
   },
   {
@@ -41,8 +51,14 @@ const mockStints: Stint[] = [
     startTime: 45,
     duration: 42,
     driver: 'Sergio Perez',
-    fuelLaps: 38,
-    tires: 'Medium'
+    spotter: 'Romain',
+    fuelLaps: 37,
+    fuel: 100,
+    tireFL: 'S',
+    tireFR: 'S',
+    tireRL: 'S',
+    tireRR: 'S',
+    usedTires: 26
   },
   {
     _id: '3',
@@ -50,8 +66,14 @@ const mockStints: Stint[] = [
     startTime: 87,
     duration: 48,
     driver: 'Max Verstappen',
-    fuelLaps: 63,
-    tires: 'Hard'
+    spotter: 'Mick',
+    fuelLaps: 62,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 26
   },
   {
     _id: '4',
@@ -59,8 +81,14 @@ const mockStints: Stint[] = [
     startTime: 135,
     duration: 40,
     driver: 'Sergio Perez',
-    fuelLaps: 79,
-    tires: 'Soft'
+    spotter: 'Romain',
+    fuelLaps: 78,
+    fuel: 100,
+    tireFL: 'M',
+    tireFR: 'M',
+    tireRL: 'M',
+    tireRR: 'M',
+    usedTires: 22
   },
   {
     _id: '5',
@@ -68,8 +96,14 @@ const mockStints: Stint[] = [
     startTime: 175,
     duration: 35,
     driver: 'Max Verstappen',
-    fuelLaps: 98,
-    tires: 'Medium'
+    spotter: 'Mick',
+    fuelLaps: 97,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 22
   },
   {
     _id: '6',
@@ -77,8 +111,14 @@ const mockStints: Stint[] = [
     startTime: 210,
     duration: 44,
     driver: 'Sergio Perez',
-    fuelLaps: 118,
-    tires: 'Hard'
+    spotter: 'Romain',
+    fuelLaps: 117,
+    fuel: 100,
+    tireFL: 'H',
+    tireFR: 'H',
+    tireRL: 'H',
+    tireRR: 'H',
+    usedTires: 18
   },
   {
     _id: '7',
@@ -86,8 +126,14 @@ const mockStints: Stint[] = [
     startTime: 254,
     duration: 39,
     driver: 'Max Verstappen',
-    fuelLaps: 137,
-    tires: 'Soft'
+    spotter: 'Mick',
+    fuelLaps: 136,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 18
   },
   {
     _id: '8',
@@ -95,8 +141,14 @@ const mockStints: Stint[] = [
     startTime: 293,
     duration: 41,
     driver: 'Sergio Perez',
-    fuelLaps: 156,
-    tires: 'Medium'
+    spotter: 'Romain',
+    fuelLaps: 155,
+    fuel: 100,
+    tireFL: 'S',
+    tireFR: 'S',
+    tireRL: 'S',
+    tireRR: 'S',
+    usedTires: 14
   },
   {
     _id: '9',
@@ -104,8 +156,14 @@ const mockStints: Stint[] = [
     startTime: 334,
     duration: 46,
     driver: 'Max Verstappen',
-    fuelLaps: 178,
-    tires: 'Hard'
+    spotter: 'Mick',
+    fuelLaps: 177,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 14
   },
   {
     _id: '10',
@@ -113,8 +171,14 @@ const mockStints: Stint[] = [
     startTime: 380,
     duration: 38,
     driver: 'Sergio Perez',
-    fuelLaps: 195,
-    tires: 'Soft'
+    spotter: 'Romain',
+    fuelLaps: 194,
+    fuel: 100,
+    tireFL: 'M',
+    tireFR: 'M',
+    tireRL: 'M',
+    tireRR: 'M',
+    usedTires: 10
   },
   {
     _id: '11',
@@ -122,8 +186,14 @@ const mockStints: Stint[] = [
     startTime: 418,
     duration: 43,
     driver: 'Max Verstappen',
-    fuelLaps: 215,
-    tires: 'Medium'
+    spotter: 'Mick',
+    fuelLaps: 214,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 10
   },
   {
     _id: '12',
@@ -131,8 +201,14 @@ const mockStints: Stint[] = [
     startTime: 461,
     duration: 37,
     driver: 'Sergio Perez',
-    fuelLaps: 234,
-    tires: 'Hard'
+    spotter: 'Romain',
+    fuelLaps: 233,
+    fuel: 100,
+    tireFL: 'H',
+    tireFR: 'H',
+    tireRL: 'H',
+    tireRR: 'H',
+    usedTires: 6
   },
   {
     _id: '13',
@@ -140,8 +216,14 @@ const mockStints: Stint[] = [
     startTime: 498,
     duration: 45,
     driver: 'Max Verstappen',
-    fuelLaps: 258,
-    tires: 'Soft'
+    spotter: 'Mick',
+    fuelLaps: 257,
+    fuel: 100,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 6
   },
   {
     _id: '14',
@@ -149,8 +231,14 @@ const mockStints: Stint[] = [
     startTime: 543,
     duration: 40,
     driver: 'Sergio Perez',
-    fuelLaps: 276,
-    tires: 'Medium'
+    spotter: 'Romain',
+    fuelLaps: 275,
+    fuel: 100,
+    tireFL: 'S',
+    tireFR: 'S',
+    tireRL: 'S',
+    tireRR: 'S',
+    usedTires: 2
   },
   {
     _id: '15',
@@ -158,8 +246,14 @@ const mockStints: Stint[] = [
     startTime: 583,
     duration: 42,
     driver: 'Max Verstappen',
-    fuelLaps: 298,
-    tires: 'Hard'
+    spotter: 'Mick',
+    fuelLaps: 297,
+    fuel: 25,
+    tireFL: '-',
+    tireFR: '-',
+    tireRL: '-',
+    tireRR: '-',
+    usedTires: 2
   }
 ]
 
@@ -188,6 +282,16 @@ export function StintSchedule() {
   const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [addAfterStint, setAddAfterStint] = useState(0)
+  const [notes, setNotes] = useState('')
+  const notesRef = useRef<HTMLTextAreaElement>(null)
+  const MAX_CHARS = 200
+
+  useEffect(() => {
+    if (notesRef.current) {
+      notesRef.current.style.height = 'auto'
+      notesRef.current.style.height = notesRef.current.scrollHeight + 'px'
+    }
+  }, [notes])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -216,7 +320,13 @@ export function StintSchedule() {
               <TableHeader>{t('endTime')}</TableHeader>
               <TableHeader>{t('pitstopLap')}</TableHeader>
               <TableHeader>{t('driver')}</TableHeader>
-              <TableHeader>{t('tires')}</TableHeader>
+              <TableHeader>{t('spotter')}</TableHeader>
+              <TableHeader>{t('fuel')}</TableHeader>
+              <TableHeader>FL</TableHeader>
+              <TableHeader>FR</TableHeader>
+              <TableHeader>RL</TableHeader>
+              <TableHeader>RR</TableHeader>
+              <TableHeader>{t('usedTires')}</TableHeader>
               <TableHeader></TableHeader>
             </tr>
           </TableHead>
@@ -236,7 +346,13 @@ export function StintSchedule() {
                       {stint.driver}
                       {isActive && <ActiveIndicator />}
                     </DriverCell>
-                    <TableCell>{stint.tires}</TableCell>
+                    <TableCell>{stint.spotter}</TableCell>
+                    <TableCell>{stint.fuel}%</TableCell>
+                    <TableCell>{stint.tireFL}</TableCell>
+                    <TableCell>{stint.tireFR}</TableCell>
+                    <TableCell>{stint.tireRL}</TableCell>
+                    <TableCell>{stint.tireRR}</TableCell>
+                    <TableCell>{stint.usedTires}</TableCell>
                     <ActionsCell>
                       <ActionButtonsWrapper>
                         <IconButton onClick={() => console.log('Edit', stint._id)} title={t('edit')} icon={EditIcon} />
@@ -245,7 +361,7 @@ export function StintSchedule() {
                     </ActionsCell>
                   </TableRow>
                   <TableRow key={`separator-${stint._id}`}>
-                    <ActionsCell colSpan={8} style={{ padding: 0, border: 'none' }}>
+                    <td colSpan={14} style={{ padding: 0, border: 'none' }}>
                       <RowSeparator 
                         $visible={hoveredSeparatorIndex === index + 1}
                         onMouseEnter={() => setHoveredSeparatorIndex(index + 1)}
@@ -262,7 +378,7 @@ export function StintSchedule() {
                           </svg>
                         </AddIcon>
                       </RowSeparator>
-                    </ActionsCell>
+                    </td>
                   </TableRow>
                 </>
               )
@@ -280,6 +396,19 @@ export function StintSchedule() {
         }}
         onCancel={() => setAddModalOpen(false)}
       />
+      <NotesContainer>
+        <NotesLabel>{t('notes')}</NotesLabel>
+        <NotesTextarea 
+          ref={notesRef}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value.slice(0, MAX_CHARS))}
+          placeholder={t('notesPlaceholder')}
+          rows={3}
+        />
+        <CharCount $isOver={notes.length >= MAX_CHARS}>
+          {notes.length}/{MAX_CHARS}
+        </CharCount>
+      </NotesContainer>
     </ScheduleContainer>
   )
 }

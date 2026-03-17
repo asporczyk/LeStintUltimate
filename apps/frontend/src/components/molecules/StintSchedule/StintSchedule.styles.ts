@@ -251,3 +251,47 @@ export const InactiveRow = styled.div`
     border-radius: 4px;
   }
 `
+
+export const NotesContainer = styled.div`
+  width: 100%;
+  margin-top: 1rem;
+`
+
+export const NotesLabel = styled.label`
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+  margin-bottom: 0.5rem;
+`
+
+export const NotesTextarea = styled.textarea`
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.9rem;
+  resize: vertical;
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #FF1D44;
+  }
+`
+
+export const CharCount = styled.span<{ $isOver: boolean }>`
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.75rem;
+  color: ${({ $isOver }) => $isOver ? '#ff4444' : 'rgba(255, 255, 255, 0.5)'};
+  display: block;
+  text-align: right;
+  margin-top: 0.25rem;
+`

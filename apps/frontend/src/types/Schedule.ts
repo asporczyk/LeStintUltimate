@@ -4,8 +4,14 @@ export interface Stint {
   startTime: number
   duration: number
   driver: string
+  spotter: string
   fuelLaps: number
-  tires: string
+  fuel: number
+  tireFL: string
+  tireFR: string
+  tireRL: string
+  tireRR: string
+  usedTires: number
   lockedBy?: string
 }
 

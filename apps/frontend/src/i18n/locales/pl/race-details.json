@@ -12,7 +12,10 @@
   "endTime": "Godzina zakończenia",
   "duration": "Czas trwania",
   "driver": "Kierowca",
+  "spotter": "Spotter",
   "pitstopLap": "Okrążenie pitstopu",
+  "fuel": "Paliwo",
+  "usedTires": "Opony",
   "tires": "Opony",
   "edit": "Edytuj",
   "delete": "Usuń",
@@ -20,5 +23,13 @@
   "addStint": "Dodaj stint",
   "editRace": "Edytuj wyścig",
   "insertBetween": "Stint zostanie dodany pomiędzy stintem {{after}} a {{before}}",
-  "insertAfter": "Stint zostanie dodany po stincie {{after}}"
+  "insertAfter": "Stint zostanie dodany po stincie {{after}}",
+  "notes": "Notatki",
+  "notesPlaceholder": "Dodaj notatki do wyścigu...",
+  "raceLength": "Długość wyścigu",
+  "drivers": "Kierowcy",
+  "tireSets": "Opony",
+  "avgLapTime": "Śr. czas okrążenia",
+  "avgFuelPerLap": "Śr. zużycie paliwa",
+  "avgStintTime": "Śr. czas stintu"
 }
