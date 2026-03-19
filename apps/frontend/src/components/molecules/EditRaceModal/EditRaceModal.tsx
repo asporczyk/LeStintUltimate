@@ -201,25 +201,29 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <ModalTitle>{t('editRace')}</ModalTitle>
         <Form ref={formRef} onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label>{t('name')}</Label>
-            <Input
-              type="text"
-              value={formData.name}
-              onChange={handleChange('name')}
-              placeholder={t('namePlaceholder')}
-            />
-            {errors.name && <ErrorText>{t(errors.name)}</ErrorText>}
-          </FormGroup>
+            <FormGroup>
+              <Label>{t('name')}</Label>
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="text"
+                  value={formData.name}
+                  onChange={handleChange('name')}
+                  placeholder={t('namePlaceholder')}
+                />
+              </InputWithUnit>
+              {errors.name && <ErrorText>{t(errors.name)}</ErrorText>}
+            </FormGroup>
 
           <FormRow>
             <FormGroup>
               <Label>{t('startDate')}</Label>
-              <Input
-                type="date"
-                value={formData.startDate}
-                onChange={handleChange('startDate')}
-              />
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="date"
+                  value={formData.startDate}
+                  onChange={handleChange('startDate')}
+                />
+              </InputWithUnit>
               {errors.startDate && <ErrorText>{t(errors.startDate)}</ErrorText>}
             </FormGroup>
 
@@ -244,25 +248,29 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
           <FormRow>
             <FormGroup>
               <Label>{t('tireSets')}</Label>
-              <Input
-                type="number"
-                value={formData.tireSets}
-                onChange={handleChange('tireSets')}
-                placeholder="30"
-                min="0"
-                max="100"
-              />
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="number"
+                  value={formData.tireSets}
+                  onChange={handleChange('tireSets')}
+                  placeholder="30"
+                  min="0"
+                  max="100"
+                />
+              </InputWithUnit>
               {errors.tireSets && <ErrorText>{t(errors.tireSets)}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
               <Label>{t('avgLapTime')}</Label>
-              <Input
-                type="text"
-                value={formData.avgLapTime}
-                onChange={handleChange('avgLapTime')}
-                placeholder="1:35:000"
-              />
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="text"
+                  value={formData.avgLapTime}
+                  onChange={handleChange('avgLapTime')}
+                  placeholder="1:35:000"
+                />
+              </InputWithUnit>
               {errors.avgLapTime && <ErrorText>{t(errors.avgLapTime)}</ErrorText>}
             </FormGroup>
           </FormRow>
