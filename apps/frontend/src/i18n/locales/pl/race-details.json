@@ -47,6 +47,7 @@
     "fuelPercentRange": "Wartość musi być między 0 a 100",
     "raceLengthRange": "Maksymalnie 24h",
     "tireSetsRange": "Maksymalnie 100 zestawów",
-    "stintTimeRange": "Maksymalnie 120 minut"
+    "stintTimeRange": "Maksymalnie 120 minut",
+    "nameTooLong": "Nazwa max 100 znaków"
   }
 }

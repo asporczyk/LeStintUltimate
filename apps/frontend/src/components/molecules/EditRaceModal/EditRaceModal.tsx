@@ -71,6 +71,8 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.name.trim()) {
     errors.name = 'validation.required'
+  } else if (formData.name.length > 100) {
+    errors.name = 'validation.nameTooLong'
   }
 
   if (!formData.startDate) {
@@ -208,6 +210,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                   value={formData.name}
                   onChange={handleChange('name')}
                   placeholder={t('namePlaceholder')}
+                  maxLength={100}
                 />
               </InputWithUnit>
               {errors.name && <ErrorText>{t(errors.name)}</ErrorText>}
