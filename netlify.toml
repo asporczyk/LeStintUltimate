@@ -1,0 +1,7 @@
+[build]
+  command = "pnpm install --no-frozen-lockfile && pnpm run build"
+  publish = "apps/frontend/dist"
+  node_bundler = "esbuild"
+
+[build.environment]
+  PNPM_VERSION = "10"
