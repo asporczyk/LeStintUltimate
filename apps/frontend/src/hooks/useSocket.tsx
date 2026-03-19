@@ -20,7 +20,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const listenersRef = useRef<Set<(race: Race) => void>>(new Set())
 
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+    const socketUrl = apiUrl.replace(/\/api$/, '')
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling']
     })
