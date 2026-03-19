@@ -165,7 +165,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       startDate: new Date(formData.startDate),
       raceLength: Number(formData.raceLength),
       tireSets: Number(formData.tireSets),
-      avgLapTime: lapTime,
+      avgLapTime: lapTime ?? undefined,
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
       drivers: formData.drivers
