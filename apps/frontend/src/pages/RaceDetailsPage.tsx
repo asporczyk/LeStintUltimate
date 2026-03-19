@@ -113,7 +113,7 @@ export function RaceDetailsPage() {
             <BodyM>{t('avgLapTime')}: {formatLapTimeDisplay(race.avgLapTime)}</BodyM>
             <BodyM>{t('avgFuelPerLap')}: {race.avgFuelPerLap}%</BodyM>
             <BodyM>{t('avgStintTime')}: {race.avgStintTime} min</BodyM>
-            <BodyM>{t('drivers')}: {race.drivers.join(', ')}</BodyM>
+            <BodyM>{t('drivers')}: {race.drivers?.join(', ') || '-'}</BodyM>
           </RaceInfo>
         </HeaderLeft>
       </HeaderRow>
