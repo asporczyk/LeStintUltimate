@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm install --no-frozen-lockfile && pnpm run build"
+  command = "pnpm install --no-frozen-lockfile && cd apps/frontend && pnpm run build"
   publish = "apps/frontend/dist"
   node_bundler = "esbuild"
 
