@@ -42,6 +42,7 @@
     "futureDate": "Date must be in the future",
     "lapTimeFormat": "Format: min:sec:ms (e.g. 1:35:000)",
     "positiveNumber": "Value must be greater than 0",
-    "nonNegativeNumber": "Value cannot be negative"
+    "nonNegativeNumber": "Value cannot be negative",
+    "driverNameTooLong": "Driver name max 50 characters"
   }
 }

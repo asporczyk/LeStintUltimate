@@ -117,6 +117,8 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.drivers || formData.drivers.length === 0) {
     errors.drivers = 'validation.required'
+  } else if (formData.drivers.some(d => d.length > 50)) {
+    errors.drivers = 'validation.driverNameTooLong'
   }
 
   return errors

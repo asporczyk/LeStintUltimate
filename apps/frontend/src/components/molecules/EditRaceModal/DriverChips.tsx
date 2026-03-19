@@ -20,7 +20,7 @@ export function DriverChips({ drivers, onChange, placeholder }: DriverChipsProps
 
   const addDriver = (name: string) => {
     const trimmedName = name.trim()
-    if (trimmedName && !drivers.includes(trimmedName)) {
+    if (trimmedName && trimmedName.length <= 50 && !drivers.includes(trimmedName)) {
       onChange([...drivers, trimmedName])
     }
     setInputValue('')
@@ -67,6 +67,7 @@ export function DriverChips({ drivers, onChange, placeholder }: DriverChipsProps
         onKeyDown={handleKeyDown}
         onBlur={() => inputValue.trim() && addDriver(inputValue)}
         placeholder={drivers.length === 0 ? (placeholder || t('driversPlaceholder')) : ''}
+        maxLength={50}
       />
     </DriverChipsContainer>
   )
