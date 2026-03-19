@@ -31,5 +31,17 @@
   "tireSets": "Tires",
   "avgLapTime": "Avg lap time",
   "avgFuelPerLap": "Avg fuel per lap",
-  "avgStintTime": "Avg stint time"
+  "avgStintTime": "Avg stint time",
+  "name": "Name",
+  "namePlaceholder": "Enter race name",
+  "driversPlaceholder": "Enter driver names separated by commas",
+  "cancel": "Cancel",
+  "save": "Save",
+  "validation": {
+    "required": "Field is required",
+    "futureDate": "Date must be in the future",
+    "lapTimeFormat": "Format: min:sec:ms (e.g. 1:35:000)",
+    "positiveNumber": "Value must be greater than 0",
+    "nonNegativeNumber": "Value cannot be negative"
+  }
 }

@@ -28,8 +28,20 @@
   "notesPlaceholder": "Dodaj notatki do wyścigu...",
   "raceLength": "Długość wyścigu",
   "drivers": "Kierowcy",
-  "tireSets": "Opony",
+  "tireSets": "Zestawy opon",
   "avgLapTime": "Śr. czas okrążenia",
   "avgFuelPerLap": "Śr. zużycie paliwa",
-  "avgStintTime": "Śr. czas stintu"
+  "avgStintTime": "Śr. czas stintu",
+  "name": "Nazwa",
+  "namePlaceholder": "Wpisz nazwę wyścigu",
+  "driversPlaceholder": "Wpisz imiona kierowców oddzielone przecinkami",
+  "cancel": "Anuluj",
+  "save": "Zapisz",
+  "validation": {
+    "required": "Pole wymagane",
+    "futureDate": "Data musi być w przyszłości",
+    "lapTimeFormat": "Format: min:sek:ms (np. 1:35:000)",
+    "positiveNumber": "Wartość musi być większa od 0",
+    "nonNegativeNumber": "Wartość nie może być ujemna"
+  }
 }
