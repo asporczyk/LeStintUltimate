@@ -17,4 +17,12 @@ export default defineConfig({
       i18n: path.resolve(__dirname, './src/i18n'),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
+    },
+  },
+  publicDir: 'public',
 })
