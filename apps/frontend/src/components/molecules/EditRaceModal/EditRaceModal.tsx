@@ -105,8 +105,8 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.avgFuelPerLap.trim()) {
     errors.avgFuelPerLap = 'validation.required'
-  } else if (Number(formData.avgFuelPerLap) < 0) {
-    errors.avgFuelPerLap = 'validation.nonNegativeNumber'
+  } else if (Number(formData.avgFuelPerLap) < 0 || Number(formData.avgFuelPerLap) > 100) {
+    errors.avgFuelPerLap = 'validation.fuelPercentRange'
   }
 
   if (!formData.avgStintTime.trim()) {
@@ -269,6 +269,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                   onChange={handleChange('avgFuelPerLap')}
                   placeholder="4.5"
                   min="0"
+                  max="100"
                   step="0.1"
                 />
                 <InputUnit>%</InputUnit>

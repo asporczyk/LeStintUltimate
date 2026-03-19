@@ -43,6 +43,7 @@
     "lapTimeFormat": "Format: min:sec:ms (e.g. 1:35:000)",
     "positiveNumber": "Value must be greater than 0",
     "nonNegativeNumber": "Value cannot be negative",
-    "driverNameTooLong": "Driver name max 50 characters"
+    "driverNameTooLong": "Driver name max 50 characters",
+    "fuelPercentRange": "Value must be between 0 and 100"
   }
 }

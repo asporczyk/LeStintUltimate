@@ -43,6 +43,7 @@
     "lapTimeFormat": "Format: min:sek:ms (np. 1:35:000)",
     "positiveNumber": "Wartość musi być większa od 0",
     "nonNegativeNumber": "Wartość nie może być ujemna",
-    "driverNameTooLong": "Nazwa kierowcy max 50 znaków"
+    "driverNameTooLong": "Nazwa kierowcy max 50 znaków",
+    "fuelPercentRange": "Wartość musi być między 0 a 100"
   }
 }
