@@ -72,6 +72,8 @@ export const Input = styled.input`
   background-color: rgba(0, 8, 51, 0.8);
   color: #fff;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 
   &::placeholder {
@@ -128,6 +130,7 @@ export const InputWithUnit = styled.div`
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 `
 
 export const InputUnit = styled.span`
