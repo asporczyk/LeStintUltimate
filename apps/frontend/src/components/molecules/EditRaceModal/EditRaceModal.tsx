@@ -89,12 +89,16 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
     errors.raceLength = 'validation.required'
   } else if (Number(formData.raceLength) <= 0) {
     errors.raceLength = 'validation.positiveNumber'
+  } else if (Number(formData.raceLength) > 24) {
+    errors.raceLength = 'validation.raceLengthRange'
   }
 
   if (!formData.tireSets.trim()) {
     errors.tireSets = 'validation.required'
   } else if (Number(formData.tireSets) < 0) {
     errors.tireSets = 'validation.nonNegativeNumber'
+  } else if (Number(formData.tireSets) > 100) {
+    errors.tireSets = 'validation.tireSetsRange'
   }
 
   if (!formData.avgLapTime.trim()) {
@@ -113,6 +117,8 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
     errors.avgStintTime = 'validation.required'
   } else if (Number(formData.avgStintTime) < 0) {
     errors.avgStintTime = 'validation.nonNegativeNumber'
+  } else if (Number(formData.avgStintTime) > 120) {
+    errors.avgStintTime = 'validation.stintTimeRange'
   }
 
   if (!formData.drivers || formData.drivers.length === 0) {
@@ -226,6 +232,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                   onChange={handleChange('raceLength')}
                   placeholder="6"
                   min="0"
+                  max="24"
                   step="0.1"
                 />
                 <InputUnit>h</InputUnit>
@@ -243,6 +250,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                 onChange={handleChange('tireSets')}
                 placeholder="30"
                 min="0"
+                max="100"
               />
               {errors.tireSets && <ErrorText>{t(errors.tireSets)}</ErrorText>}
             </FormGroup>
@@ -286,6 +294,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                   onChange={handleChange('avgStintTime')}
                   placeholder="42"
                   min="0"
+                  max="120"
                 />
                 <InputUnit>min</InputUnit>
               </InputWithUnit>

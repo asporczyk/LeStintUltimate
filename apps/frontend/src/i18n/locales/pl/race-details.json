@@ -44,6 +44,9 @@
     "positiveNumber": "Wartość musi być większa od 0",
     "nonNegativeNumber": "Wartość nie może być ujemna",
     "driverNameTooLong": "Nazwa kierowcy max 50 znaków",
-    "fuelPercentRange": "Wartość musi być między 0 a 100"
+    "fuelPercentRange": "Wartość musi być między 0 a 100",
+    "raceLengthRange": "Maksymalnie 24h",
+    "tireSetsRange": "Maksymalnie 100 zestawów",
+    "stintTimeRange": "Maksymalnie 120 minut"
   }
 }

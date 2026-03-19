@@ -44,6 +44,9 @@
     "positiveNumber": "Value must be greater than 0",
     "nonNegativeNumber": "Value cannot be negative",
     "driverNameTooLong": "Driver name max 50 characters",
-    "fuelPercentRange": "Value must be between 0 and 100"
+    "fuelPercentRange": "Value must be between 0 and 100",
+    "raceLengthRange": "Maximum 24h",
+    "tireSetsRange": "Maximum 100 sets",
+    "stintTimeRange": "Maximum 120 minutes"
   }
 }
