@@ -9,6 +9,7 @@ export function buildServer() {
     const app = Fastify({ logger: true });
 
     app.register(cors, {
+        origin: '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     });
 
