@@ -1,8 +1,15 @@
 import { Server } from "socket.io";
 import { Stint } from "./models/Stint.js";
+import { Race } from "./models/Race.js";
+
+let io: Server;
+
+export function getIO() {
+    return io;
+}
 
 export function initSocket(httpServer: any) {
-    const io = new Server(httpServer, {
+    io = new Server(httpServer, {
         cors: { origin: "*" }
     });
 
@@ -42,6 +49,17 @@ export function initSocket(httpServer: any) {
             await stint.save();
 
             io.emit("stint:unlocked", stintId);
+        });
+
+        socket.on("race:update", async ({ raceId, patch }) => {
+            const race = await Race.findByIdAndUpdate(
+                raceId,
+                { $set: patch },
+                { new: true }
+            );
+            if (!race) return;
+
+            io.emit("race:updated", race);
         });
 
         socket.on("disconnect", async () => {

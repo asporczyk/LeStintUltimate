@@ -1,5 +1,6 @@
 import {FastifyInstance} from "fastify";
 import {Race} from "../models/Race.js";
+import {getIO} from "../socket.js";
 
 export default async function raceRoutes(app: FastifyInstance) {
     app.get("/races", async () => {
@@ -30,6 +31,28 @@ export default async function raceRoutes(app: FastifyInstance) {
         if (!race) {
             return reply.status(404).send({ error: "Wyścig nie znaleziony" });
         }
+        return race;
+    });
+
+    app.patch("/races/:id", async (req, reply) => {
+        const { id } = req.params as any;
+        const patch = req.body as Partial<typeof Race>;
+        
+        const race = await Race.findByIdAndUpdate(
+            id,
+            { $set: patch },
+            { new: true }
+        );
+        
+        if (!race) {
+            return reply.status(404).send({ error: "Wyścig nie znaleziony" });
+        }
+
+        const io = getIO();
+        if (io) {
+            io.emit("race:updated", race);
+        }
+        
         return race;
     });
 }

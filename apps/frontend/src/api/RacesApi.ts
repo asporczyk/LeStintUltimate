@@ -34,4 +34,13 @@ export const RacesApi = {
     }
     return res.json()
   },
+
+  update: async (id: string, data: Partial<Race>): Promise<Race> => {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return res.json()
+  },
 }

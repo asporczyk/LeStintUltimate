@@ -6,10 +6,20 @@ import { Loader } from 'components/atoms/Loader/Loader'
 import { BodyM } from 'components/atoms/Typography/Typography.styles'
 import { IconTextButton } from 'components/atoms/IconTextButton/IconTextButton'
 import { StintSchedule } from 'components/molecules/StintSchedule/StintSchedule'
+import { EditRaceModal } from 'components/molecules/EditRaceModal/EditRaceModal'
 import { RacesApi } from 'api/RacesApi'
+import { useSocket } from '@/hooks/useSocket'
 import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
+
+function formatLapTimeDisplay(seconds: number | undefined): string {
+  if (!seconds) return '-'
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  const ms = Math.round((seconds % 1) * 1000)
+  return `${mins}:${secs.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`
+}
 
 export function RaceDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -18,6 +28,8 @@ export function RaceDetailsPage() {
   const [race, setRace] = useState<Race | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { onRaceUpdated } = useSocket()
 
   useEffect(() => {
     const fetchRace = async () => {
@@ -25,16 +37,8 @@ export function RaceDetailsPage() {
       setLoading(true)
       try {
         const data = await RacesApi.getById(id)
-        setRace({
-          ...data,
-          raceLength: 6,
-          drivers: ['Max Verstappen', 'Sergio Perez'],
-          tireSets: 30,
-          avgLapTime: 95,
-          avgFuelPerLap: 4.5,
-          avgStintTime: 42
-        })
-      } catch (err) {
+        setRace(data)
+      } catch {
         setError(t('failedToLoad'))
       } finally {
         setLoading(false)
@@ -42,6 +46,29 @@ export function RaceDetailsPage() {
     }
     fetchRace()
   }, [id, t])
+
+  useEffect(() => {
+    if (!id) return
+
+    const unsubscribe = onRaceUpdated((updatedRace) => {
+      if (updatedRace._id === id) {
+        setRace(updatedRace)
+      }
+    })
+
+    return unsubscribe
+  }, [id, onRaceUpdated])
+
+  const handleSaveRace = async (updatedData: Partial<Race>) => {
+    if (!id || !race) return
+    try {
+      const updatedRace = await RacesApi.update(id, updatedData)
+      setRace(updatedRace)
+      setIsEditModalOpen(false)
+    } catch {
+      console.error('Failed to update race')
+    }
+  }
 
   if (loading) {
     return (
@@ -70,7 +97,7 @@ export function RaceDetailsPage() {
       </IconTextButton>
       <IconTextButton 
         icon={EditIcon} 
-        onClick={() => console.log('Edit race')} 
+        onClick={() => setIsEditModalOpen(true)} 
         style={{ position: 'absolute', top: '1rem', right: '1rem' }}
       >
         {t('editRace')}
@@ -83,7 +110,7 @@ export function RaceDetailsPage() {
             <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') : t('notSet')}</BodyM>
             <BodyM>{t('raceLength')}: {race.raceLength}h</BodyM>
             <BodyM>{t('tireSets')}: {race.tireSets}</BodyM>
-            <BodyM>{t('avgLapTime')}: 1:35:000</BodyM>
+            <BodyM>{t('avgLapTime')}: {formatLapTimeDisplay(race.avgLapTime)}</BodyM>
             <BodyM>{t('avgFuelPerLap')}: {race.avgFuelPerLap}%</BodyM>
             <BodyM>{t('avgStintTime')}: {race.avgStintTime} min</BodyM>
             <BodyM>{t('drivers')}: {race.drivers.join(', ')}</BodyM>
@@ -91,6 +118,15 @@ export function RaceDetailsPage() {
         </HeaderLeft>
       </HeaderRow>
       <StintSchedule />
+      {race && (
+        <EditRaceModal
+          key={isEditModalOpen ? 'open' : 'closed'}
+          isOpen={isEditModalOpen}
+          race={race}
+          onConfirm={handleSaveRace}
+          onCancel={() => setIsEditModalOpen(false)}
+        />
+      )}
     </RaceDetailsContainer>
   )
 }

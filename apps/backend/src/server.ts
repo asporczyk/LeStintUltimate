@@ -9,7 +9,7 @@ export function buildServer() {
     const app = Fastify({ logger: true });
 
     app.register(cors, {
-        methods: ['GET', 'POST', 'PUT', 'DELETE']
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     });
 
     app.register(swagger, {
