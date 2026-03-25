@@ -107,7 +107,7 @@ export function RaceDetailsPage() {
           <PageTitle>{race.name}</PageTitle>
           <RaceInfo>
             <BodyM>{t('created')}: {new Date(race.createdAt).toLocaleDateString('pl-PL')}</BodyM>
-            <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') : t('notSet')}</BodyM>
+            <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') + ' ' + (race.startTime || '19:30') : t('notSet')}</BodyM>
             <BodyM>{t('raceLength')}: {race.raceLength}h</BodyM>
             <BodyM>{t('tireSets')}: {race.tireSets}</BodyM>
             <BodyM>{t('avgLapTime')}: {formatLapTimeDisplay(race.avgLapTime)}</BodyM>
@@ -117,7 +117,7 @@ export function RaceDetailsPage() {
           </RaceInfo>
         </HeaderLeft>
       </HeaderRow>
-      <StintSchedule />
+      {race && <StintSchedule drivers={race.drivers || []} avgStintTime={race.avgStintTime} avgLapTime={race.avgLapTime} raceId={race._id} startTime={race.startTime || '19:30'} tireSets={race.tireSets || 0} />}
       {race && (
         <EditRaceModal
           key={isEditModalOpen ? 'open' : 'closed'}

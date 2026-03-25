@@ -31,19 +31,6 @@ export const ModalTitle = styled.h2`
   font-family: 'Hanken Grotesk', sans-serif;
 `
 
-export const ModalText = styled.p`
-  margin: 0 0 24px;
-  color: rgba(255, 255, 255, 0.7);
-  font-family: 'Hanken Grotesk', sans-serif;
-`
-
-export const ModalButtons = styled.div`
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 8px;
-`
-
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -63,6 +50,13 @@ export const Label = styled.label`
   font-family: 'Hanken Grotesk', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+`
+
+export const ModalButtons = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
 `
 
 export const SliderContainer = styled.div`
@@ -109,6 +103,11 @@ export const CheckboxGroup = styled.div`
   gap: 8px 16px;
 `
 
+export const CheckboxRow = styled.div`
+  display: flex;
+  gap: 12px;
+`
+
 export const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
@@ -142,11 +141,6 @@ export const Select = styled.select`
   &:focus {
     border-color: #FF1D44;
     box-shadow: 0 0 20px rgba(255, 29, 68, 0.3);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 `
 

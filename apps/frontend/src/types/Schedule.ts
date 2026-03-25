@@ -11,7 +11,7 @@ export interface Stint {
   tireFR: string
   tireRL: string
   tireRR: string
-  usedTires: number
+  tires: number
   lockedBy?: string
 }
 

@@ -2,7 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
+import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
+import { EditStintModal } from 'components/molecules/EditStintModal/EditStintModal'
+import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
+import { StintsApi } from 'api/StintsApi'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -28,260 +32,71 @@ import {
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
 
-const mockStints: Stint[] = [
-  {
-    _id: '1',
-    scheduleId: 'sch1',
-    startTime: 0,
-    duration: 45,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 0,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 30,
-    lockedBy: 'team'
-  },
-  {
-    _id: '2',
-    scheduleId: 'sch1',
-    startTime: 45,
-    duration: 42,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 37,
-    fuel: 100,
-    tireFL: 'S',
-    tireFR: 'S',
-    tireRL: 'S',
-    tireRR: 'S',
-    usedTires: 26
-  },
-  {
-    _id: '3',
-    scheduleId: 'sch1',
-    startTime: 87,
-    duration: 48,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 62,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 26
-  },
-  {
-    _id: '4',
-    scheduleId: 'sch1',
-    startTime: 135,
-    duration: 40,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 78,
-    fuel: 100,
-    tireFL: 'M',
-    tireFR: 'M',
-    tireRL: 'M',
-    tireRR: 'M',
-    usedTires: 22
-  },
-  {
-    _id: '5',
-    scheduleId: 'sch1',
-    startTime: 175,
-    duration: 35,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 97,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 22
-  },
-  {
-    _id: '6',
-    scheduleId: 'sch1',
-    startTime: 210,
-    duration: 44,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 117,
-    fuel: 100,
-    tireFL: 'H',
-    tireFR: 'H',
-    tireRL: 'H',
-    tireRR: 'H',
-    usedTires: 18
-  },
-  {
-    _id: '7',
-    scheduleId: 'sch1',
-    startTime: 254,
-    duration: 39,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 136,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 18
-  },
-  {
-    _id: '8',
-    scheduleId: 'sch1',
-    startTime: 293,
-    duration: 41,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 155,
-    fuel: 100,
-    tireFL: 'S',
-    tireFR: 'S',
-    tireRL: 'S',
-    tireRR: 'S',
-    usedTires: 14
-  },
-  {
-    _id: '9',
-    scheduleId: 'sch1',
-    startTime: 334,
-    duration: 46,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 177,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 14
-  },
-  {
-    _id: '10',
-    scheduleId: 'sch1',
-    startTime: 380,
-    duration: 38,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 194,
-    fuel: 100,
-    tireFL: 'M',
-    tireFR: 'M',
-    tireRL: 'M',
-    tireRR: 'M',
-    usedTires: 10
-  },
-  {
-    _id: '11',
-    scheduleId: 'sch1',
-    startTime: 418,
-    duration: 43,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 214,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 10
-  },
-  {
-    _id: '12',
-    scheduleId: 'sch1',
-    startTime: 461,
-    duration: 37,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 233,
-    fuel: 100,
-    tireFL: 'H',
-    tireFR: 'H',
-    tireRL: 'H',
-    tireRR: 'H',
-    usedTires: 6
-  },
-  {
-    _id: '13',
-    scheduleId: 'sch1',
-    startTime: 498,
-    duration: 45,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 257,
-    fuel: 100,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 6
-  },
-  {
-    _id: '14',
-    scheduleId: 'sch1',
-    startTime: 543,
-    duration: 40,
-    driver: 'Sergio Perez',
-    spotter: 'Romain',
-    fuelLaps: 275,
-    fuel: 100,
-    tireFL: 'S',
-    tireFR: 'S',
-    tireRL: 'S',
-    tireRR: 'S',
-    usedTires: 2
-  },
-  {
-    _id: '15',
-    scheduleId: 'sch1',
-    startTime: 583,
-    duration: 42,
-    driver: 'Max Verstappen',
-    spotter: 'Mick',
-    fuelLaps: 297,
-    fuel: 25,
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    usedTires: 2
-  }
-]
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+)
 
-const RACE_START_HOUR = 17
-const RACE_START_MINUTE = 30
-
-function formatTime(minutes: number): string {
-  const totalMinutes = RACE_START_HOUR * 60 + RACE_START_MINUTE + minutes
-  const hours = Math.floor(totalMinutes / 60) % 24
-  const mins = totalMinutes % 60
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
+function formatTime(minutes: number, startTime: string): string {
+  const [hours, mins] = startTime.split(':').map(Number)
+  const totalMinutes = hours * 60 + mins + minutes
+  const newHours = Math.floor(totalMinutes / 60) % 24
+  const newMins = totalMinutes % 60
+  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
 }
 
 function formatDuration(minutes: number): string {
   return `${minutes} min`
 }
 
-export function StintSchedule() {
+function getTiresAtIndex(stints: Stint[], index: number, tireSets: number): number {
+  if (stints.length === 0) return tireSets
+  
+  let tires = tireSets
+  for (let i = 0; i <= index; i++) {
+    const stint = stints[i]
+    if (stint) {
+      const changedTires = [
+        stint.tireFL !== '-' ? 1 : 0,
+        stint.tireFR !== '-' ? 1 : 0,
+        stint.tireRL !== '-' ? 1 : 0,
+        stint.tireRR !== '-' ? 1 : 0
+      ].reduce((sum, v) => sum + v, 0)
+      tires = tires - changedTires
+    }
+  }
+  return tires
+}
+
+interface StintScheduleProps {
+  drivers: string[]
+  avgStintTime: number
+  avgLapTime: number
+  raceId: string
+  startTime: string
+  tireSets: number
+}
+
+export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
+  const [stints, setStints] = useState<Stint[]>([])
   const [currentRaceTime, setCurrentRaceTime] = useState<number>(() => {
+    const safeStartTime = startTime || '19:30'
+    const [hours, minutes] = safeStartTime.split(':').map(Number)
     const now = new Date()
     const raceStart = new Date(now)
-    raceStart.setHours(17, 30, 0, 0)
+    raceStart.setHours(hours, minutes, 0, 0)
     return Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000))
   })
   const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingStint, setEditingStint] = useState<Stint | null>(null)
+  const [editingStintIndex, setEditingStintIndex] = useState(0)
   const [addAfterStint, setAddAfterStint] = useState(0)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deletingStint, setDeletingStint] = useState<Stint | null>(null)
   const [notes, setNotes] = useState('')
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const MAX_CHARS = 200
@@ -294,10 +109,27 @@ export function StintSchedule() {
   }, [notes])
 
   useEffect(() => {
+    const loadStints = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/schedule/${raceId}`)
+        const data = await res.json()
+        if (data.stints) {
+          setStints(data.stints)
+        }
+      } catch (err) {
+        console.error('Failed to load stints', err)
+      }
+    }
+    if (raceId) {
+      loadStints()
+    }
+  }, [raceId])
+
+  useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date()
       const raceStart = new Date(now)
-      raceStart.setHours(17, 30, 0, 0)
+    raceStart.setHours(19, 30, 0, 0)
       setCurrentRaceTime(Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000)))
     }, 60000)
     return () => clearInterval(interval)
@@ -310,7 +142,18 @@ export function StintSchedule() {
   return (
     <ScheduleContainer>
       <ScheduleTitle>{t('stintSchedule')}</ScheduleTitle>
-      <TableWrapper>
+      {stints.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1rem' }}>{t('noStints')}</p>
+          <TextButton onClick={() => {
+            setAddAfterStint(0)
+            setAddModalOpen(true)
+          }}>
+            {t('addFirstStint')}
+          </TextButton>
+        </div>
+      ) : (
+        <TableWrapper>
         <Table>
           <TableHead>
             <tr>
@@ -326,21 +169,24 @@ export function StintSchedule() {
               <TableHeader>FR</TableHeader>
               <TableHeader>RL</TableHeader>
               <TableHeader>RR</TableHeader>
-              <TableHeader>{t('usedTires')}</TableHeader>
+              <TableHeader>{t('tires')}</TableHeader>
               <TableHeader></TableHeader>
             </tr>
           </TableHead>
           <TableBody>
-            {mockStints.map((stint, index) => {
-              const endTime = stint.startTime + stint.duration
-              const isActive = isStintActive(stint.startTime, stint.duration)
+            {stints.map((stint, index) => {
+              const stintStartTime = stints.slice(0, index).reduce((sum, s) => sum + s.duration, 0)
+              const stintEndTime = stintStartTime + stint.duration
+              const isActive = isStintActive(stintStartTime, stint.duration)
+              const displayTires = getTiresAtIndex(stints, index, tireSets)
+              
               return (
                 <>
                   <TableRow key={stint._id} $isActive={isActive}>
                     <StintNumberCell>{index + 1}</StintNumberCell>
-                    <TableCell>{formatTime(stint.startTime)}</TableCell>
+                    <TableCell>{formatTime(stintStartTime, startTime)}</TableCell>
                     <TableCell>{formatDuration(stint.duration)}</TableCell>
-                    <TableCell>{formatTime(endTime)}</TableCell>
+                    <TableCell>{formatTime(stintEndTime, startTime)}</TableCell>
                     <TableCell>{stint.fuelLaps}</TableCell>
                     <DriverCell>
                       {stint.driver}
@@ -348,15 +194,22 @@ export function StintSchedule() {
                     </DriverCell>
                     <TableCell>{stint.spotter}</TableCell>
                     <TableCell>{stint.fuel}%</TableCell>
-                    <TableCell>{stint.tireFL}</TableCell>
-                    <TableCell>{stint.tireFR}</TableCell>
-                    <TableCell>{stint.tireRL}</TableCell>
-                    <TableCell>{stint.tireRR}</TableCell>
-                    <TableCell>{stint.usedTires}</TableCell>
+                    <TableCell>{stint.tireFL !== '-' ? <CheckIcon /> : stint.tireFL}</TableCell>
+                    <TableCell>{stint.tireFR !== '-' ? <CheckIcon /> : stint.tireFR}</TableCell>
+                    <TableCell>{stint.tireRL !== '-' ? <CheckIcon /> : stint.tireRL}</TableCell>
+                    <TableCell>{stint.tireRR !== '-' ? <CheckIcon /> : stint.tireRR}</TableCell>
+                    <TableCell>{displayTires}</TableCell>
                     <ActionsCell>
                       <ActionButtonsWrapper>
-                        <IconButton onClick={() => console.log('Edit', stint._id)} title={t('edit')} icon={EditIcon} />
-                        <IconButton onClick={() => console.log('Delete', stint._id)} title={t('delete')} icon={TrashIcon} />
+                        <IconButton onClick={() => {
+                          setEditingStint(stint)
+                          setEditingStintIndex(index)
+                          setEditModalOpen(true)
+                        }} title={t('edit')} icon={EditIcon} />
+                        <IconButton onClick={() => {
+                          setDeletingStint(stint)
+                          setDeleteModalOpen(true)
+                        }} title={t('delete')} icon={TrashIcon} />
                       </ActionButtonsWrapper>
                     </ActionsCell>
                   </TableRow>
@@ -386,15 +239,71 @@ export function StintSchedule() {
           </TableBody>
         </Table>
       </TableWrapper>
+      )}
       <AddStintModal 
         isOpen={addModalOpen}
         insertAfterStint={addAfterStint}
-        totalStints={mockStints.length}
-        onConfirm={() => {
-          console.log('Add stint after', addAfterStint)
+        totalStints={stints.length}
+        raceId={raceId}
+        drivers={drivers}
+        avgStintTime={avgStintTime}
+        avgLapTime={avgLapTime}
+        previousFuelLaps={addAfterStint > 0 ? stints[addAfterStint - 1]?.fuelLaps ?? 0 : 0}
+        previousTires={getTiresAtIndex(stints, addAfterStint, tireSets)}
+        isFirstStint={stints.length === 0}
+        tireSets={tireSets}
+        onStintAdded={(newStint) => {
+          setStints(prev => [...prev, newStint])
           setAddModalOpen(false)
         }}
         onCancel={() => setAddModalOpen(false)}
+      />
+      {editingStint && (
+        <EditStintModal
+          isOpen={editModalOpen}
+          stint={editingStint}
+          drivers={drivers}
+          avgStintTime={avgStintTime}
+          avgLapTime={avgLapTime}
+          previousFuelLaps={editingStintIndex > 0 ? stints[editingStintIndex - 1].fuelLaps : 0}
+          previousTires={getTiresAtIndex(stints, editingStintIndex, tireSets)}
+          isFirstStint={editingStintIndex === 0}
+          tireSets={tireSets}
+          onConfirm={async (updatedStint) => {
+            try {
+              const updated = await StintsApi.update(editingStint._id, updatedStint)
+              setStints(prev => prev.map(s => s._id === editingStint._id ? updated : s))
+              setEditModalOpen(false)
+              setEditingStint(null)
+            } catch (err) {
+              console.error('Failed to update stint', err)
+            }
+          }}
+          onCancel={() => {
+            setEditModalOpen(false)
+            setEditingStint(null)
+          }}
+        />
+      )}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title={t('deleteStint')}
+        message={t('confirmDeleteStint')}
+        onConfirm={async () => {
+          if (!deletingStint) return
+          try {
+            await StintsApi.delete(deletingStint._id)
+            setStints(prev => prev.filter(s => s._id !== deletingStint._id))
+            setDeleteModalOpen(false)
+            setDeletingStint(null)
+          } catch (err) {
+            console.error('Failed to delete stint', err)
+          }
+        }}
+        onCancel={() => {
+          setDeleteModalOpen(false)
+          setDeletingStint(null)
+        }}
       />
       <NotesContainer>
         <NotesLabel>{t('notes')}</NotesLabel>

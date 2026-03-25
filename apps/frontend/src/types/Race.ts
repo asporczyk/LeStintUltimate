@@ -3,6 +3,7 @@ export interface Race {
   name: string
   createdAt: Date
   startDate: Date
+  startTime: string
   raceLength: number
   drivers: string[]
   tireSets: number

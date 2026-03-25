@@ -4,6 +4,7 @@ const RaceSchema = new Schema(
     {
         name: { type: String, required: true },
         startDate: { type: Date, required: true },
+        startTime: { type: String, default: '19:30' },
         raceLength: { type: Number, default: 6 },
         drivers: [{ type: String }],
         tireSets: { type: Number, default: 0 },

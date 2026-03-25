@@ -6,18 +6,21 @@ interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
   onRaceUpdated: (callback: (race: Race) => void) => () => void
+  onStintRefresh: (callback: (data: { raceId: string }) => void) => () => void
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
-  onRaceUpdated: () => () => {}
+  onRaceUpdated: () => () => {},
+  onStintRefresh: () => () => {}
 })
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const listenersRef = useRef<Set<(race: Race) => void>>(new Set())
+  const stintRefreshListenersRef = useRef<Set<(data: { raceId: string }) => void>>(new Set())
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -38,6 +41,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       listenersRef.current.forEach(callback => callback(race))
     })
 
+    newSocket.on('stint:refresh', (data: { raceId: string }) => {
+      stintRefreshListenersRef.current.forEach(callback => callback(data))
+    })
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(newSocket)
 
@@ -54,8 +61,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const onStintRefresh = useCallback((callback: (data: { raceId: string }) => void) => {
+    stintRefreshListenersRef.current.add(callback)
+
+    return () => {
+      stintRefreshListenersRef.current.delete(callback)
+    }
+  }, [])
+
   return (
-    <SocketContext.Provider value={{ socket, isConnected, onRaceUpdated }}>
+    <SocketContext.Provider value={{ socket, isConnected, onRaceUpdated, onStintRefresh }}>
       {children}
     </SocketContext.Provider>
   )

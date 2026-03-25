@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import styled from 'styled-components'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 
 const Overlay = styled.div`
   position: fixed;
@@ -8,7 +9,7 @@ const Overlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,23 +17,26 @@ const Overlay = styled.div`
 `
 
 const ModalContent = styled.div`
-  background: white;
+  background: linear-gradient(180deg, #000833 0%, #001244 100%);
   padding: 24px;
   border-radius: 12px;
   max-width: 400px;
   width: 90%;
   text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 `
 
 const ModalTitle = styled.h2`
   margin: 0 0 16px;
   font-size: 18px;
-  color: #000;
+  color: #fff;
+  font-family: 'Hanken Grotesk', sans-serif;
 `
 
 const ModalText = styled.p`
   margin: 0 0 24px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Hanken Grotesk', sans-serif;
 `
 
 const ModalButtons = styled.div`
@@ -50,6 +54,7 @@ interface ConfirmModalProps {
 }
 
 export function ConfirmModal({ isOpen, title, message, onConfirm, onCancel }: ConfirmModalProps) {
+  const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -77,8 +82,12 @@ export function ConfirmModal({ isOpen, title, message, onConfirm, onCancel }: Co
         <ModalTitle>{title}</ModalTitle>
         <ModalText>{message}</ModalText>
         <ModalButtons>
-          <TextButton $variant="secondary" ref={cancelRef} onClick={onCancel}>Anuluj</TextButton>
-          <TextButton $variant="danger" onClick={onConfirm}>Usuń</TextButton>
+          <TextButton $variant="secondary" ref={cancelRef} onClick={onCancel}>
+            {t('cancel')}
+          </TextButton>
+          <TextButton $variant="danger" onClick={onConfirm}>
+            {t('delete')}
+          </TextButton>
         </ModalButtons>
       </ModalContent>
     </Overlay>
