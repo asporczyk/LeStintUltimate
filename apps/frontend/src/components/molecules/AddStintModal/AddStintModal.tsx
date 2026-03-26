@@ -36,6 +36,7 @@ interface AddStintModalProps {
   previousTires: number
   isFirstStint: boolean
   tireSets: number
+  allStints: Stint[]
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
@@ -121,6 +122,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
 
       const newStint = await StintsApi.create({
         scheduleId: raceId,
+        order: insertAfterStint + 1,
         startTime: 0,
         duration: formData.duration,
         driver: formData.driver,

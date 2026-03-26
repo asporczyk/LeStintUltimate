@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { useSocket } from '@/hooks/useSocket'
 import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
 import { EditStintModal } from 'components/molecules/EditStintModal/EditStintModal'
 import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
@@ -80,6 +81,7 @@ interface StintScheduleProps {
 
 export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
+  const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
   const [currentRaceTime, setCurrentRaceTime] = useState<number>(() => {
     const safeStartTime = startTime || '19:30'
@@ -124,6 +126,23 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
       loadStints()
     }
   }, [raceId])
+
+  useEffect(() => {
+    const unsubscribe = onStintRefresh((data) => {
+      if (data.raceId === raceId) {
+        fetch(`${import.meta.env.VITE_API_URL}/schedule/${raceId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.stints) {
+              setStints(data.stints)
+            }
+          })
+          .catch(err => console.error('Failed to refresh stints', err))
+      }
+    })
+
+    return unsubscribe
+  }, [raceId, onStintRefresh])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -179,11 +198,12 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
               const stintEndTime = stintStartTime + stint.duration
               const isActive = isStintActive(stintStartTime, stint.duration)
               const displayTires = getTiresAtIndex(stints, index, tireSets)
+              const stintNumber = stint.order !== undefined ? stint.order : index + 1
               
               return (
                 <>
                   <TableRow key={stint._id} $isActive={isActive}>
-                    <StintNumberCell>{index + 1}</StintNumberCell>
+                    <StintNumberCell>{stintNumber}</StintNumberCell>
                     <TableCell>{formatTime(stintStartTime, startTime)}</TableCell>
                     <TableCell>{formatDuration(stint.duration)}</TableCell>
                     <TableCell>{formatTime(stintEndTime, startTime)}</TableCell>
@@ -220,7 +240,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                         onMouseEnter={() => setHoveredSeparatorIndex(index + 1)}
                         onMouseLeave={() => setHoveredSeparatorIndex(null)}
                         onClick={() => {
-                          setAddAfterStint(index + 1)
+                          const insertAfterOrder = stint.order !== undefined ? stint.order : index + 1
+                          setAddAfterStint(insertAfterOrder)
                           setAddModalOpen(true)
                         }}
                       >
@@ -249,11 +270,11 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         avgStintTime={avgStintTime}
         avgLapTime={avgLapTime}
         previousFuelLaps={addAfterStint > 0 ? stints[addAfterStint - 1]?.fuelLaps ?? 0 : 0}
-        previousTires={getTiresAtIndex(stints, addAfterStint, tireSets)}
-        isFirstStint={stints.length === 0}
+        previousTires={addAfterStint > 0 ? getTiresAtIndex(stints, addAfterStint - 1, tireSets) : tireSets}
+        isFirstStint={addAfterStint === 0}
         tireSets={tireSets}
-        onStintAdded={(newStint) => {
-          setStints(prev => [...prev, newStint])
+        allStints={stints}
+        onStintAdded={() => {
           setAddModalOpen(false)
         }}
         onCancel={() => setAddModalOpen(false)}

@@ -3,6 +3,7 @@ import { Schema, model, Types } from "mongoose";
 const StintSchema = new Schema(
     {
         scheduleId: { type: Types.ObjectId, ref: "Schedule", required: true },
+        order: { type: Number, required: true },
         startTime: Number,
         duration: Number,
         driver: String,

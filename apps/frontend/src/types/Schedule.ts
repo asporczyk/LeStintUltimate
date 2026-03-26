@@ -1,6 +1,7 @@
 export interface Stint {
   _id: string
   scheduleId: string
+  order: number
   startTime: number
   duration: number
   driver: string
