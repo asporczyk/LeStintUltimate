@@ -30,6 +30,7 @@
   "insertAfter": "Stint zostanie dodany po stincie {{after}}",
   "notes": "Notatki",
   "notesPlaceholder": "Dodaj notatki do wyścigu...",
+  "saveNotes": "Zapisz",
   "raceLength": "Długość wyścigu",
   "drivers": "Kierowcy",
   "tireSets": "Liczba opon",

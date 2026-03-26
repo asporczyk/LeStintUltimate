@@ -10,4 +10,5 @@ export interface Race {
   avgLapTime: number
   avgFuelPerLap: number
   avgStintTime: number
+  notes?: string
 }

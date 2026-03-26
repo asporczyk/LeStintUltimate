@@ -295,3 +295,27 @@ export const CharCount = styled.span<{ $isOver: boolean }>`
   text-align: right;
   margin-top: 0.25rem;
 `
+
+export const NotesFooter = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+`
+
+export const SaveNotesButton = styled.button`
+  padding: 0.4rem 0.8rem;
+  background: #FF1D44;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #E0153C;
+  }
+`

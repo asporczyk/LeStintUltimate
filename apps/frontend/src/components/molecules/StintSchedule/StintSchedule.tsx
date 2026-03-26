@@ -28,7 +28,9 @@ import {
   NotesContainer,
   NotesLabel,
   NotesTextarea,
-  CharCount
+  CharCount,
+  NotesFooter,
+  SaveNotesButton
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -77,9 +79,10 @@ interface StintScheduleProps {
   raceId: string
   startTime: string
   tireSets: number
+  notes?: string
 }
 
-export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets }: StintScheduleProps) {
+export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets, notes: initialNotes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
@@ -99,16 +102,34 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   const [addAfterStint, setAddAfterStint] = useState(0)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deletingStint, setDeletingStint] = useState<Stint | null>(null)
-  const [notes, setNotes] = useState('')
+  const [notes, setNotes] = useState(initialNotes || '')
+  const [notesModified, setNotesModified] = useState(false)
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const MAX_CHARS = 200
 
   useEffect(() => {
-    if (notesRef.current) {
-      notesRef.current.style.height = 'auto'
-      notesRef.current.style.height = notesRef.current.scrollHeight + 'px'
+    setNotes(initialNotes || '')
+  }, [initialNotes])
+
+  const handleNotesChange = (value: string) => {
+    setNotes(value)
+    setNotesModified(value !== (initialNotes || ''))
+  }
+
+  const handleSaveNotes = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/races/${raceId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      })
+      if (res.ok) {
+        setNotesModified(false)
+      }
+    } catch (err) {
+      console.error('Failed to save notes', err)
     }
-  }, [notes])
+  }
 
   useEffect(() => {
     const loadStints = async () => {
@@ -331,13 +352,20 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         <NotesTextarea 
           ref={notesRef}
           value={notes}
-          onChange={(e) => setNotes(e.target.value.slice(0, MAX_CHARS))}
+          onChange={(e) => handleNotesChange(e.target.value.slice(0, MAX_CHARS))}
           placeholder={t('notesPlaceholder')}
           rows={3}
         />
-        <CharCount $isOver={notes.length >= MAX_CHARS}>
-          {notes.length}/{MAX_CHARS}
-        </CharCount>
+        <NotesFooter>
+          <CharCount $isOver={notes.length >= MAX_CHARS}>
+            {notes.length}/{MAX_CHARS}
+          </CharCount>
+          {notesModified && (
+            <SaveNotesButton onClick={handleSaveNotes}>
+              {t('saveNotes')}
+            </SaveNotesButton>
+          )}
+        </NotesFooter>
       </NotesContainer>
     </ScheduleContainer>
   )

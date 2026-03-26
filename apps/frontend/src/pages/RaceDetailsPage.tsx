@@ -117,7 +117,15 @@ export function RaceDetailsPage() {
           </RaceInfo>
         </HeaderLeft>
       </HeaderRow>
-      {race && <StintSchedule drivers={race.drivers || []} avgStintTime={race.avgStintTime} avgLapTime={race.avgLapTime} raceId={race._id} startTime={race.startTime || '19:30'} tireSets={race.tireSets || 0} />}
+      {race && <StintSchedule 
+        drivers={race.drivers || []} 
+        avgStintTime={race.avgStintTime} 
+        avgLapTime={race.avgLapTime} 
+        raceId={race._id} 
+        startTime={race.startTime || '19:30'} 
+        tireSets={race.tireSets || 0}
+        notes={race.notes}
+      />}
       {race && (
         <EditRaceModal
           key={isEditModalOpen ? 'open' : 'closed'}
