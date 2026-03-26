@@ -38,6 +38,10 @@ export default async function raceRoutes(app: FastifyInstance) {
         const { id } = req.params as any;
         const patch = req.body as Partial<typeof Race>;
         
+        if (patch.notes && patch.notes.length > 200) {
+            return reply.status(400).send({ error: "Notatka może mieć maksymalnie 200 znaków" });
+        }
+        
         const race = await Race.findByIdAndUpdate(
             id,
             { $set: patch },

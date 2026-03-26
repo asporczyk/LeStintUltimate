@@ -30,6 +30,7 @@
   "insertAfter": "Stint will be added after stint {{after}}",
   "notes": "Notes",
   "notesPlaceholder": "Add notes for the race...",
+  "saveNotes": "Save",
   "raceLength": "Race length",
   "drivers": "Drivers",
   "tireSets": "Number of tires",

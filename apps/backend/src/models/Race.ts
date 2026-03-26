@@ -10,7 +10,15 @@ const RaceSchema = new Schema(
         tireSets: { type: Number, default: 0 },
         avgLapTime: { type: Number, default: 0 },
         avgFuelPerLap: { type: Number, default: 0 },
-        avgStintTime: { type: Number, default: 0 }
+        avgStintTime: { type: Number, default: 0 },
+        notes: { 
+            type: String, 
+            default: '',
+            validate: {
+                validator: (v: string) => v.length <= 200,
+                message: "Notatka może mieć maksymalnie 200 znaków"
+            }
+        }
     },
     { timestamps: true }
 );
