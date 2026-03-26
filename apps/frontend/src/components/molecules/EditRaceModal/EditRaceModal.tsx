@@ -28,6 +28,7 @@ interface EditRaceModalProps {
 interface FormErrors {
   name?: string
   startDate?: string
+  startTime?: string
   raceLength?: string
   tireSets?: string
   avgLapTime?: string
@@ -40,6 +41,7 @@ function getInitialFormData(race: Race) {
   return {
     name: race.name || '',
     startDate: race.startDate ? new Date(race.startDate).toISOString().split('T')[0] : '',
+    startTime: race.startTime || '19:30',
     raceLength: race.raceLength?.toString() || '',
     tireSets: race.tireSets?.toString() || '',
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
@@ -172,6 +174,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
     onConfirm({
       name: formData.name.trim(),
       startDate: new Date(formData.startDate),
+      startTime: formData.startTime,
       raceLength: Number(formData.raceLength),
       tireSets: Number(formData.tireSets),
       avgLapTime: lapTime ?? undefined,
@@ -227,6 +230,17 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                 />
               </InputWithUnit>
               {errors.startDate && <ErrorText>{t(errors.startDate)}</ErrorText>}
+            </FormGroup>
+
+            <FormGroup>
+              <Label>{t('startTime')}</Label>
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="time"
+                  value={formData.startTime}
+                  onChange={handleChange('startTime')}
+                />
+              </InputWithUnit>
             </FormGroup>
 
             <FormGroup>

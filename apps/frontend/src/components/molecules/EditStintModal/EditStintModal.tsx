@@ -4,16 +4,14 @@ import { CustomSelect } from 'components/atoms/CustomSelect/CustomSelect'
 import { CustomCheckbox } from 'components/atoms/CustomCheckbox/CustomCheckbox'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
-import { StintsApi } from 'api/StintsApi'
 import {
   Overlay,
   ModalContent,
   ModalTitle,
-  ModalText,
-  ModalButtons,
   Form,
   FormGroup,
   Label,
+  ModalButtons,
   SliderContainer,
   Slider,
   SliderValue,
@@ -22,13 +20,11 @@ import {
   InputUnit,
   InputWithUnitStyle,
   ErrorText
-} from './AddStintModal.styles'
+} from './EditStintModal.styles'
 
-interface AddStintModalProps {
+interface EditStintModalProps {
   isOpen: boolean
-  insertAfterStint: number
-  totalStints: number
-  raceId: string
+  stint: Stint
   drivers: string[]
   avgStintTime: number
   avgLapTime: number
@@ -36,28 +32,8 @@ interface AddStintModalProps {
   previousTires: number
   isFirstStint: boolean
   tireSets: number
-  allStints: Stint[]
-  onStintAdded: (stint: Stint) => void
+  onConfirm: (updatedStint: Partial<Stint>) => void
   onCancel: () => void
-}
-
-function getInitialFormData(avgStintTime: number, previousFuelLaps: number, avgLapTime: number, isFirst: boolean, tireSets: number, previousTires: number) {
-  const duration = avgStintTime
-  const laps = isFirst ? 0 : Math.floor(duration * 60 / avgLapTime)
-  const fuelLaps = previousFuelLaps + laps
-  const tires = isFirst ? tireSets : previousTires
-  return {
-    duration,
-    fuelLaps,
-    fuel: 100,
-    driver: '',
-    spotter: '',
-    tireFL: '-',
-    tireFR: '-',
-    tireRL: '-',
-    tireRR: '-',
-    tires
-  }
 }
 
 interface FormErrors {
@@ -66,19 +42,53 @@ interface FormErrors {
   spotter?: string
 }
 
-export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, avgLapTime, previousFuelLaps, previousTires, isFirstStint, tireSets, onStintAdded, onCancel }: AddStintModalProps) {
+function getInitialFormData(stint: Stint, avgStintTime: number, isFirstStint: boolean, tireSets: number, previousTires: number) {
+  const tires = isFirstStint ? tireSets : previousTires
+  return {
+    duration: stint.duration || avgStintTime,
+    fuelLaps: stint.fuelLaps || 0,
+    fuel: stint.fuel || 100,
+    driver: stint.driver || '',
+    spotter: stint.spotter || '',
+    tireFL: stint.tireFL || '-',
+    tireFR: stint.tireFR || '-',
+    tireRL: stint.tireRL || '-',
+    tireRR: stint.tireRR || '-',
+    tires
+  }
+}
+
+function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErrors {
+  const errors: FormErrors = {}
+
+  if (!formData.duration || formData.duration < 0 || formData.duration > 120) {
+    errors.duration = 'validation.stintTimeRange'
+  }
+
+  if (!formData.driver.trim()) {
+    errors.driver = 'validation.required'
+  }
+
+  if (!formData.spotter.trim()) {
+    errors.spotter = 'validation.required'
+  }
+
+  return errors
+}
+
+export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTime, previousFuelLaps, previousTires, isFirstStint, tireSets, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const [formData, setFormData] = useState(getInitialFormData(avgStintTime, previousFuelLaps, avgLapTime, isFirstStint, tireSets, previousTires))
+  const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
   const [errors, setErrors] = useState<FormErrors>({})
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(getInitialFormData(avgStintTime, previousFuelLaps, avgLapTime, isFirstStint, tireSets, previousTires))
+      setFormData(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
       setErrors({})
       cancelRef.current?.focus()
     }
-  }, [isOpen, avgStintTime, avgLapTime, previousFuelLaps, isFirstStint, tireSets, previousTires])
+  }, [isOpen, stint, avgStintTime, isFirstStint, tireSets, previousTires])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,77 +101,59 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onCancel])
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-    if (!formData.duration || formData.duration < 0 || formData.duration > 120) {
-      newErrors.duration = 'validation.stintTimeRange'
-    }
-    if (!formData.driver.trim()) {
-      newErrors.driver = 'validation.required'
-    }
-    if (!formData.spotter.trim()) {
-      newErrors.spotter = 'validation.required'
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) return
-
-    try {
-      const changedTires = [
-        formData.tireFL !== '-' ? 1 : 0,
-        formData.tireFR !== '-' ? 1 : 0,
-        formData.tireRL !== '-' ? 1 : 0,
-        formData.tireRR !== '-' ? 1 : 0
-      ].reduce((sum, v) => sum + v, 0)
-
-      const calculatedTires = formData.tires - changedTires
-
-      const newStint = await StintsApi.create({
-        scheduleId: raceId,
-        order: insertAfterStint + 1,
-        startTime: 0,
-        duration: formData.duration,
-        driver: formData.driver,
-        spotter: formData.spotter,
-        fuelLaps: formData.fuelLaps,
-        fuel: formData.fuel,
-        tireFL: formData.tireFL,
-        tireFR: formData.tireFR,
-        tireRL: formData.tireRL,
-        tireRR: formData.tireRR,
-        tires: calculatedTires
-      })
-      onStintAdded(newStint)
-      onCancel()
-    } catch (err) {
-      console.error('Failed to add stint', err)
-    }
+  const calculateFuelLaps = (duration: number, avgLapTimeSeconds: number, prevFuelLaps: number, isFirst: boolean): number => {
+    if (isFirst) return 0
+    if (duration <= 0 || avgLapTimeSeconds <= 0) return prevFuelLaps
+    const laps = Math.floor(duration * 60 / avgLapTimeSeconds)
+    return prevFuelLaps + laps
   }
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = Number(e.target.value)
-    const laps = previousFuelLaps === 0 ? 0 : Math.floor(newDuration * 60 / avgLapTime)
-    const newFuelLaps = previousFuelLaps + laps
-    setFormData(prev => ({ ...prev, duration: newDuration, fuelLaps: newFuelLaps }))
+    setFormData(prev => ({ ...prev, duration: newDuration }))
     if (errors.duration) setErrors(prev => ({ ...prev, duration: undefined }))
   }
 
-  const isLastStint = insertAfterStint === totalStints
-  const message = isLastStint 
-    ? t('insertAfter', { after: insertAfterStint })
-    : t('insertBetween', { after: insertAfterStint, before: insertAfterStint + 1 })
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const formErrors = validateForm(formData)
+    setErrors(formErrors)
+
+    if (Object.keys(formErrors).length > 0) {
+      return
+    }
+
+    const calculatedFuelLaps = calculateFuelLaps(formData.duration, avgLapTime, previousFuelLaps, isFirstStint)
+
+    const changedTires = [
+      formData.tireFL !== '-' ? 1 : 0,
+      formData.tireFR !== '-' ? 1 : 0,
+      formData.tireRL !== '-' ? 1 : 0,
+      formData.tireRR !== '-' ? 1 : 0
+    ].reduce((sum, v) => sum + v, 0)
+
+    const calculatedTires = formData.tires - changedTires
+
+    onConfirm({
+      duration: formData.duration,
+      fuelLaps: calculatedFuelLaps,
+      fuel: formData.fuel,
+      driver: formData.driver,
+      spotter: formData.spotter,
+      tireFL: formData.tireFL,
+      tireFR: formData.tireFR,
+      tireRL: formData.tireRL,
+      tireRR: formData.tireRR,
+      tires: calculatedTires
+    })
+  }
 
   if (!isOpen) return null
 
   return (
     <Overlay onClick={onCancel}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
-        <ModalTitle>{t('addStint')}</ModalTitle>
-        <ModalText style={{ marginBottom: '16px' }}>{message}</ModalText>
+        <ModalTitle>{t('editStint')}</ModalTitle>
         <Form onSubmit={handleSubmit}>
           <FormGroup>
             <Label>{t('duration')}</Label>
@@ -272,7 +264,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
               {t('cancel')}
             </TextButton>
             <TextButton type="submit">
-              {t('add')}
+              {t('save')}
             </TextButton>
           </ModalButtons>
         </Form>

@@ -1,6 +1,7 @@
 export interface Stint {
   _id: string
   scheduleId: string
+  order: number
   startTime: number
   duration: number
   driver: string
@@ -11,7 +12,7 @@ export interface Stint {
   tireFR: string
   tireRL: string
   tireRR: string
-  usedTires: number
+  tires: number
   lockedBy?: string
 }
 
