@@ -10,7 +10,9 @@ export function getIO() {
 
 export function initSocket(httpServer: any) {
     io = new Server(httpServer, {
-        cors: { origin: "*" }
+        cors: { origin: "*" },
+        pingTimeout: 60000,
+        pingInterval: 25000
     });
 
     io.on("connection", (socket) => {

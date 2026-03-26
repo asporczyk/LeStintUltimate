@@ -20,4 +20,7 @@ const StintSchema = new Schema(
     { timestamps: true }
 );
 
+StintSchema.index({ scheduleId: 1 });
+StintSchema.index({ lockedBy: 1 });
+
 export const Stint = model("Stint", StintSchema);

@@ -23,4 +23,6 @@ const RaceSchema = new Schema(
     { timestamps: true }
 );
 
+RaceSchema.index({ createdAt: -1 });
+
 export const Race = model("Race", RaceSchema);
