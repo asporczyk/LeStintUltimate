@@ -222,7 +222,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
                 type="range"
                 min="0"
                 max="100"
-                step="5"
+                step="1"
                 value={formData.fuel}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, fuel: Number(e.target.value) }))}
               />
