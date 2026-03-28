@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
+import { calculatePitstopTime } from '@/hooks/usePitstopTime'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
@@ -43,10 +44,11 @@ const CheckIcon = () => (
 
 function formatTime(minutes: number, startTime: string): string {
   const [hours, mins] = startTime.split(':').map(Number)
-  const totalMinutes = hours * 60 + mins + minutes
+  const totalMinutes = hours * 60 + mins + Math.floor(minutes)
   const newHours = Math.floor(totalMinutes / 60) % 24
   const newMins = totalMinutes % 60
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
+  const secs = Math.round((minutes % 1) * 60)
+  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
 function formatDuration(minutes: number): string {
@@ -79,10 +81,11 @@ interface StintScheduleProps {
   raceId: string
   startTime: string
   tireSets: number
+  fuelTankCapacity: number
   notes?: string
 }
 
-export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets, notes: initialNotes }: StintScheduleProps) {
+export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets, fuelTankCapacity, notes: initialNotes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
@@ -215,7 +218,13 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           </TableHead>
           <TableBody>
             {stints.map((stint, index) => {
-              const stintStartTime = stints.slice(0, index).reduce((sum, s) => sum + s.duration, 0)
+              let stintStartTime = 0
+              for (let i = 0; i < index; i++) {
+                stintStartTime += stints[i].duration
+                if (i < stints.length - 1) {
+                  stintStartTime += calculatePitstopTime(stints[i], stints[i + 1], fuelTankCapacity) / 60
+                }
+              }
               const stintEndTime = stintStartTime + stint.duration
               const isActive = isStintActive(stintStartTime, stint.duration)
               const displayTires = getTiresAtIndex(stints, index, tireSets)

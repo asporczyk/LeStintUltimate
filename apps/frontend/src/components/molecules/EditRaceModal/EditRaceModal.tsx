@@ -31,6 +31,7 @@ interface FormErrors {
   startTime?: string
   raceLength?: string
   tireSets?: string
+  fuelTankCapacity?: string
   avgLapTime?: string
   avgFuelPerLap?: string
   avgStintTime?: string
@@ -44,6 +45,7 @@ function getInitialFormData(race: Race) {
     startTime: race.startTime || '19:30',
     raceLength: race.raceLength?.toString() || '',
     tireSets: race.tireSets?.toString() || '',
+    fuelTankCapacity: race.fuelTankCapacity?.toString() || '',
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
     avgFuelPerLap: race.avgFuelPerLap?.toString() || '',
     avgStintTime: race.avgStintTime?.toString() || '',
@@ -102,6 +104,12 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
     errors.tireSets = 'validation.nonNegativeNumber'
   } else if (Number(formData.tireSets) > 100) {
     errors.tireSets = 'validation.tireSetsRange'
+  }
+
+  if (!formData.fuelTankCapacity.trim()) {
+    errors.fuelTankCapacity = 'validation.required'
+  } else if (Number(formData.fuelTankCapacity) <= 0) {
+    errors.fuelTankCapacity = 'validation.positiveNumber'
   }
 
   if (!formData.avgLapTime.trim()) {
@@ -177,6 +185,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       startTime: formData.startTime,
       raceLength: Number(formData.raceLength),
       tireSets: Number(formData.tireSets),
+      fuelTankCapacity: Number(formData.fuelTankCapacity),
       avgLapTime: lapTime ?? undefined,
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
@@ -275,6 +284,22 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                 />
               </InputWithUnit>
               {errors.tireSets && <ErrorText>{t(errors.tireSets)}</ErrorText>}
+            </FormGroup>
+
+            <FormGroup>
+              <Label>{t('fuelTankCapacity')}</Label>
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="number"
+                  value={formData.fuelTankCapacity}
+                  onChange={handleChange('fuelTankCapacity')}
+                  placeholder="100"
+                  min="1"
+                  step="1"
+                />
+                <InputUnit>L</InputUnit>
+              </InputWithUnit>
+              {errors.fuelTankCapacity && <ErrorText>{t(errors.fuelTankCapacity)}</ErrorText>}
             </FormGroup>
 
             <FormGroup>

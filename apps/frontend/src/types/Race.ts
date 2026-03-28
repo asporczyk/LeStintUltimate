@@ -7,6 +7,7 @@ export interface Race {
   raceLength: number
   drivers: string[]
   tireSets: number
+  fuelTankCapacity: number
   avgLapTime: number
   avgFuelPerLap: number
   avgStintTime: number

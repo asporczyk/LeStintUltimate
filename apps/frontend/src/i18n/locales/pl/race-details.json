@@ -34,6 +34,7 @@
   "raceLength": "Długość wyścigu",
   "drivers": "Kierowcy",
   "tireSets": "Liczba opon",
+  "fuelTankCapacity": "Pojemność baku",
   "avgLapTime": "Śr. czas okrążenia",
   "avgFuelPerLap": "Śr. zużycie paliwa",
   "avgStintTime": "Śr. czas stintu",
