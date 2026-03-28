@@ -31,6 +31,8 @@
   "notes": "Notatki",
   "notesPlaceholder": "Dodaj notatki do wyścigu...",
   "saveNotes": "Zapisz",
+  "driverTotalTime": "Łączny czas jazdy kierowców",
+  "totalTime": "Łączny czas",
   "raceLength": "Długość wyścigu",
   "drivers": "Kierowcy",
   "tireSets": "Liczba opon",

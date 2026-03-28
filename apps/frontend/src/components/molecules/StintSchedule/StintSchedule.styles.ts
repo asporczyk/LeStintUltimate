@@ -319,3 +319,67 @@ export const SaveNotesButton = styled.button`
     background: #E0153C;
   }
 `
+
+export const DriverSummaryContainer = styled.div`
+  width: 100%;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+`
+
+export const DriverSummaryTitle = styled.h3`
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.75rem;
+`
+
+export const DriverSummaryTable = styled.table`
+  width: 100%;
+  max-width: 400px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  overflow: hidden;
+`
+
+export const DriverSummaryHead = styled.thead`
+  background: rgba(255, 255, 255, 0.08);
+`
+
+export const DriverSummaryHeader = styled.th`
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+`
+
+export const DriverSummaryBody = styled.tbody``
+
+export const DriverSummaryRow = styled.tr`
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+`
+
+export const DriverSummaryCell = styled.td`
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+`
+
+export const DriverNameCell = styled(DriverSummaryCell)`
+  font-weight: 500;
+`
+
+export const TotalTimeCell = styled(DriverSummaryCell)`
+  color: rgba(255, 255, 255, 0.8);
+`

@@ -31,6 +31,8 @@
   "notes": "Notes",
   "notesPlaceholder": "Add notes for the race...",
   "saveNotes": "Save",
+  "driverTotalTime": "Total driver time",
+  "totalTime": "Total time",
   "raceLength": "Race length",
   "drivers": "Drivers",
   "tireSets": "Number of tires",
