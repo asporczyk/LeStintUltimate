@@ -8,6 +8,7 @@ const RaceSchema = new Schema(
         raceLength: { type: Number, default: 6 },
         drivers: [{ type: String }],
         tireSets: { type: Number, default: 0 },
+        fuelTankCapacity: { type: Number, default: 100 },
         avgLapTime: { type: Number, default: 0 },
         avgFuelPerLap: { type: Number, default: 0 },
         avgStintTime: { type: Number, default: 0 },

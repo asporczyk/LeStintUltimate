@@ -34,6 +34,7 @@
   "raceLength": "Race length",
   "drivers": "Drivers",
   "tireSets": "Number of tires",
+  "fuelTankCapacity": "Fuel tank capacity",
   "avgLapTime": "Avg lap time",
   "avgFuelPerLap": "Avg fuel per lap",
   "avgStintTime": "Avg stint time",

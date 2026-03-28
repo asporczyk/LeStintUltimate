@@ -110,6 +110,7 @@ export function RaceDetailsPage() {
             <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') + ' ' + (race.startTime || '19:30') : t('notSet')}</BodyM>
             <BodyM>{t('raceLength')}: {race.raceLength}h</BodyM>
             <BodyM>{t('tireSets')}: {race.tireSets}</BodyM>
+            <BodyM>{t('fuelTankCapacity')}: {race.fuelTankCapacity}L</BodyM>
             <BodyM>{t('avgLapTime')}: {formatLapTimeDisplay(race.avgLapTime)}</BodyM>
             <BodyM>{t('avgFuelPerLap')}: {race.avgFuelPerLap}%</BodyM>
             <BodyM>{t('avgStintTime')}: {race.avgStintTime} min</BodyM>
@@ -124,6 +125,7 @@ export function RaceDetailsPage() {
         raceId={race._id} 
         startTime={race.startTime || '19:30'} 
         tireSets={race.tireSets || 0}
+        fuelTankCapacity={race.fuelTankCapacity || 100}
         notes={race.notes}
       />}
       {race && (
