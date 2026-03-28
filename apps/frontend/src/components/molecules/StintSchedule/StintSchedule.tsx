@@ -31,7 +31,16 @@ import {
   NotesTextarea,
   CharCount,
   NotesFooter,
-  SaveNotesButton
+  SaveNotesButton,
+  DriverSummaryContainer,
+  DriverSummaryTitle,
+  DriverSummaryTable,
+  DriverSummaryHead,
+  DriverSummaryHeader,
+  DriverSummaryBody,
+  DriverSummaryRow,
+  DriverNameCell,
+  TotalTimeCell
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -53,6 +62,12 @@ function formatTime(minutes: number, startTime: string): string {
 
 function formatDuration(minutes: number): string {
   return `${minutes} min`
+}
+
+function formatTotalTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const mins = Math.round(minutes % 60)
+  return `${hours}:${mins.toString().padStart(2, '0')}`
 }
 
 function getTiresAtIndex(stints: Stint[], index: number, tireSets: number): number {
@@ -376,6 +391,36 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           )}
         </NotesFooter>
       </NotesContainer>
+      {stints.length > 0 && drivers.length > 0 && (
+        <DriverSummaryContainer>
+          <DriverSummaryTitle>{t('driverTotalTime')}</DriverSummaryTitle>
+          <DriverSummaryTable>
+            <DriverSummaryHead>
+              <tr>
+                <DriverSummaryHeader>{t('driver')}</DriverSummaryHeader>
+                <DriverSummaryHeader>{t('totalTime')}</DriverSummaryHeader>
+              </tr>
+            </DriverSummaryHead>
+            <DriverSummaryBody>
+              {Object.entries(
+                stints.reduce((acc, stint) => {
+                  if (stint.driver) {
+                    acc[stint.driver] = (acc[stint.driver] || 0) + stint.duration
+                  }
+                  return acc
+                }, {} as Record<string, number>)
+              )
+                .sort(([, a], [, b]) => b - a)
+                .map(([driver, totalMinutes]) => (
+                  <DriverSummaryRow key={driver}>
+                    <DriverNameCell>{driver}</DriverNameCell>
+                    <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
+                  </DriverSummaryRow>
+                ))}
+            </DriverSummaryBody>
+          </DriverSummaryTable>
+        </DriverSummaryContainer>
+      )}
     </ScheduleContainer>
   )
 }
