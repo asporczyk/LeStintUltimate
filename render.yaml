@@ -3,7 +3,7 @@ services:
     name: stint-backend
     env: node
     region: fra
-    buildCommand: cd apps/backend && npm install && npm run build
+    buildCommand: npm install && npm run --filter backend build
     startCommand: cd apps/backend && npm run start
     envVars:
       - key: MONGO_URI
@@ -17,7 +17,7 @@ services:
     name: stint-frontend
     env: static
     region: fra
-    buildCommand: cd apps/frontend && npm install && npm run build
+    buildCommand: npm install && npm run --filter frontend build
     staticPublishPath: apps/frontend/dist
     envVars:
       - key: VITE_API_URL
