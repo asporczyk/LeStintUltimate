@@ -17,8 +17,9 @@ services:
     name: stint-frontend
     env: static
     region: fra
-    buildCommand: cd apps/frontend && npm install
+    buildCommand: cd apps/frontend && npm install && npm run build
     staticPublishPath: apps/frontend/dist
     envVars:
       - key: VITE_API_URL
         value: https://stint-backend.onrender.com
+        sync: false
