@@ -4,16 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  dotenv: ^17.2.3
-
 importers:
 
-  .:
-    dependencies:
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
+  .: {}
 
   apps/backend:
     dependencies:
@@ -26,9 +19,6 @@ importers:
       '@fastify/swagger-ui':
         specifier: ^5.2.5
         version: 5.2.5
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
       fastify:
         specifier: 5.6.2
         version: 5.6.2
@@ -882,10 +872,6 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
-
-  dotenv@17.2.3:
-    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
-    engines: {node: '>=12'}
 
   electron-to-chromium@1.5.267:
     resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
@@ -2497,8 +2483,6 @@ snapshots:
 
   detect-libc@2.1.2:
     optional: true
-
-  dotenv@17.2.3: {}
 
   electron-to-chromium@1.5.267: {}
 
