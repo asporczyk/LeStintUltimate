@@ -1,5 +1,8 @@
 {
+  "name": "stint-ultimate",
+  "private": true,
   "scripts": {
+    "build": "pnpm -r run build",
     "dev": "pnpm --parallel dev"
   },
   "dependencies": {
@@ -9,11 +12,5 @@
     "overrides": {
       "dotenv": "^17.2.3"
     }
-  },
-  "name": "stint-ultimate",
-  "private": true,
-  "scripts": {
-    "build": "pnpm -r run build",
-    "dev": "pnpm --parallel dev"
   }
 }

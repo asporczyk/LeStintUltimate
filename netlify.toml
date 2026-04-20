@@ -5,3 +5,4 @@
 
 [build.environment]
   PNPM_VERSION = "10"
+  NPM_FLAGS = "--no-package-lock"
