@@ -19,6 +19,18 @@ const RaceSchema = new Schema(
                 validator: (v: string) => v.length <= 200,
                 message: "Notatka może mieć maksymalnie 200 znaków"
             }
+        },
+        qualification: {
+            startTime: { type: String, default: '19:30' },
+            duration: { type: Number, default: 30 },
+            laps: { type: Number, default: 0 },
+            driver: { type: String, default: '' },
+            spotter: { type: String, default: '' },
+            fuel: { type: Number, default: 100 },
+            tireFL: { type: String, default: '-' },
+            tireFR: { type: String, default: '-' },
+            tireRL: { type: String, default: '-' },
+            tireRR: { type: String, default: '-' }
         }
     },
     { timestamps: true }
