@@ -30,6 +30,7 @@ export function RaceDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [calculatedRaceStartTime, setCalculatedRaceStartTime] = useState<string | null>(null)
   const { onRaceUpdated } = useSocket()
 
   useEffect(() => {
@@ -126,13 +127,14 @@ export function RaceDetailsPage() {
         avgLapTime={race.avgLapTime || 0}
         avgFuelPerLap={race.avgFuelPerLap || 0}
         drivers={race.drivers || []}
+        onCalculatedRaceStart={setCalculatedRaceStartTime}
       />}
       {race && <StintSchedule 
         drivers={race.drivers || []} 
         avgStintTime={race.avgStintTime} 
         avgLapTime={race.avgLapTime} 
         raceId={race._id} 
-        startTime={race.startTime || '19:30'} 
+        startTime={calculatedRaceStartTime || race.startTime || '19:30'} 
         tireSets={Math.max(0, (race.tireSets || 0) - 4)}
         fuelTankCapacity={race.fuelTankCapacity || 100}
         notes={race.notes}

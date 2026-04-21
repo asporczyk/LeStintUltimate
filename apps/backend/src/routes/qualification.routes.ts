@@ -34,26 +34,6 @@ export default async function qualificationRoutes(app: FastifyInstance) {
             tireRR: body.tireRR || 'N'
         };
         const qualification = await Qualification.create(qualificationData);
-
-        if (body.startTime !== undefined || body.duration !== undefined) {
-            const race = await Race.findById(raceId);
-            if (race) {
-                const qualStart = body.startTime ?? qualification.startTime;
-                const duration = body.duration ?? qualification.duration;
-                const [h, m] = qualStart.split(':').map(Number);
-                const qualEnd = h * 60 + m + duration + 2;
-                const newStartHours = Math.floor(qualEnd / 60) % 24;
-                const newStartMins = qualEnd % 60;
-                const newStartTime = `${newStartHours.toString().padStart(2, '0')}:${newStartMins.toString().padStart(2, '0')}`;
-                
-                await Race.findByIdAndUpdate(raceId, { startTime: newStartTime });
-                
-                const io = getIO();
-                if (io) {
-                    io.emit("race:updated", { ...race.toObject(), startTime: newStartTime });
-                }
-            }
-        }
         
         return qualification;
     });
@@ -75,25 +55,6 @@ export default async function qualificationRoutes(app: FastifyInstance) {
         const io = getIO();
         if (io) {
             io.emit("qualification:updated", qualification);
-        }
-
-        if (patch.startTime !== undefined || patch.duration !== undefined) {
-            const race = await Race.findById(raceId);
-            if (race) {
-                const qualStart = patch.startTime ?? qualification.startTime;
-                const duration = patch.duration ?? qualification.duration;
-                const [h, m] = qualStart.split(':').map(Number);
-                const qualEnd = h * 60 + m + duration + 2;
-                const newStartHours = Math.floor(qualEnd / 60) % 24;
-                const newStartMins = qualEnd % 60;
-                const newStartTime = `${newStartHours.toString().padStart(2, '0')}:${newStartMins.toString().padStart(2, '0')}`;
-                
-                await Race.findByIdAndUpdate(raceId, { startTime: newStartTime });
-                
-                if (io) {
-                    io.emit("race:updated", { ...race.toObject(), startTime: newStartTime });
-                }
-            }
         }
         
         return qualification;

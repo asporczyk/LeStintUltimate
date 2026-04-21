@@ -42,9 +42,10 @@ interface QualificationScheduleProps {
   avgLapTime: number
   avgFuelPerLap: number
   drivers: string[]
+  onCalculatedRaceStart?: (calculatedStartTime: string) => void
 }
 
-export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapTime, avgFuelPerLap, drivers }: QualificationScheduleProps) {
+export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapTime, avgFuelPerLap, drivers, onCalculatedRaceStart }: QualificationScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const [qualification, setQualification] = useState<Qualification | null>(null)
   const [loading, setLoading] = useState(true)
@@ -93,6 +94,19 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
       console.error('Failed to update qualification', err)
     }
   }
+
+  const calculatedRaceStartTime = (() => {
+    if (!qualification?.duration) return raceStartTime
+    const [h, m] = (qualification.startTime || raceStartTime).split(':').map(Number)
+    const qualEnd = h * 60 + m + qualification.duration + 2
+    return `${Math.floor(qualEnd / 60) % 24}:${(qualEnd % 60).toString().padStart(2, '0')}`
+  })()
+
+  useEffect(() => {
+    if (onCalculatedRaceStart && qualification) {
+      onCalculatedRaceStart(calculatedRaceStartTime)
+    }
+  }, [qualification, onCalculatedRaceStart, calculatedRaceStartTime])
 
   const availableTires = Math.max(0, tireSets - 4)
   const calculatedLaps = useMemo(() => {
