@@ -40,8 +40,6 @@ export default async function raceRoutes(app: FastifyInstance) {
         const { id } = req.params as any;
         const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; tireSets?: number; fuelTankCapacity?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
         
-        console.log('PATCH received:', JSON.stringify(patch));
-        
         if (patch.notes && patch.notes.length > 200) {
             return reply.status(400).send({ error: "Notatka może mieć maksymalnie 200 znaków" });
         }
@@ -58,8 +56,6 @@ export default async function raceRoutes(app: FastifyInstance) {
             { $set: patch },
             { new: true }
         );
-        
-        console.log('Race after update:', race);
         
         if (!race) {
             return reply.status(404).send({ error: "Wyścig nie znaleziony" });

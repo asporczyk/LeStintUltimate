@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type Qualification } from 'types/Race'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
+import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { EditQualificationModal } from '../EditQualificationModal/EditQualificationModal'
+import { QualificationApi, type Qualification } from 'api/QualificationApi'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -18,6 +19,7 @@ import {
   ActionButtonsWrapper
 } from '../StintSchedule/StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
+import { useSocket } from '@/hooks/useSocket'
 
 const CheckIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -34,19 +36,63 @@ function formatEndTime(startTime: string, durationMinutes: number): string {
 }
 
 interface QualificationScheduleProps {
-  qualification: Qualification | undefined
+  raceId: string
   raceStartTime: string
   tireSets: number
   avgLapTime: number
   avgFuelPerLap: number
   drivers: string[]
-  onQualificationUpdate: (qualification: Qualification, newRaceStartTime?: string) => void
-  showEditButton?: boolean
 }
 
-export function QualificationSchedule({ qualification, raceStartTime, tireSets, avgLapTime, avgFuelPerLap, drivers, onQualificationUpdate, showEditButton = true }: QualificationScheduleProps) {
+export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapTime, avgFuelPerLap, drivers }: QualificationScheduleProps) {
   const { t } = useTranslation('raceDetails')
+  const [qualification, setQualification] = useState<Qualification | null>(null)
+  const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const { onRaceUpdated } = useSocket()
+
+  useEffect(() => {
+    const loadQualification = async () => {
+      try {
+        const data = await QualificationApi.getByRaceId(raceId)
+        setQualification(data)
+      } catch {
+        setQualification(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadQualification()
+  }, [raceId])
+
+  useEffect(() => {
+    const unsubscribe = onRaceUpdated((updatedRace) => {
+      if (updatedRace._id === raceId) {
+        if (updatedRace.startTime !== raceStartTime) {
+          window.location.reload()
+        }
+      }
+    })
+    return unsubscribe
+  }, [raceId, onRaceUpdated, raceStartTime])
+
+  const handleCreate = async (data: Partial<Qualification>) => {
+    try {
+      const created = await QualificationApi.create(raceId, data)
+      setQualification(created)
+    } catch (err) {
+      console.error('Failed to create qualification', err)
+    }
+  }
+
+  const handleUpdate = async (updated: Partial<Qualification>) => {
+    try {
+      const updatedQual = await QualificationApi.update(raceId, updated)
+      setQualification(updatedQual)
+    } catch (err) {
+      console.error('Failed to update qualification', err)
+    }
+  }
 
   const availableTires = Math.max(0, tireSets - 4)
   const calculatedLaps = useMemo(() => {
@@ -63,6 +109,44 @@ export function QualificationSchedule({ qualification, raceStartTime, tireSets, 
   const displayEndTime = qualification?.duration 
     ? formatEndTime(qualStartTime, qualification.duration)
     : formatEndTime(qualStartTime, 30)
+
+if (loading) {
+    return (
+      <ScheduleContainer>
+        <ScheduleTitle>{t('qualificationSchedule')}</ScheduleTitle>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>Loading...</p>
+        </div>
+      </ScheduleContainer>
+    )
+  }
+
+  if (!qualification) {
+    return (
+      <ScheduleContainer>
+        <ScheduleTitle>{t('qualificationSchedule')}</ScheduleTitle>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1rem' }}>{t('noQualification')}</p>
+          <TextButton onClick={() => setEditModalOpen(true)}>
+            {t('addQualification')}
+          </TextButton>
+        </div>
+        <EditQualificationModal
+          isOpen={editModalOpen}
+          qualification={null}
+          raceStartTime={raceStartTime}
+          avgLapTime={avgLapTime}
+          avgFuelPerLap={avgFuelPerLap}
+          drivers={drivers}
+          onConfirm={(updated) => {
+            handleCreate(updated)
+            setEditModalOpen(false)
+          }}
+          onCancel={() => setEditModalOpen(false)}
+        />
+      </ScheduleContainer>
+    )
+  }
 
   return (
     <ScheduleContainer>
@@ -89,11 +173,11 @@ export function QualificationSchedule({ qualification, raceStartTime, tireSets, 
           <TableBody>
             <TableRow>
               <TableCell>{qualStartTime}:00</TableCell>
-              <TableCell>{qualification?.duration || '30'} min</TableCell>
+              <TableCell>{qualification.duration || '30'} min</TableCell>
               <TableCell>{displayEndTime}</TableCell>
               <TableCell>{calculatedLaps}</TableCell>
-              <DriverCell>{qualification?.driver || '-'}</DriverCell>
-              <TableCell>{qualification?.spotter || '-'}</TableCell>
+              <DriverCell>{qualification.driver || '-'}</DriverCell>
+              <TableCell>{qualification.spotter || '-'}</TableCell>
               <TableCell>{calculatedFuel}%</TableCell>
               <TableCell><CheckIcon /></TableCell>
               <TableCell><CheckIcon /></TableCell>
@@ -102,13 +186,11 @@ export function QualificationSchedule({ qualification, raceStartTime, tireSets, 
               <TableCell>{availableTires}</TableCell>
               <ActionsCell>
                 <ActionButtonsWrapper>
-                  {showEditButton && (
-                    <IconButton 
-                      onClick={() => setEditModalOpen(true)} 
-                      title={t('edit')} 
-                      icon={EditIcon} 
-                    />
-                  )}
+                  <IconButton 
+                    onClick={() => setEditModalOpen(true)} 
+                    title={t('edit')} 
+                    icon={EditIcon} 
+                  />
                 </ActionButtonsWrapper>
               </ActionsCell>
             </TableRow>
@@ -117,13 +199,17 @@ export function QualificationSchedule({ qualification, raceStartTime, tireSets, 
       </TableWrapper>
       <EditQualificationModal
         isOpen={editModalOpen}
-        qualification={qualification!}
+        qualification={qualification}
         raceStartTime={raceStartTime}
         avgLapTime={avgLapTime}
         avgFuelPerLap={avgFuelPerLap}
         drivers={drivers}
-        onConfirm={(updated, newRaceStartTime) => {
-          onQualificationUpdate(updated, newRaceStartTime)
+        onConfirm={(updated) => {
+          if (qualification) {
+            handleUpdate(updated)
+          } else {
+            handleCreate(updated)
+          }
           setEditModalOpen(false)
         }}
         onCancel={() => setEditModalOpen(false)}

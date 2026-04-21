@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { CustomSelect } from 'components/atoms/CustomSelect/CustomSelect'
 import { useTranslation } from 'react-i18next'
-import { type Qualification } from 'types/Race'
+import { type Qualification } from 'api/QualificationApi'
 import {
   Overlay,
   ModalContent,
@@ -18,21 +18,13 @@ import {
 
 interface EditQualificationModalProps {
   isOpen: boolean
-  qualification: Qualification
+  qualification: Qualification | null
   raceStartTime: string
   avgLapTime: number
   avgFuelPerLap: number
   drivers: string[]
-  onConfirm: (updatedQualification: Qualification, newRaceStartTime: string) => void
+  onConfirm: (updatedQualification: Partial<Qualification>) => void
   onCancel: () => void
-}
-
-function addMinutesToTime(time: string, minutesToAdd: number): string {
-  const [hours, mins] = time.split(':').map(Number)
-  const totalMins = hours * 60 + mins + minutesToAdd
-  const newHours = Math.floor(totalMins / 60) % 24
-  const newMins = totalMins % 60
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
 }
 
 export function EditQualificationModal({ 
@@ -82,7 +74,6 @@ export function EditQualificationModal({
     const remainingSeconds = totalSeconds % avgLapTime
     const laps = avgLapTime > 0 ? fullLaps + (remainingSeconds > 0 ? 1 : 0) : 0
     const fuel = avgFuelPerLap > 0 ? Math.ceil(laps * avgFuelPerLap) : 0
-    const newRaceStartTime = addMinutesToTime(raceStartTime, Number(formData.duration) + 2)
     onConfirm({
       startTime: raceStartTime,
       duration: Number(formData.duration),
@@ -94,7 +85,7 @@ export function EditQualificationModal({
       tireFR: 'N',
       tireRL: 'N',
       tireRR: 'N'
-    }, newRaceStartTime)
+    })
   }
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

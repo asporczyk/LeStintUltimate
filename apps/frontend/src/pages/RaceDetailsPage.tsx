@@ -63,20 +63,7 @@ export function RaceDetailsPage() {
   const handleSaveRace = async (updatedData: Partial<Race>) => {
     if (!id || !race) return
     try {
-      let dataToSave = { ...updatedData }
-      
-      if (updatedData.qualification?.duration) {
-        const qualStart = updatedData.qualification?.startTime || race.qualification?.startTime || race.startTime || '19:30'
-        const [h, m] = qualStart.split(':').map(Number)
-        const qualEnd = h * 60 + m + updatedData.qualification.duration + 2
-        const newStartHours = Math.floor(qualEnd / 60) % 24
-        const newStartMins = qualEnd % 60
-        dataToSave.startTime = `${newStartHours.toString().padStart(2, '0')}:${newStartMins.toString().padStart(2, '0')}`
-        console.log('DEBUG: qualStart:', qualStart, 'duration:', updatedData.qualification.duration, 'new startTime:', dataToSave.startTime)
-      }
-      
-      const updatedRace = await RacesApi.update(id, dataToSave)
-      console.log('DEBUG: updatedRace.startTime:', updatedRace.startTime)
+      const updatedRace = await RacesApi.update(id, updatedData)
       setRace(updatedRace)
       setIsEditModalOpen(false)
     } catch {
@@ -133,15 +120,12 @@ export function RaceDetailsPage() {
         </HeaderLeft>
       </HeaderRow>
       {race && <QualificationSchedule 
-        qualification={race.qualification} 
+        raceId={race._id}
         raceStartTime={race.startTime} 
         tireSets={race.tireSets || 0}
         avgLapTime={race.avgLapTime || 0}
         avgFuelPerLap={race.avgFuelPerLap || 0}
         drivers={race.drivers || []}
-        onQualificationUpdate={(qualification) => {
-          handleSaveRace({ qualification })
-        }}
       />}
       {race && <StintSchedule 
         drivers={race.drivers || []} 

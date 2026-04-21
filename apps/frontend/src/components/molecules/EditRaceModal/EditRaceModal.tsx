@@ -49,17 +49,7 @@ function getInitialFormData(race: Race) {
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
     avgFuelPerLap: race.avgFuelPerLap?.toString() || '',
     avgStintTime: race.avgStintTime?.toString() || '',
-    drivers: race.drivers || [],
-    qualificationStartTime: race.qualification?.startTime || race.startTime || '14:00',
-    qualificationDuration: race.qualification?.duration?.toString() || '30',
-    qualificationLaps: race.qualification?.laps?.toString() || '',
-    qualificationDriver: race.qualification?.driver || '',
-    qualificationSpotter: race.qualification?.spotter || '',
-    qualificationFuel: race.qualification?.fuel?.toString() || '100',
-    qualificationTireFL: race.qualification?.tireFL || '-',
-    qualificationTireFR: race.qualification?.tireFR || '-',
-    qualificationTireRL: race.qualification?.tireRL || '-',
-    qualificationTireRR: race.qualification?.tireRR || '-'
+    drivers: race.drivers || []
   }
 }
 
@@ -199,19 +189,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       avgLapTime: lapTime ?? undefined,
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
-      drivers: formData.drivers,
-      qualification: {
-        startTime: formData.qualificationStartTime,
-        duration: Number(formData.qualificationDuration),
-        laps: Number(formData.qualificationLaps) || 0,
-        driver: formData.qualificationDriver,
-        spotter: formData.qualificationSpotter,
-        fuel: Number(formData.qualificationFuel),
-        tireFL: formData.qualificationTireFL || '-',
-        tireFR: formData.qualificationTireFR || '-',
-        tireRL: formData.qualificationTireRL || '-',
-        tireRR: formData.qualificationTireRR || '-'
-      }
+      drivers: formData.drivers
     })
   }
 
@@ -381,141 +359,6 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
               placeholder={t('driversPlaceholder')}
             />
             {errors.drivers && <ErrorText>{t(errors.drivers)}</ErrorText>}
-          </FormGroup>
-
-          <FormGroup>
-            <Label>{t('qualificationData')}</Label>
-          </FormGroup>
-
-          <FormRow>
-            <FormGroup>
-              <Label>{t('qualificationStartTime')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="time"
-                  value={formData.qualificationStartTime}
-                  onChange={handleChange('qualificationStartTime')}
-                />
-              </InputWithUnit>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>{t('qualificationDuration')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="number"
-                  value={formData.qualificationDuration}
-                  onChange={handleChange('qualificationDuration')}
-                  min="1"
-                  max="120"
-                />
-                <InputUnit>min</InputUnit>
-              </InputWithUnit>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>{t('laps')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="number"
-                  value={formData.qualificationLaps}
-                  onChange={handleChange('qualificationLaps')}
-                  min="0"
-                />
-              </InputWithUnit>
-            </FormGroup>
-          </FormRow>
-
-          <FormRow>
-            <FormGroup>
-              <Label>{t('driver')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="text"
-                  value={formData.qualificationDriver}
-                  onChange={handleChange('qualificationDriver')}
-                  placeholder={t('driverPlaceholder')}
-                  maxLength={50}
-                />
-              </InputWithUnit>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>{t('spotter')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="text"
-                  value={formData.qualificationSpotter}
-                  onChange={handleChange('qualificationSpotter')}
-                  placeholder={t('spotterPlaceholder')}
-                  maxLength={50}
-                />
-              </InputWithUnit>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>{t('fuel')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="number"
-                  value={formData.qualificationFuel}
-                  onChange={handleChange('qualificationFuel')}
-                  min="0"
-                  max="100"
-                />
-                <InputUnit>%</InputUnit>
-              </InputWithUnit>
-            </FormGroup>
-          </FormRow>
-
-          <FormGroup>
-            <Label>{t('tiresToChange')}</Label>
-            <FormRow>
-              <FormGroup>
-                <Label>FL</Label>
-                <InputWithUnit>
-                  <InputWithUnitStyle
-                    type="text"
-                    value={formData.qualificationTireFL}
-                    onChange={handleChange('qualificationTireFL')}
-                    maxLength={1}
-                  />
-                </InputWithUnit>
-              </FormGroup>
-              <FormGroup>
-                <Label>FR</Label>
-                <InputWithUnit>
-                  <InputWithUnitStyle
-                    type="text"
-                    value={formData.qualificationTireFR}
-                    onChange={handleChange('qualificationTireFR')}
-                    maxLength={1}
-                  />
-                </InputWithUnit>
-              </FormGroup>
-              <FormGroup>
-                <Label>RL</Label>
-                <InputWithUnit>
-                  <InputWithUnitStyle
-                    type="text"
-                    value={formData.qualificationTireRL}
-                    onChange={handleChange('qualificationTireRL')}
-                    maxLength={1}
-                  />
-                </InputWithUnit>
-              </FormGroup>
-              <FormGroup>
-                <Label>RR</Label>
-                <InputWithUnit>
-                  <InputWithUnitStyle
-                    type="text"
-                    value={formData.qualificationTireRR}
-                    onChange={handleChange('qualificationTireRR')}
-                    maxLength={1}
-                  />
-                </InputWithUnit>
-              </FormGroup>
-            </FormRow>
           </FormGroup>
 
           <ModalButtons>

@@ -1,16 +1,3 @@
-export interface Qualification {
-  startTime?: string
-  duration: number
-  laps: number
-  driver: string
-  spotter: string
-  fuel: number
-  tireFL: string
-  tireFR: string
-  tireRL: string
-  tireRR: string
-}
-
 export interface Race {
   _id: string
   name: string
@@ -25,5 +12,4 @@ export interface Race {
   avgFuelPerLap: number
   avgStintTime: number
   notes?: string
-  qualification?: Qualification
 }
