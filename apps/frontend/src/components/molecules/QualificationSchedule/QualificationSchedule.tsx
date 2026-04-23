@@ -51,7 +51,7 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
   const [qualification, setQualification] = useState<Qualification | null>(null)
   const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const { onRaceUpdated } = useSocket()
+  const { onQualificationUpdated } = useSocket()
 
   useEffect(() => {
     const loadQualification = async () => {
@@ -68,15 +68,13 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
   }, [raceId])
 
   useEffect(() => {
-    const unsubscribe = onRaceUpdated((updatedRace) => {
-      if (updatedRace._id === raceId) {
-        if (updatedRace.startTime !== raceStartTime) {
-          window.location.reload()
-        }
+    const unsubscribe = onQualificationUpdated((updatedQualification) => {
+      if (updatedQualification.raceId === raceId) {
+        setQualification(updatedQualification)
       }
     })
     return unsubscribe
-  }, [raceId, onRaceUpdated, raceStartTime])
+  }, [raceId, onQualificationUpdated])
 
   const handleCreate = async (data: Partial<Qualification>) => {
     try {

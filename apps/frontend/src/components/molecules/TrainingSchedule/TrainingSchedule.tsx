@@ -4,6 +4,7 @@ import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { EditTrainingModal } from '../EditTrainingModal/EditTrainingModal'
 import { TrainingApi, type Training } from 'api/TrainingApi'
+import { useSocket } from '@/hooks/useSocket'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -39,6 +40,7 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
   const [training, setTraining] = useState<Training | null>(null)
   const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const { onTrainingUpdated } = useSocket()
 
   useEffect(() => {
     const loadTraining = async () => {
@@ -60,6 +62,15 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
       onTrainingStartTime(endTime)
     }
   }, [training, onTrainingStartTime, raceStartTime])
+
+  useEffect(() => {
+    const unsubscribe = onTrainingUpdated((updatedTraining) => {
+      if (updatedTraining.raceId === raceId) {
+        setTraining(updatedTraining)
+      }
+    })
+    return unsubscribe
+  }, [raceId, onTrainingUpdated])
 
   const handleCreate = async (data: Partial<Training>) => {
     try {
