@@ -10,6 +10,9 @@
   "qualificationSchedule": "Qualification Schedule",
   "noQualification": "No qualification data",
   "addQualification": "Add qualification",
+  "trainingSchedule": "Training Schedule",
+  "noTraining": "No training data",
+  "addTraining": "Add training",
   "laps": "Laps",
   "qualificationData": "Qualification Data",
   "qualificationStartTime": "Start Time",
@@ -72,6 +75,7 @@
     "tireSetsRange": "Maximum 100 tires",
     "stintTimeRange": "Duration must be between 0 and 120 minutes",
     "pitstopLapRange": "Pitstop lap must be between 0 and 500",
-    "nameTooLong": "Name max 100 characters"
+    "nameTooLong": "Name max 100 characters",
+    "editTraining": "Edit Training"
   }
 }
