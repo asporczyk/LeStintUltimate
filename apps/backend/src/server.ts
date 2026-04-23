@@ -4,6 +4,8 @@ import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import scheduleRoutes from "./routes/schedule.routes.js";
 import raceRoutes from "./routes/race.routes.js";
+import qualificationRoutes from "./routes/qualification.routes.js";
+import trainingRoutes from "./routes/training.routes.js";
 
 export function buildServer() {
     const app = Fastify({ logger: true });
@@ -29,6 +31,8 @@ export function buildServer() {
 
     app.register(scheduleRoutes, { prefix: "/api" });
     app.register(raceRoutes, { prefix: "/api" });
+    app.register(qualificationRoutes, { prefix: "/api" });
+    app.register(trainingRoutes, { prefix: "/api" });
 
     return app;
 }

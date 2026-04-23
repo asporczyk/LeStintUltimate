@@ -7,6 +7,20 @@
   "notFound": "Race not found",
   "failedToLoad": "Failed to load race",
   "back": "Back",
+  "qualificationSchedule": "Qualification Schedule",
+  "noQualification": "No qualification data",
+  "addQualification": "Add qualification",
+  "trainingSchedule": "Training Schedule",
+  "noTraining": "No training data",
+  "addTraining": "Add training",
+  "laps": "Laps",
+  "qualificationData": "Qualification Data",
+  "qualificationStartTime": "Start Time",
+  "qualificationDuration": "Duration",
+  "calculatedRaceStart": "Start after qualification",
+  "driverPlaceholder": "Enter driver name",
+  "spotterPlaceholder": "Enter spotter name",
+  "editQualification": "Edit Qualification",
   "stintSchedule": "Stint Schedule",
   "stint": "Stint",
   "startTime": "Start Time",
@@ -61,6 +75,7 @@
     "tireSetsRange": "Maximum 100 tires",
     "stintTimeRange": "Duration must be between 0 and 120 minutes",
     "pitstopLapRange": "Pitstop lap must be between 0 and 500",
-    "nameTooLong": "Name max 100 characters"
+    "nameTooLong": "Name max 100 characters",
+    "editTraining": "Edit Training"
   }
 }

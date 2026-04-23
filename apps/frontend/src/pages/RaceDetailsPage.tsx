@@ -6,6 +6,8 @@ import { Loader } from 'components/atoms/Loader/Loader'
 import { BodyM } from 'components/atoms/Typography/Typography.styles'
 import { IconTextButton } from 'components/atoms/IconTextButton/IconTextButton'
 import { StintSchedule } from 'components/molecules/StintSchedule/StintSchedule'
+import { TrainingSchedule } from 'components/molecules/TrainingSchedule/TrainingSchedule'
+import { QualificationSchedule } from 'components/molecules/QualificationSchedule/QualificationSchedule'
 import { EditRaceModal } from 'components/molecules/EditRaceModal/EditRaceModal'
 import { RacesApi } from 'api/RacesApi'
 import { useSocket } from '@/hooks/useSocket'
@@ -29,6 +31,8 @@ export function RaceDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [calculatedRaceStartTime, setCalculatedRaceStartTime] = useState<string | null>(null)
+  const [trainingEndTime, setTrainingEndTime] = useState<string | null>(null)
   const { onRaceUpdated } = useSocket()
 
   useEffect(() => {
@@ -118,13 +122,27 @@ export function RaceDetailsPage() {
           </RaceInfo>
         </HeaderLeft>
       </HeaderRow>
+      {race && <TrainingSchedule 
+        raceId={race._id}
+        raceStartTime={race.startTime} 
+        onTrainingStartTime={setTrainingEndTime}
+      />}
+      {race && <QualificationSchedule 
+        raceId={race._id}
+        raceStartTime={trainingEndTime || race.startTime} 
+        tireSets={race.tireSets || 0}
+        avgLapTime={race.avgLapTime || 0}
+        avgFuelPerLap={race.avgFuelPerLap || 0}
+        drivers={race.drivers || []}
+        onCalculatedRaceStart={setCalculatedRaceStartTime}
+      />}
       {race && <StintSchedule 
         drivers={race.drivers || []} 
         avgStintTime={race.avgStintTime} 
         avgLapTime={race.avgLapTime} 
         raceId={race._id} 
-        startTime={race.startTime || '19:30'} 
-        tireSets={race.tireSets || 0}
+        startTime={calculatedRaceStartTime || race.startTime || '19:30'} 
+        tireSets={Math.max(0, (race.tireSets || 0) - 4)}
         fuelTankCapacity={race.fuelTankCapacity || 100}
         notes={race.notes}
       />}

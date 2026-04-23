@@ -145,3 +145,42 @@ export const InputUnit = styled.span`
 export const InputWithUnitStyle = styled(Input)`
   padding-right: 40px;
 `
+
+export const SliderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`
+
+export const Slider = styled.input`
+  flex: 1;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #334466;
+  outline: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #FF1D44;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  &::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 29, 68, 0.5);
+  }
+`
+
+export const SliderValue = styled.span`
+  min-width: 45px;
+  text-align: right;
+  font-size: 14px;
+  color: #fff;
+  font-family: 'Hanken Grotesk', sans-serif;
+`

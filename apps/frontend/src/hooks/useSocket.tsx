@@ -7,13 +7,17 @@ interface SocketContextType {
   isConnected: boolean
   onRaceUpdated: (callback: (race: Race) => void) => () => void
   onStintRefresh: (callback: (data: { raceId: string }) => void) => () => void
+  onTrainingUpdated: (callback: (training: any) => void) => () => void
+  onQualificationUpdated: (callback: (qualification: any) => void) => () => void
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
   onRaceUpdated: () => () => {},
-  onStintRefresh: () => () => {}
+  onStintRefresh: () => () => {},
+  onTrainingUpdated: () => () => {},
+  onQualificationUpdated: () => () => {}
 })
 
 export function SocketProvider({ children }: { children: ReactNode }) {
@@ -21,6 +25,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false)
   const listenersRef = useRef<Set<(race: Race) => void>>(new Set())
   const stintRefreshListenersRef = useRef<Set<(data: { raceId: string }) => void>>(new Set())
+  const trainingUpdatedListenersRef = useRef<Set<(training: any) => void>>(new Set())
+  const qualificationUpdatedListenersRef = useRef<Set<(qualification: any) => void>>(new Set())
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -43,6 +49,14 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     newSocket.on('stint:refresh', (data: { raceId: string }) => {
       stintRefreshListenersRef.current.forEach(callback => callback(data))
+    })
+
+    newSocket.on('training:updated', (training: any) => {
+      trainingUpdatedListenersRef.current.forEach(callback => callback(training))
+    })
+
+    newSocket.on('qualification:updated', (qualification: any) => {
+      qualificationUpdatedListenersRef.current.forEach(callback => callback(qualification))
     })
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -69,8 +83,24 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const onTrainingUpdated = useCallback((callback: (training: any) => void) => {
+    trainingUpdatedListenersRef.current.add(callback)
+
+    return () => {
+      trainingUpdatedListenersRef.current.delete(callback)
+    }
+  }, [])
+
+  const onQualificationUpdated = useCallback((callback: (qualification: any) => void) => {
+    qualificationUpdatedListenersRef.current.add(callback)
+
+    return () => {
+      qualificationUpdatedListenersRef.current.delete(callback)
+    }
+  }, [])
+
   return (
-    <SocketContext.Provider value={{ socket, isConnected, onRaceUpdated, onStintRefresh }}>
+    <SocketContext.Provider value={{ socket, isConnected, onRaceUpdated, onStintRefresh, onTrainingUpdated, onQualificationUpdated }}>
       {children}
     </SocketContext.Provider>
   )

@@ -7,6 +7,20 @@
   "notFound": "Nie znaleziono wyścigu",
   "failedToLoad": "Nie udało się pobrać wyścigu",
   "back": "Wróć",
+  "qualificationSchedule": "Harmonogram kwalifikacji",
+  "noQualification": "Brak danych kwalifikacji",
+  "addQualification": "Dodaj kwalifikacje",
+  "trainingSchedule": "Harmonogram treningu",
+  "noTraining": "Brak danych treningu",
+  "addTraining": "Dodaj trening",
+  "laps": "Okrążenia",
+  "qualificationData": "Dane kwalifikacji",
+  "qualificationStartTime": "Godzina startu",
+  "qualificationDuration": "Czas trwania",
+  "calculatedRaceStart": "Start po kwalifikacji",
+  "driverPlaceholder": "Wpisz imię kierowcy",
+  "spotterPlaceholder": "Wpisz imię spottera",
+  "editQualification": "Edytuj kwalifikacje",
   "stintSchedule": "Harmonogram stintów",
   "stint": "Stint",
   "startTime": "Godzina startu",
@@ -61,6 +75,7 @@
     "tireSetsRange": "Maksymalnie 100 opon",
     "stintTimeRange": "Czas trwania musi być między 0 a 120 minut",
     "pitstopLapRange": "Okrążenie pitstopu musi być między 0 a 500",
-    "nameTooLong": "Nazwa max 100 znaków"
+    "nameTooLong": "Nazwa max 100 znaków",
+    "editTraining": "Edytuj trening"
   }
 }
