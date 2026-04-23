@@ -27,12 +27,13 @@ const CheckIcon = () => (
   </svg>
 )
 
-function formatEndTime(startTime: string, durationMinutes: number): string {
+function formatEndTime(startTime: string, durationMinutes: number, extraLapSeconds: number = 0): string {
   const [hours, mins] = startTime.split(':').map(Number)
-  const totalMinutes = hours * 60 + mins + durationMinutes
-  const newHours = Math.floor(totalMinutes / 60) % 24
-  const newMins = totalMinutes % 60
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:00`
+  const totalSeconds = hours * 3600 + mins * 60 + durationMinutes * 60 + extraLapSeconds
+  const newHours = Math.floor(totalSeconds / 3600) % 24
+  const newMins = Math.floor((totalSeconds % 3600) / 60)
+  const newSecs = totalSeconds % 60
+  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${newSecs.toString().padStart(2, '0')}`
 }
 
 interface QualificationScheduleProps {
@@ -98,8 +99,11 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
   const calculatedRaceStartTime = (() => {
     if (!qualification?.duration) return raceStartTime
     const [h, m] = (qualification.startTime || raceStartTime).split(':').map(Number)
-    const qualEnd = h * 60 + m + qualification.duration + 2
-    return `${Math.floor(qualEnd / 60) % 24}:${(qualEnd % 60).toString().padStart(2, '0')}`
+    const qualEndSeconds = h * 3600 + m * 60 + qualification.duration * 60 + avgLapTime
+    const twoMinutesLater = qualEndSeconds + 2 * 60
+    const newHours = Math.floor(twoMinutesLater / 3600) % 24
+    const newMins = Math.floor((twoMinutesLater % 3600) / 60)
+    return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
   })()
 
   useEffect(() => {
@@ -121,8 +125,8 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
 
   const qualStartTime = qualification?.startTime ?? raceStartTime
   const displayEndTime = qualification?.duration 
-    ? formatEndTime(qualStartTime, qualification.duration)
-    : formatEndTime(qualStartTime, 30)
+    ? formatEndTime(qualStartTime, qualification.duration, avgLapTime)
+    : formatEndTime(qualStartTime, 30, avgLapTime)
 
 if (loading) {
     return (
@@ -187,7 +191,10 @@ if (loading) {
           <TableBody>
             <TableRow>
               <TableCell>{qualStartTime}:00</TableCell>
-              <TableCell>{qualification.duration || '30'} min</TableCell>
+              <TableCell>
+                {qualification.duration || '30'} min
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>+1 lap</div>
+              </TableCell>
               <TableCell>{displayEndTime}</TableCell>
               <TableCell>{calculatedLaps}</TableCell>
               <DriverCell>{qualification.driver || '-'}</DriverCell>
