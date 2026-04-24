@@ -104,12 +104,21 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   const { t } = useTranslation('raceDetails')
   const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
-  const [currentRaceTime, setCurrentRaceTime] = useState<number>(() => {
-    const safeStartTime = startTime || '19:30'
-    const [hours, minutes] = safeStartTime.split(':').map(Number)
+  const getRaceStartDate = (startTime: string): Date => {
+    const [hours, minutes] = startTime.split(':').map(Number)
     const now = new Date()
     const raceStart = new Date(now)
     raceStart.setHours(hours, minutes, 0, 0)
+    if (raceStart > now) {
+      raceStart.setDate(raceStart.getDate() - 1)
+    }
+    return raceStart
+  }
+
+  const [currentRaceTime, setCurrentRaceTime] = useState<number>(() => {
+    const safeStartTime = startTime || '19:30'
+    const raceStart = getRaceStartDate(safeStartTime)
+    const now = new Date()
     return Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000))
   })
   const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
@@ -185,13 +194,13 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
 
   useEffect(() => {
     const interval = setInterval(() => {
+      const safeStartTime = startTime || '19:30'
+      const raceStart = getRaceStartDate(safeStartTime)
       const now = new Date()
-      const raceStart = new Date(now)
-    raceStart.setHours(19, 30, 0, 0)
       setCurrentRaceTime(Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000)))
     }, 60000)
     return () => clearInterval(interval)
-  }, [])
+  }, [startTime])
 
   const isStintActive = (startTime: number, duration: number): boolean => {
     return currentRaceTime >= startTime && currentRaceTime < startTime + duration
