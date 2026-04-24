@@ -188,7 +188,7 @@ if (loading) {
           </TableHead>
           <TableBody>
             <TableRow>
-              <TableCell>{qualStartTime}:00</TableCell>
+              <TableCell>{qualStartTime}</TableCell>
               <TableCell>
                 {qualification.duration || '30'} min
                 <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>+1 lap</div>
