@@ -15,6 +15,7 @@ export default defineConfig({
       types: path.resolve(__dirname, './src/types'),
       styles: path.resolve(__dirname, './src/styles'),
       i18n: path.resolve(__dirname, './src/i18n'),
+      hooks: path.resolve(__dirname, './src/hooks'),
     },
   },
   build: {

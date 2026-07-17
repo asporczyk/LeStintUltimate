@@ -4,7 +4,7 @@ import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import {ConfirmModal} from 'components/molecules/ConfirmModal/ConfirmModal'
 import {RaceActions, RaceDate, RaceInfo, RaceItemContainer, RaceName} from './RaceItem.styles'
-import { type Race } from 'types/Race'
+import { type Race } from '@stint-ultimate/shared'
 import TrashIcon from 'assets/svg/trash.svg'
 
 interface RaceItemProps {

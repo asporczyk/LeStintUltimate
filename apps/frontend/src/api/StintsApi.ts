@@ -1,4 +1,4 @@
-import { type Stint } from 'types/Schedule'
+import { type Stint } from '@stint-ultimate/shared'
 
 const API_URL = `${import.meta.env.VITE_API_URL}/stints`
 

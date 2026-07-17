@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type Stint } from 'types/Schedule'
+import { type Stint } from '@stint-ultimate/shared'
 import { calculatePitstopTime } from '@/hooks/usePitstopTime'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'

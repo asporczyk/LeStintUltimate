@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { io, type Socket } from 'socket.io-client'
-import { type Race } from 'types/Race'
+import { type Race } from "@stint-ultimate/shared"
 
 interface SocketContextType {
   socket: Socket | null
