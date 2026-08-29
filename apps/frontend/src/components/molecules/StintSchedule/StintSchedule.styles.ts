@@ -332,6 +332,68 @@ export const DriverSummaryTitle = styled.h3`
   font-weight: 400;
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+export const MinimumRequirementInfoIcon = styled.div`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: help;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.8);
+  }
+`
+
+export const MinimumRequirementTooltip = styled.div`
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+  }
+`
+
+export const MinimumRequirementIconWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+
+  &:hover ${MinimumRequirementTooltip} {
+    opacity: 1;
+  }
 `
 
 export const DriverSummaryTable = styled.table`

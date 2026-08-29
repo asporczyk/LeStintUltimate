@@ -50,6 +50,7 @@
   "raceTimePercentage": "Race %",
   "minimumRequirement": "Minimum required",
   "minimumRequirementWarning": "Warning: Some drivers don't meet the minimum driving time requirement",
+  "minimumRequirementTooltip": "Minimum driving time requirement per driver based on number of drivers in race",
   "raceLength": "Race length",
   "drivers": "Drivers",
   "tireSets": "Number of tires",

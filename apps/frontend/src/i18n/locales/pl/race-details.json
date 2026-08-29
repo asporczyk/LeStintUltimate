@@ -50,6 +50,7 @@
   "raceTimePercentage": "% wyścigu",
   "minimumRequirement": "Wymagane minimum",
   "minimumRequirementWarning": "Ostrzeżenie: Część kierowców nie spełnia minimalnego wymogu czasu jazdy",
+  "minimumRequirementTooltip": "Minimalny wymóg czasu jazdy na kierowcę w zależności od liczby kierowców w wyścigu",
   "raceLength": "Długość wyścigu",
   "drivers": "Kierowcy",
   "tireSets": "Liczba opon",

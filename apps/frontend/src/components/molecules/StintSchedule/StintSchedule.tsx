@@ -43,7 +43,10 @@ import {
   TotalTimeCell,
   RacePercentageCell,
   MinimumRequirementWarning,
-  DriverSummaryRowBelowMinimum
+  DriverSummaryRowBelowMinimum,
+  MinimumRequirementInfoIcon,
+  MinimumRequirementTooltip,
+  MinimumRequirementIconWrapper
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -416,14 +419,21 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
       </NotesContainer>
       {stints.length > 0 && drivers.length > 0 && (
         <DriverSummaryContainer>
-          <DriverSummaryTitle>{t('driverTotalTime')}</DriverSummaryTitle>
+          <DriverSummaryTitle>
+            {t('driverTotalTime')}
+            <MinimumRequirementIconWrapper>
+              <MinimumRequirementInfoIcon title={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
+              <MinimumRequirementTooltip>
+                2 drivers: 25% | 3 drivers: 16.7% | 4 drivers: 12.5% | 5 drivers: 10% | 6+ drivers: 8.3%
+              </MinimumRequirementTooltip>
+            </MinimumRequirementIconWrapper>
+          </DriverSummaryTitle>
           <DriverSummaryTable>
             <DriverSummaryHead>
               <tr>
                 <DriverSummaryHeader>{t('driver')}</DriverSummaryHeader>
                 <DriverSummaryHeader>{t('totalTime')}</DriverSummaryHeader>
                 <DriverSummaryHeader>{t('raceTimePercentage')}</DriverSummaryHeader>
-                <DriverSummaryHeader>{t('minimumRequirement')}</DriverSummaryHeader>
               </tr>
             </DriverSummaryHead>
             <DriverSummaryBody>
@@ -466,7 +476,6 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                         <DriverNameCell>{driver}</DriverNameCell>
                         <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
                         <RacePercentageCell>{percentageStr}%</RacePercentageCell>
-                        <TotalTimeCell>{minimumPercentage.toFixed(1)}%</TotalTimeCell>
                       </DriverSummaryRow>
                     )
                   })
