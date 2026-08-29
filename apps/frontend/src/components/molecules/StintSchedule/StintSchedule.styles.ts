@@ -332,6 +332,91 @@ export const DriverSummaryTitle = styled.h3`
   font-weight: 400;
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+export const MinimumRequirementInfoIcon = styled.div`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: help;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.8);
+  }
+`
+
+export const MinimumRequirementTooltip = styled.div`
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  min-width: 220px;
+  backdrop-filter: blur(10px);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.95);
+  }
+`
+
+export const MinimumRequirementList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    &::before {
+      content: '•';
+      color: #FFB347;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+  }
+`
+
+export const MinimumRequirementIconWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+
+  &:hover ${MinimumRequirementTooltip} {
+    opacity: 1;
+  }
 `
 
 export const DriverSummaryTable = styled.table`
@@ -382,4 +467,37 @@ export const DriverNameCell = styled(DriverSummaryCell)`
 
 export const TotalTimeCell = styled(DriverSummaryCell)`
   color: rgba(255, 255, 255, 0.8);
+`
+
+export const RacePercentageCell = styled(DriverSummaryCell)`
+  color: #FF1D44;
+  font-weight: 500;
+`
+
+export const MinimumRequirementWarning = styled.div`
+  background: rgba(255, 179, 71, 0.15);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  color: #FFB347;
+  font-size: 0.9rem;
+  font-family: 'Hanken Grotesk', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '⚠';
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+`
+
+export const DriverSummaryRowBelowMinimum = styled(DriverSummaryRow)`
+  background: rgba(255, 179, 71, 0.1) !important;
+  
+  &:hover {
+    background: rgba(255, 179, 71, 0.2) !important;
+  }
 `

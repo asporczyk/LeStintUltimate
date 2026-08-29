@@ -40,7 +40,14 @@ import {
   DriverSummaryBody,
   DriverSummaryRow,
   DriverNameCell,
-  TotalTimeCell
+  TotalTimeCell,
+  RacePercentageCell,
+  MinimumRequirementWarning,
+  DriverSummaryRowBelowMinimum,
+  MinimumRequirementInfoIcon,
+  MinimumRequirementTooltip,
+  MinimumRequirementIconWrapper,
+  MinimumRequirementList
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -62,6 +69,17 @@ function formatTime(minutes: number, startTime: string): string {
 
 function formatDuration(minutes: number): string {
   return `${minutes} min`
+}
+
+function getMinimumDriverPercentage(driverCount: number): number {
+  const minimumPercentages: Record<number, number> = {
+    2: 25,
+    3: 16.7,
+    4: 12.5,
+    5: 10,
+    6: 8.3,
+  }
+  return minimumPercentages[driverCount] || (100 / driverCount)
 }
 
 function formatTotalTime(minutes: number): string {
@@ -402,30 +420,88 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
       </NotesContainer>
       {stints.length > 0 && drivers.length > 0 && (
         <DriverSummaryContainer>
-          <DriverSummaryTitle>{t('driverTotalTime')}</DriverSummaryTitle>
+          <DriverSummaryTitle>
+            {t('driverTotalTime')}
+            <MinimumRequirementIconWrapper>
+              <MinimumRequirementInfoIcon title={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
+              <MinimumRequirementTooltip>
+                <MinimumRequirementList>
+                  <li>{t('minimumRequirement2Drivers')}: 25%</li>
+                  <li>{t('minimumRequirement3Drivers')}: 16.7%</li>
+                  <li>{t('minimumRequirement4Drivers')}: 12.5%</li>
+                  <li>{t('minimumRequirement5Drivers')}: 10%</li>
+                  <li>{t('minimumRequirement6Drivers')}: 8.3%</li>
+                </MinimumRequirementList>
+              </MinimumRequirementTooltip>
+            </MinimumRequirementIconWrapper>
+          </DriverSummaryTitle>
           <DriverSummaryTable>
             <DriverSummaryHead>
               <tr>
                 <DriverSummaryHeader>{t('driver')}</DriverSummaryHeader>
                 <DriverSummaryHeader>{t('totalTime')}</DriverSummaryHeader>
+                <DriverSummaryHeader>{t('raceTimePercentage')}</DriverSummaryHeader>
               </tr>
             </DriverSummaryHead>
             <DriverSummaryBody>
-              {Object.entries(
-                stints.reduce((acc, stint) => {
+              {(() => {
+                // Calculate total race time
+                let totalRaceTime = 0
+                for (let i = 0; i < stints.length; i++) {
+                  totalRaceTime += stints[i].duration
+                  if (i < stints.length - 1) {
+                    totalRaceTime += calculatePitstopTime(stints[i], stints[i + 1], fuelTankCapacity) / 60
+                  }
+                }
+
+                // Calculate driver total times
+                const driverTimes = stints.reduce((acc, stint) => {
                   if (stint.driver) {
                     acc[stint.driver] = (acc[stint.driver] || 0) + stint.duration
                   }
                   return acc
                 }, {} as Record<string, number>)
-              )
-                .sort(([, a], [, b]) => b - a)
-                .map(([driver, totalMinutes]) => (
-                  <DriverSummaryRow key={driver}>
-                    <DriverNameCell>{driver}</DriverNameCell>
-                    <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
-                  </DriverSummaryRow>
-                ))}
+
+                const minimumPercentage = getMinimumDriverPercentage(drivers.length)
+                let hasViolation = false
+
+                const rows = Object.entries(driverTimes)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([driver, totalMinutes]) => {
+                    const percentage = totalRaceTime > 0 ? ((totalMinutes / totalRaceTime) * 100) : 0
+                    const percentageStr = percentage.toFixed(1)
+                    const isBelowMinimum = percentage < minimumPercentage
+                    if (isBelowMinimum) {
+                      hasViolation = true
+                    }
+                    
+                    return (
+                      <DriverSummaryRow 
+                        key={driver}
+                        as={isBelowMinimum ? DriverSummaryRowBelowMinimum : DriverSummaryRow}
+                      >
+                        <DriverNameCell>{driver}</DriverNameCell>
+                        <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
+                        <RacePercentageCell>{percentageStr}%</RacePercentageCell>
+                      </DriverSummaryRow>
+                    )
+                  })
+
+                return (
+                  <>
+                    {rows}
+                    {hasViolation && (
+                      <tr>
+                        <td colSpan={4} style={{ padding: 0, border: 'none' }}>
+                          <MinimumRequirementWarning>
+                            {t('minimumRequirementWarning')}
+                          </MinimumRequirementWarning>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                )
+              })()}
             </DriverSummaryBody>
           </DriverSummaryTable>
         </DriverSummaryContainer>
