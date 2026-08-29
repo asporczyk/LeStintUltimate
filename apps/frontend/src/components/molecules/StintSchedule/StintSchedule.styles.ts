@@ -383,3 +383,8 @@ export const DriverNameCell = styled(DriverSummaryCell)`
 export const TotalTimeCell = styled(DriverSummaryCell)`
   color: rgba(255, 255, 255, 0.8);
 `
+
+export const RacePercentageCell = styled(DriverSummaryCell)`
+  color: #FF1D44;
+  font-weight: 500;
+`

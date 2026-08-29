@@ -40,7 +40,8 @@ import {
   DriverSummaryBody,
   DriverSummaryRow,
   DriverNameCell,
-  TotalTimeCell
+  TotalTimeCell,
+  RacePercentageCell
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -408,24 +409,41 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
               <tr>
                 <DriverSummaryHeader>{t('driver')}</DriverSummaryHeader>
                 <DriverSummaryHeader>{t('totalTime')}</DriverSummaryHeader>
+                <DriverSummaryHeader>{t('raceTimePercentage')}</DriverSummaryHeader>
               </tr>
             </DriverSummaryHead>
             <DriverSummaryBody>
-              {Object.entries(
-                stints.reduce((acc, stint) => {
+              {(() => {
+                // Calculate total race time
+                let totalRaceTime = 0
+                for (let i = 0; i < stints.length; i++) {
+                  totalRaceTime += stints[i].duration
+                  if (i < stints.length - 1) {
+                    totalRaceTime += calculatePitstopTime(stints[i], stints[i + 1], fuelTankCapacity) / 60
+                  }
+                }
+
+                // Calculate driver total times
+                const driverTimes = stints.reduce((acc, stint) => {
                   if (stint.driver) {
                     acc[stint.driver] = (acc[stint.driver] || 0) + stint.duration
                   }
                   return acc
                 }, {} as Record<string, number>)
-              )
-                .sort(([, a], [, b]) => b - a)
-                .map(([driver, totalMinutes]) => (
-                  <DriverSummaryRow key={driver}>
-                    <DriverNameCell>{driver}</DriverNameCell>
-                    <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
-                  </DriverSummaryRow>
-                ))}
+
+                return Object.entries(driverTimes)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([driver, totalMinutes]) => {
+                    const percentage = totalRaceTime > 0 ? ((totalMinutes / totalRaceTime) * 100).toFixed(1) : 0
+                    return (
+                      <DriverSummaryRow key={driver}>
+                        <DriverNameCell>{driver}</DriverNameCell>
+                        <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
+                        <RacePercentageCell>{percentage}%</RacePercentageCell>
+                      </DriverSummaryRow>
+                    )
+                  })
+              })()}
             </DriverSummaryBody>
           </DriverSummaryTable>
         </DriverSummaryContainer>
