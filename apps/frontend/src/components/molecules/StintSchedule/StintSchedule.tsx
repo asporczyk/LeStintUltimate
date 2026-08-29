@@ -46,7 +46,8 @@ import {
   DriverSummaryRowBelowMinimum,
   MinimumRequirementInfoIcon,
   MinimumRequirementTooltip,
-  MinimumRequirementIconWrapper
+  MinimumRequirementIconWrapper,
+  MinimumRequirementList
 } from './StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -424,7 +425,13 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
             <MinimumRequirementIconWrapper>
               <MinimumRequirementInfoIcon title={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
               <MinimumRequirementTooltip>
-                2 drivers: 25% | 3 drivers: 16.7% | 4 drivers: 12.5% | 5 drivers: 10% | 6+ drivers: 8.3%
+                <MinimumRequirementList>
+                  <li>{t('minimumRequirement2Drivers')}: 25%</li>
+                  <li>{t('minimumRequirement3Drivers')}: 16.7%</li>
+                  <li>{t('minimumRequirement4Drivers')}: 12.5%</li>
+                  <li>{t('minimumRequirement5Drivers')}: 10%</li>
+                  <li>{t('minimumRequirement6Drivers')}: 8.3%</li>
+                </MinimumRequirementList>
               </MinimumRequirementTooltip>
             </MinimumRequirementIconWrapper>
           </DriverSummaryTitle>
