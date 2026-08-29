@@ -48,6 +48,8 @@
   "driverTotalTime": "Łączny czas jazdy kierowców",
   "totalTime": "Łączny czas",
   "raceTimePercentage": "% wyścigu",
+  "minimumRequirement": "Wymagane minimum",
+  "minimumRequirementWarning": "Ostrzeżenie: Część kierowców nie spełnia minimalnego wymogu czasu jazdy",
   "raceLength": "Długość wyścigu",
   "drivers": "Kierowcy",
   "tireSets": "Liczba opon",

@@ -388,3 +388,31 @@ export const RacePercentageCell = styled(DriverSummaryCell)`
   color: #FF1D44;
   font-weight: 500;
 `
+
+export const MinimumRequirementWarning = styled.div`
+  background: rgba(255, 179, 71, 0.15);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  color: #FFB347;
+  font-size: 0.9rem;
+  font-family: 'Hanken Grotesk', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '⚠';
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+`
+
+export const DriverSummaryRowBelowMinimum = styled(DriverSummaryRow)`
+  background: rgba(255, 179, 71, 0.1) !important;
+  
+  &:hover {
+    background: rgba(255, 179, 71, 0.2) !important;
+  }
+`
