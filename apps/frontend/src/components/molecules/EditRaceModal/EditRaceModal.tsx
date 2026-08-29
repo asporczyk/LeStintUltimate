@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useTranslation } from 'react-i18next'
-import { type Race } from 'types/Race'
+import { type Race } from '@stint-ultimate/shared'
 import {
   Overlay,
   ModalContent,
@@ -134,7 +134,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.drivers || formData.drivers.length === 0) {
     errors.drivers = 'validation.required'
-  } else if (formData.drivers.some(d => d.length > 50)) {
+  } else if (formData.drivers.some((d: string) => d.length > 50)) {
     errors.drivers = 'validation.driverNameTooLong'
   }
 

@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import helmet from "@fastify/helmet";
 import scheduleRoutes from "./routes/schedule.routes.js";
 import raceRoutes from "./routes/race.routes.js";
 import qualificationRoutes from "./routes/qualification.routes.js";
@@ -14,6 +15,8 @@ export function buildServer() {
         origin: '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     });
+
+    app.register(helmet);
 
     app.register(swagger, {
         openapi: {

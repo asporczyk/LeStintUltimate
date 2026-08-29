@@ -1,28 +1,32 @@
 import { FastifyInstance } from "fastify";
 import { Schedule } from "../models/Schedule.js";
 import { Stint } from "../models/Stint.js";
-import { Race } from "../models/Race.js";
-import { getIO } from "../socket.js";
+import { StintService } from "../services/StintService.js";
+import { Stint as IStint } from "@stint-ultimate/shared";
 
-interface StintBody {
-    scheduleId: string
-    order: number
-    startTime: number
-    duration: number
-    driver: string
-    spotter: string
-    fuelLaps: number
-    fuel: number
-    tireFL: string
-    tireFR: string
-    tireRL: string
-    tireRR: string
-    tires: number
-}
+const stintSchema = {
+    type: 'object',
+    required: ['raceId', 'order', 'startTime', 'duration', 'driver'],
+    properties: {
+        raceId: { type: 'string' },
+        order: { type: 'number' },
+        startTime: { type: 'number' },
+        duration: { type: 'number' },
+        driver: { type: 'string' },
+        spotter: { type: 'string' },
+        fuelLaps: { type: 'number' },
+        fuel: { type: 'number' },
+        tireFL: { type: 'string' },
+        tireFR: { type: 'string' },
+        tireRL: { type: 'string' },
+        tireRR: { type: 'string' },
+        tires: { type: 'number' }
+    }
+};
 
 export default async function scheduleRoutes(app: FastifyInstance) {
     app.get("/schedule/:raceId", async (req) => {
-        const { raceId } = req.params as any;
+        const { raceId } = req.params as { raceId: string };
 
         const schedule = await Schedule.findOne({ raceId });
         if (!schedule) return { schedule: null, stints: [] };
@@ -31,106 +35,37 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         return { schedule, stints };
     });
 
-    app.post("/stints", async (req) => {
-        const body = req.body as StintBody;
+    app.post("/stints", { schema: { body: stintSchema } }, async (req) => {
+        const body = req.body as Omit<IStint, '_id'>;
         
-        let schedule = await Schedule.findOne({ raceId: body.scheduleId });
+        let schedule = await Schedule.findOne({ raceId: body.raceId });
         if (!schedule) {
-            schedule = await Schedule.create({ raceId: body.scheduleId });
+            schedule = await Schedule.create({ raceId: body.raceId });
         }
 
-        await Stint.updateMany(
-            { scheduleId: schedule._id, order: { $gte: body.order } },
-            { $inc: { order: 1 } }
-        );
+        await StintService.updateStintOrder(schedule._id.toString(), body.order, 1);
 
+        const { raceId, ...rest } = body;
         const stint = await Stint.create({
-            scheduleId: schedule._id,
-            order: body.order,
-            startTime: body.startTime,
-            duration: body.duration,
-            driver: body.driver,
-            spotter: body.spotter,
-            fuelLaps: body.fuelLaps,
-            fuel: body.fuel,
-            tireFL: body.tireFL,
-            tireFR: body.tireFR,
-            tireRL: body.tireRL,
-            tireRR: body.tireRR,
-            tires: body.tires
+            ...rest,
+            scheduleId: schedule._id
         });
 
-        const race = await Race.findById(body.scheduleId);
-        const avgLapTime = race?.avgLapTime || 120;
-
-        const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-        let cumulativeLaps = 0;
-        for (const s of allStints) {
-            if (s.order === 1) {
-                cumulativeLaps = 0;
-            } else {
-                cumulativeLaps += Math.floor((s.duration || 0) * 60 / avgLapTime);
-            }
-            if (s.fuelLaps !== cumulativeLaps) {
-                s.fuelLaps = cumulativeLaps;
-                await s.save();
-            }
-        }
-
-        const io = getIO();
-        if (io) {
-            io.emit("stint:refresh", { raceId: body.scheduleId });
-        }
+        await StintService.recalculateFuelLaps(body.raceId);
 
         return stint;
     });
 
-    app.put("/stints/:id", async (req) => {
-        const { id } = req.params as any;
-        const body = req.body as Partial<StintBody>;
+    app.put("/stints/:id", { schema: { body: { ...stintSchema, required: [] } } }, async (req) => {
+        const { id } = req.params as { id: string };
+        const body = req.body as Partial<IStint>;
 
-        const stint = await Stint.findByIdAndUpdate(
-            id,
-            {
-                startTime: body.startTime,
-                duration: body.duration,
-                driver: body.driver,
-                spotter: body.spotter,
-                fuelLaps: body.fuelLaps,
-                fuel: body.fuel,
-                tireFL: body.tireFL,
-                tireFR: body.tireFR,
-                tireRL: body.tireRL,
-                tireRR: body.tireRR,
-                tires: body.tires
-            },
-            { new: true }
-        );
+        const stint = await Stint.findByIdAndUpdate(id, { $set: body }, { new: true });
 
         if (stint) {
             const schedule = await Schedule.findById(stint.scheduleId);
             if (schedule) {
-                const race = await Race.findById(schedule.raceId);
-                const avgLapTime = race?.avgLapTime || 120;
-
-                const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-                let cumulativeLaps = 0;
-                for (const s of allStints) {
-                    if (s.order === 1) {
-                        cumulativeLaps = 0;
-                    } else {
-                        cumulativeLaps += Math.floor((s.duration || 0) * 60 / avgLapTime);
-                    }
-                    if (s.fuelLaps !== cumulativeLaps) {
-                        s.fuelLaps = cumulativeLaps;
-                        await s.save();
-                    }
-                }
-
-                const io = getIO();
-                if (io) {
-                    io.emit("stint:refresh", { raceId: schedule.raceId });
-                }
+                await StintService.recalculateFuelLaps(schedule.raceId.toString());
             }
         }
 
@@ -138,40 +73,19 @@ export default async function scheduleRoutes(app: FastifyInstance) {
     });
 
     app.delete("/stints/:id", async (req) => {
-        const { id } = req.params as any;
+        const { id } = req.params as { id: string };
 
         const stint = await Stint.findById(id);
         if (stint) {
-            const schedule = await Schedule.findById(stint.scheduleId);
+            const scheduleId = stint.scheduleId.toString();
+            const stintOrder = stint.order;
+
             await Stint.findByIdAndDelete(id);
-            
-            await Stint.updateMany(
-                { scheduleId: stint.scheduleId, order: { $gt: stint.order } },
-                { $inc: { order: -1 } }
-            );
+            await StintService.updateStintOrder(scheduleId, stintOrder + 1, -1);
 
+            const schedule = await Schedule.findById(scheduleId);
             if (schedule) {
-                const race = await Race.findById(schedule.raceId);
-                const avgLapTime = race?.avgLapTime || 120;
-
-                const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-                let cumulativeLaps = 0;
-                for (const s of allStints) {
-                    if (s.order === 1) {
-                        cumulativeLaps = 0;
-                    } else {
-                        cumulativeLaps += Math.floor((s.duration || 0) * 60 / avgLapTime);
-                    }
-                    if (s.fuelLaps !== cumulativeLaps) {
-                        s.fuelLaps = cumulativeLaps;
-                        await s.save();
-                    }
-                }
-
-                const io = getIO();
-                if (io) {
-                    io.emit("stint:refresh", { raceId: schedule.raceId });
-                }
+                await StintService.recalculateFuelLaps(schedule.raceId.toString());
             }
         }
 

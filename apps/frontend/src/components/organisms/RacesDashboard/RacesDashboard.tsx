@@ -1,46 +1,24 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RaceInputGroup } from 'components/molecules/RaceInputGroup/RaceInputGroup'
 import { RacesList } from 'components/molecules/RacesList/RacesList'
 import { Loader } from 'components/atoms/Loader/Loader'
-import { RacesApi } from 'api/RacesApi'
-import { type Race } from 'types/Race'
+import { useRaces } from 'hooks/useRaces'
 import { DashboardContainer, LimitBadge } from './RacesDashboard.styles'
 
-interface RacesDashboardProps {
-  initialRaces?: Race[]
-}
-
-export function RacesDashboard({ initialRaces }: RacesDashboardProps) {
+export function RacesDashboard() {
   const navigate = useNavigate()
-  const [races, setRaces] = useState<Race[]>(initialRaces ?? [])
-  const [raceCount, setRaceCount] = useState(0)
-  const [raceLimit] = useState(100)
-  const [loading, setLoading] = useState(true)
-
-  const fetchRaces = useCallback(async () => {
-    setLoading(true)
-    const data = await RacesApi.getAll()
-    setRaces(data.races)
-    setRaceCount(data.count)
-    setLoading(false)
-  }, [])
-
-  useEffect(() => {
-    fetchRaces()
-  }, [fetchRaces])
+  const { races, count, limit, isLoading, createRace, deleteRace } = useRaces()
 
   const handleAdd = useCallback(async (raceName: string) => {
     if (raceName.trim()) {
-      await RacesApi.create(raceName)
-      await fetchRaces()
+      createRace(raceName)
     }
-  }, [fetchRaces])
+  }, [createRace])
 
   const handleDelete = useCallback(async (id: string) => {
-    await RacesApi.delete(id)
-    await fetchRaces()
-  }, [fetchRaces])
+    deleteRace(id)
+  }, [deleteRace])
 
   const handleOpen = useCallback((id: string) => {
     navigate(`/race/${id}`)
@@ -49,8 +27,8 @@ export function RacesDashboard({ initialRaces }: RacesDashboardProps) {
   return (
     <DashboardContainer>
       <RaceInputGroup onAdd={handleAdd} />
-      {loading ? <Loader /> : <RacesList races={races} onDelete={handleDelete} onOpen={handleOpen} />}
-      <LimitBadge>{raceCount}/{raceLimit}</LimitBadge>
+      {isLoading ? <Loader /> : <RacesList races={races} onDelete={handleDelete} onOpen={handleOpen} />}
+      <LimitBadge>{count}/{limit}</LimitBadge>
     </DashboardContainer>
   )
 }

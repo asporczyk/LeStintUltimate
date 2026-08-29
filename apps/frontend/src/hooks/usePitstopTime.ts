@@ -1,4 +1,4 @@
-import { type Stint } from 'types/Schedule'
+import { type Stint } from '@stint-ultimate/shared'
 
 const FUEL_FILL_RATE = 3.0
 const FUEL_RANDOM_DELAY = 2.0

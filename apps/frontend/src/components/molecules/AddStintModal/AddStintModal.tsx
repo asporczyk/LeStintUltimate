@@ -3,7 +3,7 @@ import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { CustomSelect } from 'components/atoms/CustomSelect/CustomSelect'
 import { CustomCheckbox } from 'components/atoms/CustomCheckbox/CustomCheckbox'
 import { useTranslation } from 'react-i18next'
-import { type Stint } from 'types/Schedule'
+import { type Stint } from '@stint-ultimate/shared'
 import { StintsApi } from 'api/StintsApi'
 import {
   Overlay,
@@ -121,7 +121,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
       const calculatedTires = formData.tires - changedTires
 
       const newStint = await StintsApi.create({
-        scheduleId: raceId,
+        raceId,
         order: insertAfterStint + 1,
         startTime: 0,
         duration: formData.duration,

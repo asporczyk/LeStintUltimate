@@ -11,7 +11,7 @@ import { QualificationSchedule } from 'components/molecules/QualificationSchedul
 import { EditRaceModal } from 'components/molecules/EditRaceModal/EditRaceModal'
 import { RacesApi } from 'api/RacesApi'
 import { useSocket } from '@/hooks/useSocket'
-import { type Race } from 'types/Race'
+import { type Race } from "@stint-ultimate/shared"
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
 

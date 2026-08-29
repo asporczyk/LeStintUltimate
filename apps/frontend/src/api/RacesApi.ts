@@ -1,4 +1,4 @@
-import { type Race } from 'types/Race'
+import { type Race } from '@stint-ultimate/shared'
 
 const API_URL = `${import.meta.env.VITE_API_URL}/races`
 
