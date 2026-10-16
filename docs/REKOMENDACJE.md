@@ -29,7 +29,7 @@ Wynik przeglądu kodu z 2026-10-16. Pogrupowane wg priorytetu. `tsc` przechodzi 
 ### ✅ 6. Konfiguracja Render jest niespójna
 `render.yaml` opisywał usługi `stint-backend`/`stint-frontend`, których nie ma. Produkcyjny backend `lestintultimate` jest skonfigurowany ręcznie w panelu i Blueprinty nie są używane. Plik usunięty, a prawdziwa konfiguracja opisana w [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#backend--render).
 
-Zostaje jedna rzecz do rozważenia: Render buduje przez `npm install` bez lockfile, więc wersje zależności na produkcji mogą się różnić od testowanych. Gotowa komenda z pnpm jest w tym samym miejscu dokumentacji.
+Render buduje przez `npm install` bez lockfile, więc wersje zależności na produkcji mogą się różnić od testowanych. Próba przejścia na pnpm przez corepack nie zadziałała na Render. Zostajemy przy npm (szczegóły w dokumentacji wdrożenia).
 
 ### ✅ 7. `CORS: *` (uwierzytelnianie – świadomie pominięte)
 **Decyzja:** aplikacja ma być dostępna dla każdego, kto ma link – logowania **nie dodajemy**.
@@ -98,4 +98,4 @@ Wspólny pakiet wymagałby, żeby build backendu na Render (npm w `apps/backend`
 
 ## Sugerowana kolejność
 
-1. (Opcjonalnie) Build na Render przez pnpm z `--frozen-lockfile`, żeby produkcja używała wersji z lockfile – zmiana w panelu, komenda w [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#backend--render).
+Brak otwartych punktów. Kolejne zmiany to nowe funkcje.

@@ -90,13 +90,9 @@ Usługa `lestintultimate` (`https://lestintultimate.onrender.com`) jest skonfigu
 
 Deploy uruchamia się automatycznie po pushu do `main` i trwa kilka minut. Render stoi za Cloudflare, co ma znaczenie dla limitów zapytań (patrz [API.md](API.md#limity-zapytań)).
 
-> **Uwaga: Render instaluje zależności przez npm, nie pnpm.** W `apps/backend` nie ma `package-lock.json`, a `pnpm-lock.yaml` jest dla npm niewidoczny. Każdy deploy instaluje więc najnowsze wersje dozwolone przez zakresy `^` w `package.json`, które mogą być inne niż wersje sprawdzane przez CI i testy. Żeby produkcja używała dokładnie wersji z lockfile, w panelu można zmienić Build Command na:
+> **Uwaga: Render instaluje zależności przez npm, nie pnpm.** W `apps/backend` nie ma `package-lock.json`, a `pnpm-lock.yaml` jest dla npm niewidoczny. Każdy deploy instaluje więc najnowsze wersje dozwolone przez zakresy `^` w `package.json`, które mogą być inne niż wersje sprawdzane przez CI. Przy małej liczbie zależności i działającym deployu zostawiamy to tak.
 >
-> ```
-> corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter stint-planner-backend run build
-> ```
->
-> i Start Command na `cd apps/backend && node dist/index.js`. `--prod=false` instaluje też `typescript`, potrzebny do builda. Po zmianie sprawdź pierwszy deploy w logach Render.
+> Próba przejścia na pnpm (`corepack enable && pnpm install …`) **nie działa** na Render bez przypięcia wersji pnpm: corepack pobiera wtedy najnowszy pnpm i build kończy się błędem `Cannot find module …/pnpm.cjs` (sprawdzone 16.10.2026). Gdyby kiedyś wracać do tematu, trzeba najpierw dodać `"packageManager": "pnpm@10.x.x"` w głównym `package.json` i przetestować build na Render.
 
 ### Health check na Render
 
