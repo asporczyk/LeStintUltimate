@@ -4,6 +4,7 @@ import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import rateLimit from "@fastify/rate-limit";
 import mongoose from "mongoose";
+import { clientIp } from "./clientIp.js";
 import scheduleRoutes from "./routes/schedule.routes.js";
 import raceRoutes from "./routes/race.routes.js";
 import qualificationRoutes from "./routes/qualification.routes.js";
@@ -70,7 +71,8 @@ export function buildServer({
     // The app is public (no login), so this is what keeps one client from flooding the API.
     app.register(rateLimit, {
         max: rateLimits.max,
-        timeWindow: "1 minute"
+        timeWindow: "1 minute",
+        keyGenerator: clientIp
     });
 
     // For uptime checks (e.g. Render's health check): 503 when MongoDB is not connected.
