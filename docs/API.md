@@ -11,7 +11,7 @@ Aplikacja jest publiczna, więc API ogranicza liczbę zapytań z jednego adresu 
 - **300 zapytań na minutę** dla wszystkich tras (`RATE_LIMIT_MAX`),
 - **20 na minutę** dla tworzenia i usuwania wyścigów (`RATE_LIMIT_RACE_WRITE_MAX`), bo limit 100 wyścigów jest wspólny dla wszystkich.
 
-Po przekroczeniu limitu API odpowiada `429 Too Many Requests`. Odpowiedzi zawierają nagłówki `x-ratelimit-limit`, `x-ratelimit-remaining` i `x-ratelimit-reset`. Adres IP klienta pochodzi z `X-Forwarded-For` (`trustProxy`), bo na Render ruch przechodzi przez proxy. `/health` nie ma limitu.
+Po przekroczeniu limitu API odpowiada `429 Too Many Requests`. Odpowiedzi zawierają nagłówki `x-ratelimit-limit`, `x-ratelimit-remaining` i `x-ratelimit-reset`. Adres IP klienta to adres dopisany na końcu `X-Forwarded-For` przez proxy Render (`trustProxy: 1`, zmienna `TRUST_PROXY_HOPS`). Wcześniejszych wpisów nie bierzemy pod uwagę, bo ustawia je sam klient: z `trustProxy: true` każde zapytanie z innym fałszywym adresem dostawało nowy licznik. `/health` nie ma limitu.
 
 ## Health check
 

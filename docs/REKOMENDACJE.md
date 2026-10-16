@@ -90,6 +90,7 @@ Wspólny pakiet w `packages/shared` wymagałby, żeby build backendu na Render k
 33. ✅ **API bez testów w CI** – testy integracyjne z prawdziwym MongoDB (`apps/backend/test/api.test.ts`).
 
 34. ✅ **Brak limitów zapytań** – publiczne API bez logowania można było zalać zapytaniami lub zapełnić wspólny limit 100 wyścigów. Teraz: limity per IP (`@fastify/rate-limit`), ostrzejsze dla tworzenia/usuwania wyścigów.
+34a. ✅ **Limit dało się obejść fałszywym `X-Forwarded-For`** – sprawdzone na produkcji po wdrożeniu #27: `trustProxy: true` brało pierwszy adres z nagłówka, ustawiany przez klienta. Teraz liczy się adres dopisany przez proxy Render (`trustProxy: 1`), z testem odtwarzającym obejście.
 35. ✅ **Brak health checku** – `GET /health` (200/503 wg połączenia z MongoDB). Do ustawienia w panelu Render jako *Health Check Path*.
 36. ✅ **Niezgodne wdrożenia frontendu i backendu** – po merge'u #25 przez ok. 17 min nie działało dodawanie stintów (patrz [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#zmiany-api--zgodność-wstecz)). Dodana zasada zgodności wstecz dla zmian API.
 

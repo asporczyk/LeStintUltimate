@@ -238,6 +238,25 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect(reads.statusCode).toBe(200);
         });
 
+        it("counts the IP added by the proxy, not one the client sends", async () => {
+            const limited = buildServer({ rateLimits: { max: 2, raceWriteMax: 2 } });
+            limited.log.level = "silent";
+            // The client varies the first X-Forwarded-For entry; the proxy appends the real IP.
+            const get = (forwardedFor: string) => limited.inject({
+                method: "GET", url: "/api/races", headers: { "x-forwarded-for": forwardedFor }
+            });
+            const sameClient = [
+                (await get("198.51.100.1, 203.0.113.9")).statusCode,
+                (await get("198.51.100.2, 203.0.113.9")).statusCode,
+                (await get("198.51.100.3, 203.0.113.9")).statusCode
+            ];
+            const otherClient = (await get("198.51.100.1, 203.0.113.10")).statusCode;
+            await limited.close();
+
+            expect(sameClient).toEqual([200, 200, 429]);
+            expect(otherClient).toBe(200);
+        });
+
         it("limits all other requests with the general limit", async () => {
             const limited = buildServer({ rateLimits: { max: 3, raceWriteMax: 3 } });
             limited.log.level = "silent";

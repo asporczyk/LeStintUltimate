@@ -30,6 +30,7 @@ Pliki `.env` nie są commitowane – skopiuj `.env.example` do `.env`.
 | `MONGO_URI` | `mongodb://localhost:27017/stint-planner` | Connection string MongoDB (wymagany) |
 | `RATE_LIMIT_MAX` | `300` | Opcjonalnie: zapytań na minutę z jednego IP (domyślnie 300) |
 | `RATE_LIMIT_RACE_WRITE_MAX` | `20` | Opcjonalnie: tworzenie/usuwanie wyścigów na minutę z jednego IP (domyślnie 20) |
+| `TRUST_PROXY_HOPS` | `1` | Opcjonalnie: liczba proxy przed backendem (Render = 1). Na jej podstawie ustalany jest adres IP klienta do limitów |
 | `CORS_ORIGINS` | `https://stint.example.com` | Opcjonalnie: dozwolone originy po przecinku, zastępują domyślną listę (patrz [API.md](API.md#cors)) |
 
 ### Frontend – `apps/frontend/.env` (wzór: `.env.example`)
