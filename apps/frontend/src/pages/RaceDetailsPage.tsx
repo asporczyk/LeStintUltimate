@@ -134,7 +134,9 @@ export function RaceDetailsPage() {
         avgStintTime={race.avgStintTime} 
         avgLapTime={race.avgLapTime} 
         raceId={race._id} 
-        startTime={calculatedRaceStartTime || race.startTime || '19:30'} 
+        startTime={calculatedRaceStartTime || race.startTime || '19:30'}
+        raceDate={race.startDate}
+        eventStartTime={race.startTime || '19:30'}
         tireSets={Math.max(0, (race.tireSets || 0) - 4)}
         fuelTankCapacity={race.fuelTankCapacity || 100}
         notes={race.notes}

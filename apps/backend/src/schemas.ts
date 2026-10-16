@@ -49,6 +49,7 @@ export const patchRaceBody = {
 const stintFields = {
     startTime: { type: "number" },
     duration: { type: "number", minimum: 0, maximum: 120 },
+    durationAuto: { type: "boolean" },
     driver: person,
     spotter: person,
     fuelLaps: { type: "integer", minimum: 0 },

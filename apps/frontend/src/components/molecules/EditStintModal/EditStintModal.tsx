@@ -28,8 +28,7 @@ interface EditStintModalProps {
   stint: Stint
   drivers: string[]
   avgStintTime: number
-  avgLapTime: number
-  previousFuelLaps: number
+  startLap: number
   previousTires: number
   isFirstStint: boolean
   tireSets: number
@@ -47,7 +46,6 @@ function getInitialFormData(stint: Stint, avgStintTime: number, isFirstStint: bo
   const tires = isFirstStint ? tireSets : previousTires
   return {
     duration: stint.duration || avgStintTime,
-    fuelLaps: stint.fuelLaps || 0,
     fuel: stint.fuel || 100,
     driver: stint.driver || '',
     spotter: stint.spotter || '',
@@ -77,7 +75,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTime, previousFuelLaps, previousTires, isFirstStint, tireSets, onConfirm, onCancel }: EditStintModalProps) {
+export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap, previousTires, isFirstStint, tireSets, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
@@ -99,13 +97,6 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onCancel])
 
-  const calculateFuelLaps = (duration: number, avgLapTimeSeconds: number, prevFuelLaps: number, isFirst: boolean): number => {
-    if (isFirst) return 0
-    if (duration <= 0 || avgLapTimeSeconds <= 0) return prevFuelLaps
-    const laps = Math.floor(duration * 60 / avgLapTimeSeconds)
-    return prevFuelLaps + laps
-  }
-
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = Number(e.target.value)
     setFormData(prev => ({ ...prev, duration: newDuration }))
@@ -121,7 +112,10 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
       return
     }
 
-    const calculatedFuelLaps = calculateFuelLaps(formData.duration, avgLapTime, previousFuelLaps, isFirstStint)
+    // Stints saved before durationAuto existed count as automatic when they match the average.
+    const wasAuto = stint.durationAuto ?? stint.duration === avgStintTime
+    // Any manual change of the duration detaches the stint from the average.
+    const durationAuto = wasAuto && formData.duration === stint.duration
 
     const changedTires = countChangedTires(formData)
 
@@ -129,7 +123,8 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
 
     onConfirm({
       duration: formData.duration,
-      fuelLaps: calculatedFuelLaps,
+      durationAuto,
+      fuelLaps: startLap,
       fuel: formData.fuel,
       driver: formData.driver,
       spotter: formData.spotter,
@@ -164,11 +159,11 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
           </FormGroup>
 
           <FormGroup>
-            <Label>{t('pitstopLap')}</Label>
+            <Label>{t('startLap')}</Label>
             <InputWithUnit>
               <InputWithUnitStyle
                 type="number"
-                value={formData.fuelLaps}
+                value={startLap}
                 disabled
               />
             </InputWithUnit>

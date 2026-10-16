@@ -4,6 +4,7 @@ export interface Stint {
   order: number
   startTime: number
   duration: number
+  durationAuto?: boolean
   driver: string
   spotter: string
   fuelLaps: number

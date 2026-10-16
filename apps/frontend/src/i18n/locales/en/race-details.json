@@ -28,7 +28,7 @@
   "duration": "Duration",
   "driver": "Driver",
   "spotter": "Spotter",
-  "pitstopLap": "Pitstop Lap",
+  "startLap": "Start Lap",
   "fuel": "Fuel",
   "usedTires": "Tires",
   "tires": "Tires",

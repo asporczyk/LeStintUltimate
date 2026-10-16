@@ -5,6 +5,7 @@ import {Stint} from "../models/Stint.js";
 import {Training} from "../models/Training.js";
 import {Qualification} from "../models/Qualification.js";
 import {getIO} from "../socket.js";
+import {recalculateFuelLaps} from "../services/stints.js";
 import {createRaceBody, idParams, patchRaceBody} from "../schemas.js";
 
 export default async function raceRoutes(app: FastifyInstance) {
@@ -59,8 +60,6 @@ export default async function raceRoutes(app: FastifyInstance) {
             return reply.status(404).send({ error: "Wyścig nie znaleziony" });
         }
 
-        const oldAvgStintTime = oldRace.avgStintTime;
-        
         const race = await Race.findByIdAndUpdate(
             id,
             { $set: patch },
@@ -71,18 +70,27 @@ export default async function raceRoutes(app: FastifyInstance) {
             return reply.status(404).send({ error: "Wyścig nie znaleziony" });
         }
 
-        if (patch.avgStintTime !== undefined && patch.avgStintTime !== oldAvgStintTime && oldAvgStintTime > 0) {
+        const avgStintChanged = patch.avgStintTime !== undefined && patch.avgStintTime !== oldRace.avgStintTime;
+        const avgLapChanged = patch.avgLapTime !== undefined && patch.avgLapTime !== oldRace.avgLapTime;
+
+        if (avgStintChanged || avgLapChanged) {
             const schedule = await Schedule.findOne({ raceId: id });
             if (schedule) {
-                await Stint.updateMany(
-                    { scheduleId: schedule._id, duration: oldAvgStintTime },
-                    { $set: { duration: patch.avgStintTime } }
-                );
-
-                const io = getIO();
-                if (io) {
-                    io.emit("stint:refresh", { raceId: id });
+                if (avgStintChanged) {
+                    // Only stints whose duration was filled in from the average follow it.
+                    await Stint.updateMany(
+                        {
+                            scheduleId: schedule._id,
+                            $or: [
+                                { durationAuto: true },
+                                // Stints saved before durationAuto existed: keep the old rule.
+                                { durationAuto: { $exists: false }, duration: oldRace.avgStintTime }
+                            ]
+                        },
+                        { $set: { duration: patch.avgStintTime, durationAuto: true } }
+                    );
                 }
+                await recalculateFuelLaps(schedule);
             }
         }
 

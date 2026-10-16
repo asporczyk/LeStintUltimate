@@ -4,6 +4,8 @@ import { type Stint } from 'types/Schedule'
 import { calculatePitstopTime } from 'utils/pitstop'
 import { addMinutesToClock, formatHoursMinutes } from 'utils/time'
 import { remainingTiresAt } from 'utils/tires'
+import { stintStartLap } from 'utils/laps'
+import { minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
@@ -78,32 +80,21 @@ interface StintScheduleProps {
   avgLapTime: number
   raceId: string
   startTime: string
+  raceDate: string | Date
+  eventStartTime: string
   tireSets: number
   fuelTankCapacity: number
   notes?: string
 }
 
-export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets, fuelTankCapacity, notes: initialNotes }: StintScheduleProps) {
+export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, notes: initialNotes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
-  const getRaceStartDate = (startTime: string): Date => {
-    const [hours, minutes] = startTime.split(':').map(Number)
-    const now = new Date()
-    const raceStart = new Date(now)
-    raceStart.setHours(hours, minutes, 0, 0)
-    if (raceStart > now) {
-      raceStart.setDate(raceStart.getDate() - 1)
-    }
-    return raceStart
-  }
-
-  const [currentRaceTime, setCurrentRaceTime] = useState<number>(() => {
-    const safeStartTime = startTime || '19:30'
-    const raceStart = getRaceStartDate(safeStartTime)
-    const now = new Date()
-    return Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000))
-  })
+  // Re-render every minute so the active stint follows the clock.
+  const [now, setNow] = useState(() => new Date())
+  const raceStart = raceStartDateTime(raceDate, eventStartTime, startTime)
+  const currentRaceTime = minutesSinceRaceStart(raceStart, now)
   const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -165,14 +156,9 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   }, [raceId, onStintRefresh])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const safeStartTime = startTime || '19:30'
-      const raceStart = getRaceStartDate(safeStartTime)
-      const now = new Date()
-      setCurrentRaceTime(Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000)))
-    }, 60000)
+    const interval = setInterval(() => setNow(new Date()), 60000)
     return () => clearInterval(interval)
-  }, [startTime])
+  }, [])
 
   const isStintActive = (startTime: number, duration: number): boolean => {
     return currentRaceTime >= startTime && currentRaceTime < startTime + duration
@@ -200,7 +186,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
               <TableHeader>{t('startTime')}</TableHeader>
               <TableHeader>{t('duration')}</TableHeader>
               <TableHeader>{t('endTime')}</TableHeader>
-              <TableHeader>{t('pitstopLap')}</TableHeader>
+              <TableHeader>{t('startLap')}</TableHeader>
               <TableHeader>{t('driver')}</TableHeader>
               <TableHeader>{t('spotter')}</TableHeader>
               <TableHeader>{t('fuel')}</TableHeader>
@@ -295,8 +281,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         raceId={raceId}
         drivers={drivers}
         avgStintTime={avgStintTime}
-        avgLapTime={avgLapTime}
-        previousFuelLaps={addAfterStint > 0 ? stints[addAfterStint - 1]?.fuelLaps ?? 0 : 0}
+        startLap={stintStartLap(stints.slice(0, addAfterStint).map(s => s.duration), avgLapTime)}
         previousTires={addAfterStint > 0 ? remainingTiresAt(stints, addAfterStint - 1, tireSets) : tireSets}
         isFirstStint={addAfterStint === 0}
         tireSets={tireSets}
@@ -313,8 +298,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           stint={editingStint}
           drivers={drivers}
           avgStintTime={avgStintTime}
-          avgLapTime={avgLapTime}
-          previousFuelLaps={editingStintIndex > 0 ? stints[editingStintIndex - 1].fuelLaps : 0}
+          startLap={stintStartLap(stints.slice(0, editingStintIndex).map(s => s.duration), avgLapTime)}
           previousTires={remainingTiresAt(stints, editingStintIndex, tireSets)}
           isFirstStint={editingStintIndex === 0}
           tireSets={tireSets}

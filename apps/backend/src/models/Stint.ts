@@ -6,6 +6,8 @@ const StintSchema = new Schema(
         order: { type: Number, required: true },
         startTime: Number,
         duration: Number,
+        // true while duration is the race's avgStintTime (filled in automatically)
+        durationAuto: Boolean,
         driver: String,
         spotter: String,
         fuelLaps: Number,
