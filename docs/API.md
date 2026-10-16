@@ -11,7 +11,15 @@ Aplikacja jest publiczna, więc API ogranicza liczbę zapytań z jednego adresu 
 - **300 zapytań na minutę** dla wszystkich tras (`RATE_LIMIT_MAX`),
 - **20 na minutę** dla tworzenia i usuwania wyścigów (`RATE_LIMIT_RACE_WRITE_MAX`), bo limit 100 wyścigów jest wspólny dla wszystkich.
 
-Po przekroczeniu limitu API odpowiada `429 Too Many Requests`. Odpowiedzi zawierają nagłówki `x-ratelimit-limit`, `x-ratelimit-remaining` i `x-ratelimit-reset`. Adres IP klienta to **pierwszy publiczny adres od prawej** w `X-Forwarded-For`. Adresy prywatne (`10.x`, `172.16–31.x`, `192.168.x`, localhost) to wewnętrzne load balancery Render i są pomijane; na produkcji jest ich kilka i zmieniają się między zapytaniami. Wpisów dalej po lewej nie bierzemy pod uwagę, bo ustawia je sam klient. Ustawienie można nadpisać zmienną `TRUST_PROXY`.
+Po przekroczeniu limitu API odpowiada `429 Too Many Requests`. Odpowiedzi zawierają nagłówki `x-ratelimit-limit`, `x-ratelimit-remaining` i `x-ratelimit-reset`.
+
+Licznik prowadzony jest per adres IP klienta (`apps/backend/src/clientIp.ts`). Ruch na Render idzie przez **Cloudflare**, a potem przez wewnętrzne load balancery Render (`10.x`). Dlatego:
+
+1. Z `X-Forwarded-For` brany jest pierwszy publiczny adres od prawej. Adresy prywatne są pomijane (`trustProxy`, zmienna `TRUST_PROXY`), więc wychodzi adres serwera Cloudflare.
+2. Jeśli ten adres należy do Cloudflare, prawdziwe IP klienta pochodzi z nagłówka `CF-Connecting-IP`, który Cloudflare nadpisuje przy każdym zapytaniu.
+3. Od nikogo innego `CF-Connecting-IP` nie jest akceptowany, bo mógłby być podrobiony. Wtedy liczy się adres z punktu 1.
+
+`/health` nie ma limitu.
 
 ## Health check
 

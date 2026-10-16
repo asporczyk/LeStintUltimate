@@ -258,6 +258,51 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect(otherClient).toBe(200);
         });
 
+        it("counts the real client behind Cloudflare, whichever edge server it comes through", async () => {
+            const limited = buildServer({ rateLimits: { max: 2, raceWriteMax: 2 } });
+            limited.log.level = "silent";
+            // As in production: client -> Cloudflare edge (changes per request) -> Render's
+            // internal balancers -> app. Cloudflare sets CF-Connecting-IP to the client.
+            const get = (edge: string, client: string, extraHeaders: Record<string, string> = {}) => limited.inject({
+                method: "GET", url: "/api/races",
+                headers: { "x-forwarded-for": `198.51.100.99, ${edge}, 10.228.25.1`, "cf-connecting-ip": client, ...extraHeaders }
+            });
+            const sameClient = [
+                (await get("172.69.155.217", "203.0.113.9")).statusCode,
+                (await get("162.158.103.155", "203.0.113.9")).statusCode,
+                (await get("104.23.1.2", "203.0.113.9")).statusCode
+            ];
+            const otherClient = (await get("172.69.155.217", "203.0.113.10")).statusCode;
+            // Not from Cloudflare: a self-set CF-Connecting-IP must not give a fresh counter.
+            const direct = (client: string) => limited.inject({
+                method: "GET", url: "/api/races",
+                headers: { "x-forwarded-for": "203.0.113.50, 10.1.1.1", "cf-connecting-ip": client }
+            });
+            const fakedHeader = [
+                (await direct("192.0.2.1")).statusCode,
+                (await direct("192.0.2.2")).statusCode,
+                (await direct("192.0.2.3")).statusCode
+            ];
+            await limited.close();
+
+            expect(sameClient).toEqual([200, 200, 429]);
+            expect(otherClient).toBe(200);
+            expect(fakedHeader).toEqual([200, 200, 429]);
+        });
+
+        it("applies the client key to the stricter race-creation limit too", async () => {
+            const limited = buildServer({ rateLimits: { max: 100, raceWriteMax: 1 } });
+            limited.log.level = "silent";
+            const create = (edge: string) => limited.inject({
+                method: "POST", url: "/api/races", payload: { name: "Spam", startDate: "2026-10-16" },
+                headers: { "x-forwarded-for": `${edge}, 10.228.25.1`, "cf-connecting-ip": "203.0.113.9" }
+            });
+            const statuses = [(await create("172.69.155.217")).statusCode, (await create("162.158.103.155")).statusCode];
+            await limited.close();
+
+            expect(statuses).toEqual([200, 429]);
+        });
+
         it("limits all other requests with the general limit", async () => {
             const limited = buildServer({ rateLimits: { max: 3, raceWriteMax: 3 } });
             limited.log.level = "silent";

@@ -90,7 +90,7 @@ Wspólny pakiet w `packages/shared` wymagałby, żeby build backendu na Render k
 33. ✅ **API bez testów w CI** – testy integracyjne z prawdziwym MongoDB (`apps/backend/test/api.test.ts`).
 
 34. ✅ **Brak limitów zapytań** – publiczne API bez logowania można było zalać zapytaniami lub zapełnić wspólny limit 100 wyścigów. Teraz: limity per IP (`@fastify/rate-limit`), ostrzejsze dla tworzenia/usuwania wyścigów.
-34a. ✅ **Limit liczony nie od tego IP** – sprawdzone na produkcji. Najpierw (`trustProxy: true`) dało się go obejść fałszywym `X-Forwarded-For`. Po poprawce na `trustProxy: 1` liczył się według wewnętrznych load balancerów Render (`10.x`, kilka różnych na zapytanie, widoczne w logach Render). Teraz: ufamy adresom prywatnym i bierzemy pierwszy publiczny adres od prawej. Test odtwarza oba błędy.
+34a. ✅ **Limit liczony nie od tego IP** – sprawdzone na produkcji. Najpierw (`trustProxy: true`) dało się go obejść fałszywym `X-Forwarded-For`. Po poprawce na `trustProxy: 1` liczył się według wewnętrznych load balancerów Render (`10.x`, kilka różnych na zapytanie, widoczne w logach Render). Teraz: ufamy adresom prywatnym i bierzemy pierwszy publiczny adres od prawej. Test odtwarza oba błędy. Na produkcji okazało się, że przed Render stoi jeszcze Cloudflare (`172.69.x`, `162.158.x` w logach), więc teraz klucz limitu to `CF-Connecting-IP`, akceptowany tylko od adresów Cloudflare.
 35. ✅ **Brak health checku** – `GET /health` (200/503 wg połączenia z MongoDB). Do ustawienia w panelu Render jako *Health Check Path*.
 36. ✅ **Niezgodne wdrożenia frontendu i backendu** – po merge'u #25 przez ok. 17 min nie działało dodawanie stintów (patrz [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#zmiany-api--zgodność-wstecz)). Dodana zasada zgodności wstecz dla zmian API.
 
