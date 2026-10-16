@@ -52,7 +52,6 @@ export default async function trainingRoutes(app: FastifyInstance) {
         }
 
         if (patch.startTime !== undefined || patch.duration !== undefined) {
-            const race = await Race.findById(raceId);
             const trainStart = patch.startTime ?? training.startTime;
             const duration = patch.duration ?? training.duration;
             const [h, m] = trainStart.split(':').map(Number);
@@ -62,13 +61,14 @@ export default async function trainingRoutes(app: FastifyInstance) {
             const newSecs = trainEndSeconds % 60;
             const newQualStartTime = `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${newSecs.toString().padStart(2, '0')}`;
             
-            await Qualification.findOneAndUpdate(
+            const qualification = await Qualification.findOneAndUpdate(
                 { raceId },
-                { $set: { startTime: newQualStartTime } }
+                { $set: { startTime: newQualStartTime } },
+                { new: true }
             );
-            
-            if (io) {
-                io.emit("qualification:updated", { raceId, startTime: newQualStartTime });
+
+            if (io && qualification) {
+                io.emit("qualification:updated", qualification);
             }
         }
         

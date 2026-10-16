@@ -1,3 +1,5 @@
+import { request, jsonBody } from 'api/request'
+
 const API_URL = `${import.meta.env.VITE_API_URL}/qualification`;
 
 export interface Qualification {
@@ -16,33 +18,15 @@ export interface Qualification {
 }
 
 export const QualificationApi = {
-  getByRaceId: async (raceId: string): Promise<Qualification> => {
-    const res = await fetch(`${API_URL}/${raceId}`)
-    if (!res.ok) {
-      throw new Error('Qualification not found')
-    }
-    return res.json()
-  },
+  getByRaceId: (raceId: string): Promise<Qualification> => request(`${API_URL}/${raceId}`),
 
-  create: async (raceId: string, data: Partial<Qualification>): Promise<Qualification> => {
-    const res = await fetch(`${API_URL}/${raceId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    return res.json()
-  },
+  create: (raceId: string, data: Partial<Qualification>): Promise<Qualification> =>
+    request(`${API_URL}/${raceId}`, jsonBody('POST', data)),
 
-  update: async (raceId: string, data: Partial<Qualification>): Promise<Qualification> => {
-    const res = await fetch(`${API_URL}/${raceId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    return res.json()
-  },
+  update: (raceId: string, data: Partial<Qualification>): Promise<Qualification> =>
+    request(`${API_URL}/${raceId}`, jsonBody('PATCH', data)),
 
   delete: async (raceId: string): Promise<void> => {
-    await fetch(`${API_URL}/${raceId}`, { method: 'DELETE' })
-  }
+    await request(`${API_URL}/${raceId}`, { method: 'DELETE' })
+  },
 }

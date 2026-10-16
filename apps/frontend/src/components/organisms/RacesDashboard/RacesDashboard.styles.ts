@@ -11,3 +11,8 @@ export const LimitBadge = styled.span`
   color: #666;
   font-weight: 500;
 `
+
+export const ErrorMessage = styled.p`
+  font-size: 14px;
+  color: #e74c3c;
+`

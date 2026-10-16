@@ -2,6 +2,8 @@ import {FastifyInstance} from "fastify";
 import {Race} from "../models/Race.js";
 import {Schedule} from "../models/Schedule.js";
 import {Stint} from "../models/Stint.js";
+import {Training} from "../models/Training.js";
+import {Qualification} from "../models/Qualification.js";
 import {getIO} from "../socket.js";
 
 export default async function raceRoutes(app: FastifyInstance) {
@@ -24,6 +26,13 @@ export default async function raceRoutes(app: FastifyInstance) {
     app.delete("/races/:id", async (req) => {
         const { id } = req.params as any;
         await Race.findByIdAndDelete(id);
+
+        const schedules = await Schedule.find({ raceId: id });
+        await Stint.deleteMany({ scheduleId: { $in: schedules.map(s => s._id) } });
+        await Schedule.deleteMany({ raceId: id });
+        await Training.deleteMany({ raceId: id });
+        await Qualification.deleteMany({ raceId: id });
+
         return { success: true };
     });
 

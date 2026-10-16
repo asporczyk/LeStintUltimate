@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { calculatePitstopTime } from '@/hooks/usePitstopTime'
@@ -9,6 +9,8 @@ import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
 import { EditStintModal } from 'components/molecules/EditStintModal/EditStintModal'
 import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
 import { StintsApi } from 'api/StintsApi'
+import { ScheduleApi } from 'api/ScheduleApi'
+import { RacesApi } from 'api/RacesApi'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -145,14 +147,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
 
   const handleSaveNotes = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/races/${raceId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes }),
-      })
-      if (res.ok) {
-        setNotesModified(false)
-      }
+      await RacesApi.update(raceId, { notes })
+      setNotesModified(false)
     } catch (err) {
       console.error('Failed to save notes', err)
     }
@@ -161,11 +157,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   useEffect(() => {
     const loadStints = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/schedule/${raceId}`)
-        const data = await res.json()
-        if (data.stints) {
-          setStints(data.stints)
-        }
+        const data = await ScheduleApi.getByRaceId(raceId)
+        setStints(data.stints)
       } catch (err) {
         console.error('Failed to load stints', err)
       }
@@ -178,13 +171,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   useEffect(() => {
     const unsubscribe = onStintRefresh((data) => {
       if (data.raceId === raceId) {
-        fetch(`${import.meta.env.VITE_API_URL}/schedule/${raceId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.stints) {
-              setStints(data.stints)
-            }
-          })
+        ScheduleApi.getByRaceId(raceId)
+          .then(data => setStints(data.stints))
           .catch(err => console.error('Failed to refresh stints', err))
       }
     })
@@ -255,8 +243,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
               const stintNumber = stint.order !== undefined ? stint.order : index + 1
               
               return (
-                <>
-                  <TableRow key={stint._id} $isActive={isActive}>
+                <Fragment key={stint._id}>
+                  <TableRow $isActive={isActive}>
                     <StintNumberCell>{stintNumber}</StintNumberCell>
                     <TableCell>{formatTime(stintStartTime, startTime)}</TableCell>
                     <TableCell>{formatDuration(stint.duration)}</TableCell>
@@ -287,7 +275,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                       </ActionButtonsWrapper>
                     </ActionsCell>
                   </TableRow>
-                  <TableRow key={`separator-${stint._id}`}>
+                  <TableRow>
                     <td colSpan={14} style={{ padding: 0, border: 'none' }}>
                       <RowSeparator 
                         $visible={hoveredSeparatorIndex === index + 1}
@@ -308,7 +296,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                       </RowSeparator>
                     </td>
                   </TableRow>
-                </>
+                </Fragment>
               )
             })}
           </TableBody>
