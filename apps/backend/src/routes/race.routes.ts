@@ -15,7 +15,7 @@ export default async function raceRoutes(app: FastifyInstance) {
         return { races, count, limit: 100 };
     });
 
-    app.post("/races", { schema: { body: createRaceBody } }, async (req, reply) => {
+    app.post("/races", { schema: { body: createRaceBody }, config: { rateLimit: { max: app.rateLimits.raceWriteMax, timeWindow: "1 minute" } } }, async (req, reply) => {
         const count = await Race.countDocuments();
         if (count >= 100) {
             return reply.status(400).send({ error: "Race limit of 100 reached. Delete a race to add a new one." });
@@ -25,7 +25,7 @@ export default async function raceRoutes(app: FastifyInstance) {
         return await Race.create({name, startDate});
     });
 
-    app.delete("/races/:id", { schema: { params: idParams } }, async (req) => {
+    app.delete("/races/:id", { schema: { params: idParams }, config: { rateLimit: { max: app.rateLimits.raceWriteMax, timeWindow: "1 minute" } } }, async (req) => {
         const { id } = req.params as any;
         await Race.findByIdAndDelete(id);
 

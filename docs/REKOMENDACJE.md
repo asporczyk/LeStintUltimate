@@ -89,6 +89,10 @@ Wspólny pakiet w `packages/shared` wymagałby, żeby build backendu na Render k
 32. ✅ **Brak treningu/kwalifikacji jako błąd** – API zwracało `404` (czerwone błędy w konsoli przy każdym wyścigu bez treningu). Teraz `204`.
 33. ✅ **API bez testów w CI** – testy integracyjne z prawdziwym MongoDB (`apps/backend/test/api.test.ts`).
 
+34. ✅ **Brak limitów zapytań** – publiczne API bez logowania można było zalać zapytaniami lub zapełnić wspólny limit 100 wyścigów. Teraz: limity per IP (`@fastify/rate-limit`), ostrzejsze dla tworzenia/usuwania wyścigów.
+35. ✅ **Brak health checku** – `GET /health` (200/503 wg połączenia z MongoDB). Do ustawienia w panelu Render jako *Health Check Path*.
+36. ✅ **Niezgodne wdrożenia frontendu i backendu** – po merge'u #25 przez ok. 17 min nie działało dodawanie stintów (patrz [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#zmiany-api--zgodność-wstecz)). Dodana zasada zgodności wstecz dla zmian API.
+
 ## ⚪ Porządki w repo
 
 26. README był nieaktualny (np. `i18n.ts` jako entry point backendu, `App.css`, jeden endpoint) – zaktualizowany razem z tą dokumentacją.
