@@ -37,6 +37,7 @@ Dzięki temu kilka osób z zespołu może jednocześnie oglądać ten sam plan w
 | `models/` | Schematy Mongoose (patrz niżej) |
 | `routes/` | Trasy REST – opis w [API.md](API.md) |
 | `schemas.ts` | Schematy JSON walidujące params i body tras |
+| `calculations.ts` | Czyste funkcje obliczeniowe (`computeFuelLaps`, `addMinutesToClock`) – testy w `test/` |
 
 ### Model danych
 
@@ -72,15 +73,16 @@ src/
 │   ├── molecules/  # Harmonogramy (Training/Qualification/Stint), modale edycji, lista wyścigów
 │   └── organisms/  # RacesDashboard
 ├── hooks/
-│   ├── useSocket.tsx      # SocketProvider + subskrypcje zdarzeń
-│   └── usePitstopTime.ts  # calculatePitstopTime() – model czasu pit stopu
+│   ├── useSocket.ts        # Kontekst, typy zdarzeń i hook useSocket()
+│   └── SocketProvider.tsx  # Połączenie Socket.IO i subskrypcje zdarzeń
 ├── i18n/           # i18next, języki pl/en, przestrzenie: common, home, raceDetails
 ├── pages/          # HomePage (/), RaceDetailsPage (/race/:id)
 ├── styles/theme.ts # Motyw styled-components + style globalne
-└── types/          # Race, Stint, Schedule
+├── types/          # Race, Stint, Schedule
+└── utils/          # Czyste funkcje + testy: time.ts, tires.ts, pitstop.ts
 ```
 
-Aliasy importów (`vite.config.ts`): `@`, `api`, `components`, `pages`, `assets`, `types`, `styles`, `i18n`.
+Aliasy importów (`vite.config.ts`): `@`, `api`, `components`, `pages`, `assets`, `types`, `styles`, `i18n`, `utils`.
 
 ### Routing
 

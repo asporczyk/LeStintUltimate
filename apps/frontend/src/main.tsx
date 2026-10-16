@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from 'styled-components'
 import { GlobalStyles, theme } from 'styles/theme'
-import { SocketProvider } from '@/hooks/useSocket'
+import { SocketProvider } from '@/hooks/SocketProvider'
 import 'i18n/i18n'
 import App from '@/App'
 

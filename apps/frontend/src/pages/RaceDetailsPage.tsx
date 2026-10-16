@@ -14,14 +14,7 @@ import { useSocket } from '@/hooks/useSocket'
 import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
-
-function formatLapTimeDisplay(seconds: number | undefined): string {
-  if (!seconds) return '-'
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  const ms = Math.round((seconds % 1) * 1000)
-  return `${mins}:${secs.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`
-}
+import { formatLapTime } from 'utils/time'
 
 export function RaceDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -115,7 +108,7 @@ export function RaceDetailsPage() {
             <BodyM>{t('raceLength')}: {race.raceLength}h</BodyM>
             <BodyM>{t('tireSets')}: {race.tireSets}</BodyM>
             <BodyM>{t('fuelTankCapacity')}: {race.fuelTankCapacity}L</BodyM>
-            <BodyM>{t('avgLapTime')}: {formatLapTimeDisplay(race.avgLapTime)}</BodyM>
+            <BodyM>{t('avgLapTime')}: {race.avgLapTime ? formatLapTime(race.avgLapTime) : '-'}</BodyM>
             <BodyM>{t('avgFuelPerLap')}: {race.avgFuelPerLap}%</BodyM>
             <BodyM>{t('avgStintTime')}: {race.avgStintTime} min</BodyM>
             <BodyM>{t('drivers')}: {race.drivers?.join(', ') || '-'}</BodyM>

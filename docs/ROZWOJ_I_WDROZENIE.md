@@ -41,13 +41,23 @@ Pliki `.env` nie są commitowane – skopiuj `.env.example` do `.env`.
 |---|---|---|
 | root | `pnpm dev` | Frontend + backend równolegle |
 | root | `pnpm build` | Build wszystkich paczek |
+| root | `pnpm test` | Testy jednostkowe (vitest) we wszystkich paczkach |
 | frontend | `pnpm lint` | ESLint |
 | frontend | `pnpm build` | `tsc -b && vite build` → `apps/frontend/dist` |
 | frontend | `pnpm preview` | Podgląd buildu |
 | backend | `pnpm build` | `tsc` → `apps/backend/dist` |
 | backend | `pnpm start` | `node dist/index.js` |
 
-Projekt nie ma testów automatycznych ani CI.
+## Testy i CI
+
+Testy jednostkowe (vitest) obejmują funkcje obliczeniowe:
+
+- frontend – `src/utils/*.test.ts` (czas, opony, pit stop),
+- backend – `test/calculations.test.ts` (`fuelLaps`, godziny sesji).
+
+GitHub Actions (`.github/workflows/ci.yml`) na każdym PR i push do `main`: `pnpm install --frozen-lockfile`, ESLint frontendu, `pnpm test`, `pnpm build` (zawiera typecheck obu aplikacji).
+
+`apps/frontend/package-lock.json` jest pozostałością po npm – źródłem prawdy jest `pnpm-lock.yaml` w roocie.
 
 ## Wdrożenie
 

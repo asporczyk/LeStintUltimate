@@ -3,7 +3,10 @@ import { Schedule } from "../models/Schedule.js";
 import { Stint } from "../models/Stint.js";
 import { Race } from "../models/Race.js";
 import { getIO } from "../socket.js";
+import { computeFuelLaps } from "../calculations.js";
 import { createStintBody, idParams, raceIdParams, updateStintBody } from "../schemas.js";
+
+const DEFAULT_LAP_TIME = 120;
 
 interface StintBody {
     scheduleId: string
@@ -19,6 +22,22 @@ interface StintBody {
     tireRL: string
     tireRR: string
     tires: number
+}
+
+async function recalculateFuelLaps(schedule: { _id: unknown; raceId: string }) {
+    const race = await Race.findById(schedule.raceId);
+    const avgLapTime = race?.avgLapTime || DEFAULT_LAP_TIME;
+
+    const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
+    const fuelLaps = computeFuelLaps(allStints.map(s => s.duration || 0), avgLapTime);
+    for (const [index, stint] of allStints.entries()) {
+        if (stint.fuelLaps !== fuelLaps[index]) {
+            stint.fuelLaps = fuelLaps[index];
+            await stint.save();
+        }
+    }
+
+    getIO()?.emit("stint:refresh", { raceId: schedule.raceId });
 }
 
 export default async function scheduleRoutes(app: FastifyInstance) {
@@ -61,27 +80,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
             tires: body.tires
         });
 
-        const race = await Race.findById(body.scheduleId);
-        const avgLapTime = race?.avgLapTime || 120;
-
-        const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-        let cumulativeLaps = 0;
-        for (const s of allStints) {
-            if (s.order === 1) {
-                cumulativeLaps = 0;
-            } else {
-                cumulativeLaps += Math.floor((s.duration || 0) * 60 / avgLapTime);
-            }
-            if (s.fuelLaps !== cumulativeLaps) {
-                s.fuelLaps = cumulativeLaps;
-                await s.save();
-            }
-        }
-
-        const io = getIO();
-        if (io) {
-            io.emit("stint:refresh", { raceId: body.scheduleId });
-        }
+        await recalculateFuelLaps(schedule);
 
         return stint;
     });
@@ -111,27 +110,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         if (stint) {
             const schedule = await Schedule.findById(stint.scheduleId);
             if (schedule) {
-                const race = await Race.findById(schedule.raceId);
-                const avgLapTime = race?.avgLapTime || 120;
-
-                const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-                let cumulativeLaps = 0;
-                for (const s of allStints) {
-                    if (s.order === 1) {
-                        cumulativeLaps = 0;
-                    } else {
-                        cumulativeLaps += Math.floor((s.duration || 0) * 60 / avgLapTime);
-                    }
-                    if (s.fuelLaps !== cumulativeLaps) {
-                        s.fuelLaps = cumulativeLaps;
-                        await s.save();
-                    }
-                }
-
-                const io = getIO();
-                if (io) {
-                    io.emit("stint:refresh", { raceId: schedule.raceId });
-                }
+                await recalculateFuelLaps(schedule);
             }
         }
 
@@ -152,27 +131,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
             );
 
             if (schedule) {
-                const race = await Race.findById(schedule.raceId);
-                const avgLapTime = race?.avgLapTime || 120;
-
-                const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-                let cumulativeLaps = 0;
-                for (const s of allStints) {
-                    if (s.order === 1) {
-                        cumulativeLaps = 0;
-                    } else {
-                        cumulativeLaps += Math.floor((s.duration || 0) * 60 / avgLapTime);
-                    }
-                    if (s.fuelLaps !== cumulativeLaps) {
-                        s.fuelLaps = cumulativeLaps;
-                        await s.save();
-                    }
-                }
-
-                const io = getIO();
-                if (io) {
-                    io.emit("stint:refresh", { raceId: schedule.raceId });
-                }
+                await recalculateFuelLaps(schedule);
             }
         }
 

@@ -2,7 +2,7 @@
 
 Wynik przeglądu kodu z 2026-10-16. Pogrupowane wg priorytetu. `tsc` przechodzi w obu aplikacjach, `eslint` we frontendzie zgłasza 16 błędów.
 
-✅ = naprawione na branchu `fix/review-bugs`.
+✅ = naprawione (branche `fix/review-bugs` i `improve/code-quality`). Po poprawkach: `eslint` 0 błędów, 25 testów jednostkowych, CI w GitHub Actions.
 
 ## 🔴 Wysoki priorytet – błędy
 
@@ -69,16 +69,16 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 
 ## 🔵 Jakość kodu
 
-15. **Duplikacja w `schedule.routes.ts`** – pętla przeliczania `fuelLaps` + emit powtórzona 3×. Wydzielić `recalculateFuelLaps(scheduleId)`.
+15. ✅ **Duplikacja w `schedule.routes.ts`** – jedna funkcja `recalculateFuelLaps()`; czysta logika w `apps/backend/src/calculations.ts`.
 16. **Pole `scheduleId` w `POST /stints` to `raceId`** – mylące; zmienić nazwę na `raceId`.
 17. ✅ **`StintSchedule` omijał warstwę `api/`** – teraz używa `ScheduleApi`/`RacesApi` (naprawione razem z pkt 3).
-18. **`StintSchedule.tsx` ma 435 linii** – wydzielić `StintRow`, `NotesEditor`, `DriverSummary` oraz funkcje czasu do `utils/time.ts` (`formatEndTime` jest skopiowane w 3 plikach, `CheckIcon` w 2, liczenie zmienionych opon w 4).
-19. **`usePitstopTime.ts` to nie hook** – przenieść do `utils/` (konwencja `use*` sugeruje hook). Stałe `CONCURRENT_* = 1.0` tworzą martwe gałęzie.
-20. **ESLint: 16 błędów** – głównie `any` w `useSocket.tsx` (brak typów `Training`/`Qualification` w callbackach), `set-state-in-effect`, `only-export-components`, puste interfejsy w `theme.ts`.
+18. 🟡 **`StintSchedule.tsx` jest duży** – duplikaty wydzielone do `utils/time.ts`, `utils/tires.ts`, `utils/pitstop.ts` i atomu `CheckIcon` (przy okazji naprawione wyświetlanie `:60` sekund/minut i `1000` ms). Pozostaje podział na `StintRow`, `NotesEditor`, `DriverSummary`.
+19. ✅ **`usePitstopTime.ts` to nie hook** – przeniesione do `utils/pitstop.ts`, martwe gałęzie `CONCURRENT_*` usunięte.
+20. ✅ **ESLint: 0 błędów** – typowane zdarzenia socketu, `SocketProvider` w osobnym pliku, modale montowane od nowa przez `key` zamiast resetu stanu w efekcie.
 21. **i18n** – `lng: 'pl'` wyłącza `LanguageDetector`; daty formatowane na sztywno `toLocaleDateString('pl-PL')`; „Loading...” w `TrainingSchedule`/`QualificationSchedule` nie jest tłumaczone; komunikaty błędów backendu mieszają PL i EN.
-22. **Startup backendu** – `Number(process.env.PORT)` daje `NaN` bez zmiennej, `MONGO_URI!` bez sprawdzenia. Dodać walidację env z czytelnym błędem.
+22. ✅ **Startup backendu** – `Number(process.env.PORT)` daje `NaN` bez zmiennej, `MONGO_URI!` bez sprawdzenia. Teraz: `PORT` domyślnie 3000, brak `MONGO_URI` lub zły `PORT` kończy proces czytelnym komunikatem.
 23. **Nieużywane pola** – `Stint.startTime` (zawsze 0), `Stint.tires` (UI liczy samodzielnie), `Schedule.version`. (`Stint.lockedBy` usunięte razem z handlerami blokad – pkt 8.)
-24. **`Training`/`Qualification` POST nie emitują zdarzeń** – inni użytkownicy nie zobaczą nowo dodanego treningu/kwalifikacji bez odświeżenia.
+24. ✅ **`Training`/`Qualification` POST nie emitowały zdarzeń** – inni użytkownicy nie zobaczą nowo dodanego treningu/kwalifikacji bez odświeżenia.
 25. **`io.emit` do wszystkich** – każdy klient dostaje zdarzenia wszystkich wyścigów. Przy większej liczbie użytkowników: pokoje Socket.IO per `raceId`.
 
 ## ⚪ Porządki w repo
@@ -87,9 +87,9 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 27. `dev_output.log` w roocie (ignorowany przez `*.log`, ale wskazuje na nieistniejący `src/services/StintService.ts`) – można usunąć.
 28. `packages/shared` – nieśledzony, zawiera tylko `dist/` i `node_modules/`. Albo go wykorzystać (pkt 14), albo usunąć z `pnpm-workspace.yaml`.
 29. `netlify.toml` – `node_bundler` dotyczy sekcji `[functions]`, w `[build]` jest ignorowane. `--no-frozen-lockfile` w CI maskuje rozjazdy lockfile.
-30. **Brak testów i CI** – najwięcej wartości dałyby testy jednostkowe funkcji obliczeniowych (pit stop, `fuelLaps`, czasy) + GitHub Action z `tsc`, `eslint`, `vite build`.
+30. ✅ **Brak testów i CI** – najwięcej wartości dałyby testy jednostkowe funkcji obliczeniowych (pit stop, `fuelLaps`, czasy) + GitHub Action z `tsc`, `eslint`, `vite build`. Teraz: vitest (`pnpm test`) + `.github/workflows/ci.yml`.
 
 ## Sugerowana kolejność
 
 1. Pkt 7 – uwierzytelnianie i CORS przed udostępnieniem linku szerzej.
-2. Pkt 14, 15, 18, 30 – wspólny moduł obliczeń + testy, potem refaktor `StintSchedule`.
+2. Pkt 14, 18 – wspólny moduł obliczeń (`packages/shared`), potem podział `StintSchedule` na mniejsze komponenty.

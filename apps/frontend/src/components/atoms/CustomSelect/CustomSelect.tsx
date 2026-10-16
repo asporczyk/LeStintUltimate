@@ -47,7 +47,7 @@ const SelectDropdown = styled.div`
   z-index: 100;
 `
 
-const SelectOption = styled.button`
+const SelectOption = styled.button<{ $selected: boolean }>`
   width: 100%;
   padding: 10px 14px;
   font-family: 'Hanken Grotesk', sans-serif;
@@ -63,7 +63,7 @@ const SelectOption = styled.button`
     background: rgba(255, 29, 68, 0.2);
   }
 
-  ${(props: any) => props.$selected && `
+  ${props => props.$selected && `
     background: rgba(255, 29, 68, 0.3);
   `}
 `
@@ -113,7 +113,7 @@ export function CustomSelect({ value, onChange, options, placeholder = '--' }: C
           {options.map(option => (
             <SelectOption
               key={option.value}
-              {...{ $selected: option.value === value } as any}
+              $selected={option.value === value}
               type="button"
               onClick={() => {
                 onChange(option.value)

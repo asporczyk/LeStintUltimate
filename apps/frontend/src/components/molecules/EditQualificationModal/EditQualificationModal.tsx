@@ -46,15 +46,10 @@ export function EditQualificationModal({
     spotter: qualification?.spotter || ''
   })
 
+  // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
-    if (isOpen) {
-      setFormData({
-        duration: qualification?.duration?.toString() || '30',
-        driver: qualification?.driver || '',
-        spotter: qualification?.spotter || ''
-      })
-    }
-  }, [isOpen, qualification])
+    if (isOpen) cancelRef.current?.focus()
+  }, [isOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

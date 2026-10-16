@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
 
 const CheckboxWrapper = styled.label`
   display: flex;
@@ -45,12 +46,6 @@ interface CustomCheckboxProps {
   label: string
 }
 
-const CheckIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-)
-
 export function CustomCheckbox({ checked, onChange, label }: CustomCheckboxProps) {
   return (
     <CheckboxWrapper>
@@ -59,7 +54,7 @@ export function CustomCheckbox({ checked, onChange, label }: CustomCheckboxProps
         onChange={(e) => onChange(e.target.checked)}
       />
       <CheckboxBox $checked={checked}>
-        <CheckIcon />
+        <CheckIcon size={12} color="white" />
       </CheckboxBox>
       <LabelText>{label}</LabelText>
     </CheckboxWrapper>

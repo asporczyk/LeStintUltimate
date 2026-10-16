@@ -3,6 +3,7 @@ import {Training} from "../models/Training.js";
 import {Qualification} from "../models/Qualification.js";
 import {Race} from "../models/Race.js";
 import {getIO} from "../socket.js";
+import {addMinutesToClock} from "../calculations.js";
 import {raceIdParams, trainingBody} from "../schemas.js";
 
 export default async function trainingRoutes(app: FastifyInstance) {
@@ -29,7 +30,8 @@ export default async function trainingRoutes(app: FastifyInstance) {
             duration: body.duration || 30
         };
         const training = await Training.create(trainingData);
-        
+        getIO()?.emit("training:updated", training);
+
         return training;
     });
 
@@ -53,14 +55,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
         }
 
         if (patch.startTime !== undefined || patch.duration !== undefined) {
-            const trainStart = patch.startTime ?? training.startTime;
-            const duration = patch.duration ?? training.duration;
-            const [h, m] = trainStart.split(':').map(Number);
-            const trainEndSeconds = h * 3600 + m * 60 + duration * 60;
-            const newHours = Math.floor(trainEndSeconds / 3600) % 24;
-            const newMins = Math.floor((trainEndSeconds % 3600) / 60);
-            const newSecs = trainEndSeconds % 60;
-            const newQualStartTime = `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${newSecs.toString().padStart(2, '0')}`;
+            const newQualStartTime = addMinutesToClock(training.startTime, training.duration);
             
             const qualification = await Qualification.findOneAndUpdate(
                 { raceId },

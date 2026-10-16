@@ -35,7 +35,8 @@ export default async function qualificationRoutes(app: FastifyInstance) {
             tireRR: body.tireRR || 'N'
         };
         const qualification = await Qualification.create(qualificationData);
-        
+        getIO()?.emit("qualification:updated", qualification);
+
         return qualification;
     });
 

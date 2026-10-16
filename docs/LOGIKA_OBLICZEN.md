@@ -12,7 +12,7 @@ Opis reguł domenowych, które aplikacja stosuje przy planowaniu wyścigu. Wszys
 
 Jeśli kwalifikacje nie istnieją, tabela stintów startuje od `Race.startTime`.
 
-Źródła: `TrainingSchedule.tsx` (`formatEndTime`), `QualificationSchedule.tsx` (`calculatedRaceStartTime`), `training.routes.ts`.
+Źródła: `utils/time.ts` (`addMinutesToClock`, frontend), `QualificationSchedule.tsx` (`calculatedRaceStartTime`), `calculations.ts` + `training.routes.ts` (backend). Wszystkie godziny są zaokrąglane do pełnych sekund.
 
 ## 2. Kwalifikacje – okrążenia, paliwo, opony
 
@@ -22,7 +22,7 @@ Jeśli kwalifikacje nie istnieją, tabela stintów startuje od `Race.startTime`.
 
 ## 3. Okrążenie pit stopu (`fuelLaps`)
 
-Liczone na backendzie (`schedule.routes.ts`) po każdej zmianie w stintach:
+Liczone na backendzie (`computeFuelLaps` w `calculations.ts`, wywoływane z `schedule.routes.ts`) po każdej zmianie w stintach:
 
 ```
 fuelLaps(stint #1) = 0
@@ -35,7 +35,7 @@ fuelLaps(stint #n) = fuelLaps(stint #n−1) + floor(duration_n * 60 / avgLapTime
 
 ## 4. Czas pit stopu
 
-`calculatePitstopTime(previous, current, fuelTankCapacity)` w `hooks/usePitstopTime.ts`. Model odwzorowuje parametry LMU:
+`calculatePitstopTime(previous, current, fuelTankCapacity)` w `utils/pitstop.ts` (testy: `utils/pitstop.test.ts`). Model odwzorowuje parametry LMU:
 
 | Składnik | Wzór |
 |---|---|
