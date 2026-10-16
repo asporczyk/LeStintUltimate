@@ -1,31 +1,23 @@
 import styled from 'styled-components'
 import { MOBILE_QUERY } from 'styles/theme'
-import { InsertBar } from './StintSchedule.styles'
 
 // Wide enough for a stint to fit on one line.
 const WIDE_QUERY = '(min-width: 1000px)'
 
 // One card per session or stint. Wide screens: a single row inside a rounded list;
 // narrower ones: stacked, and edge to edge on phones.
-export const CardList = styled.div`
-  border: 1px solid ${({ theme }) => theme.colors.border};
+// $plain: no frame of its own (the stint timeline frames the cards itself).
+export const CardList = styled.div<{ $plain?: boolean }>`
+  border: ${({ $plain, theme }) => $plain ? 'none' : `1px solid ${theme.colors.border}`};
   border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
 
-  /* The list border already closes the last card. */
-  & > :last-child ${InsertBar}:not(:hover):not(:focus-within)::before {
-    opacity: 0;
-  }
-
   @media ${MOBILE_QUERY} {
-    & > :last-child ${InsertBar}::before {
-      opacity: 1;
-    }
-
     margin-inline: -1rem;
     border-left: none;
     border-right: none;
     border-bottom: none;
+    border-top: ${({ $plain, theme }) => $plain ? 'none' : `1px solid ${theme.colors.border}`};
     border-radius: 0;
   }
 `
@@ -152,6 +144,10 @@ export const StatLabel = styled.dt`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media ${MOBILE_QUERY} {
+    letter-spacing: 0.02em;
+  }
 `
 
 export const StatValue = styled.dd`

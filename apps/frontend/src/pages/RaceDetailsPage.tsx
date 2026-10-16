@@ -175,6 +175,7 @@ export function RaceDetailsPage() {
         eventStartTime={race.startTime || '19:30'}
         tireSets={Math.max(0, (race.tireSets || 0) - 4)}
         fuelTankCapacity={race.fuelTankCapacity || 100}
+        raceLength={race.raceLength || 6}
         notes={race.notes}
       />}
       {race && (

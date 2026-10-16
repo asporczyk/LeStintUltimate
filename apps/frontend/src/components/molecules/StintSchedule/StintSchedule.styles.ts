@@ -142,20 +142,14 @@ export const InsertButton = styled.button`
 
 // Divider between stints. Pointing at it opens a gap with an "insert stint" button
 // on the left; touch screens get a small "+" sitting on the divider instead.
-export const InsertBar = styled.div<{ $inset?: boolean }>`
+export const InsertBar = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  height: 8px;
-  /* Lines the button up with the stint number badge of the cards. */
-  padding-left: ${({ $inset }) => $inset ? '1.25rem' : '0'};
-
-  @media (min-width: 1000px) {
-    padding-left: ${({ $inset }) => $inset ? '1.5rem' : '0'};
-  }
+  height: 10px;
   transition: height 0.15s ease;
 
-  /* The row divider, turning into a red line that fades out to the right. */
+  /* Hidden until hovered: a red line that fades out to the right. */
   &::before {
     content: '';
     position: absolute;
@@ -163,7 +157,7 @@ export const InsertBar = styled.div<{ $inset?: boolean }>`
     right: 0;
     top: 50%;
     height: 1px;
-    background: ${({ theme }) => theme.colors.border};
+    background: transparent;
     transition: background 0.15s ease;
   }
 
@@ -357,9 +351,19 @@ export const MinimumRequirementIconWrapper = styled.div`
   }
 `
 
+export const DriverSwatch = styled.span<{ $bg: string }>`
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.625rem;
+  border-radius: 3px;
+  vertical-align: -1px;
+  background: ${({ $bg }) => $bg};
+`
+
 export const DriverSummaryTable = styled.table`
   width: 100%;
-  max-width: 480px;
+  margin-top: 1rem;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -405,7 +409,6 @@ export const RacePercentageCell = styled(DriverSummaryCell)`
 `
 
 export const MinimumRequirementWarning = styled.div`
-  max-width: 480px;
   background: ${({ theme }) => theme.colors.warningSoft};
   border: 1px solid ${({ theme }) => theme.colors.warning};
   border-radius: ${({ theme }) => theme.radius.md};
