@@ -28,6 +28,8 @@ Pliki `.env` nie są commitowane – skopiuj `.env.example` do `.env`.
 |---|---|---|
 | `PORT` | `3000` | Port HTTP (domyślnie 3000) |
 | `MONGO_URI` | `mongodb://localhost:27017/stint-planner` | Connection string MongoDB (wymagany) |
+| `RATE_LIMIT_MAX` | `300` | Opcjonalnie: zapytań na minutę z jednego IP (domyślnie 300) |
+| `RATE_LIMIT_RACE_WRITE_MAX` | `20` | Opcjonalnie: tworzenie/usuwanie wyścigów na minutę z jednego IP (domyślnie 20) |
 | `CORS_ORIGINS` | `https://stint.example.com` | Opcjonalnie: dozwolone originy po przecinku, zastępują domyślną listę (patrz [API.md](API.md#cors)) |
 
 ### Frontend – `apps/frontend/.env` (wzór: `.env.example`)
@@ -83,6 +85,22 @@ Produkcyjny frontend (`le-stint-ultimate.netlify.app`) łączy się z backendem 
 `--prod=false` jest potrzebne, bo przy `NODE_ENV=production` pnpm pominąłby `typescript` (devDependency).
 
 Plik zawiera też statyczną usługę `stint-frontend` (alternatywa dla Netlify) z `VITE_API_URL=https://stint-backend.onrender.com/api`.
+
+### Health check na Render
+
+W panelu Render (usługa backendu → *Settings → Health Check Path*) warto ustawić `/health`. Render nie przełączy wtedy ruchu na nową wersję, która nie łączy się z bazą, i będzie widać, kiedy backend nie działa.
+
+## Zmiany API – zgodność wstecz
+
+Frontend (Netlify) i backend (Render) wdrażają się **osobno i w różnym tempie**. Przez kilka–kilkanaście minut po merge'u nowy frontend może rozmawiać ze starym backendem.
+
+16.10.2026 przez ok. 17 minut nie dało się dodawać stintów na produkcji. Nowy frontend wysyłał już `raceId`, a stary backend wymagał jeszcze `scheduleId`.
+
+Dlatego przy zmianach API:
+
+1. **Backend najpierw akceptuje oba warianty** (stare i nowe pole / stary i nowy kod odpowiedzi). Frontend przechodzi na nowy wariant dopiero, gdy ten backend jest na produkcji.
+2. **Nie usuwaj pola ani trasy w tym samym PR**, w którym frontend przestaje ich używać. Usunięcie to osobny, późniejszy PR.
+3. Po merge'u sprawdź, czy nowy backend jest na produkcji, np. zapytaniem, które pokazuje nowe zachowanie.
 
 ## Konwencje
 

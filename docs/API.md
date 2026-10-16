@@ -4,6 +4,19 @@ Bazowy URL: `http://localhost:3000/api` (lokalnie). Swagger UI: `http://localhos
 
 API celowo nie ma uwierzytelniania – aplikacja jest dostępna dla każdego, kto ma link.
 
+## Limity zapytań
+
+Aplikacja jest publiczna, więc API ogranicza liczbę zapytań z jednego adresu IP:
+
+- **300 zapytań na minutę** dla wszystkich tras (`RATE_LIMIT_MAX`),
+- **20 na minutę** dla tworzenia i usuwania wyścigów (`RATE_LIMIT_RACE_WRITE_MAX`), bo limit 100 wyścigów jest wspólny dla wszystkich.
+
+Po przekroczeniu limitu API odpowiada `429 Too Many Requests`. Odpowiedzi zawierają nagłówki `x-ratelimit-limit`, `x-ratelimit-remaining` i `x-ratelimit-reset`. Adres IP klienta pochodzi z `X-Forwarded-For` (`trustProxy`), bo na Render ruch przechodzi przez proxy. `/health` nie ma limitu.
+
+## Health check
+
+`GET /health` (bez prefiksu `/api`) zwraca `200 { "status": "ok", "database": "connected" }` albo `503 { "status": "error", "database": "disconnected" }`, gdy backend nie ma połączenia z MongoDB.
+
 ## CORS
 
 Przeglądarki mogą wywoływać API i łączyć się z Socket.IO tylko z dozwolonych domen (`apps/backend/src/cors.ts`):

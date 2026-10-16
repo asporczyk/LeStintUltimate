@@ -14,7 +14,8 @@ const MONGO = process.env.TEST_MONGO_URI;
 const APP_ORIGIN = "http://localhost:5173";
 
 describe.skipIf(!MONGO)("API (integration)", () => {
-    const app = buildServer();
+    // High limits: rate limiting has its own tests below.
+    const app = buildServer({ rateLimits: { max: 10_000, raceWriteMax: 10_000 } });
     let baseUrl = "";
     const sockets: Socket[] = [];
 
@@ -210,6 +211,45 @@ describe.skipIf(!MONGO)("API (integration)", () => {
                 socket.on("connect_error", () => resolve("rejected"));
             });
             expect(result).toBe("rejected");
+        });
+    });
+
+    describe("health", () => {
+        it("reports a connected database", async () => {
+            const res = await app.inject({ method: "GET", url: "/health" });
+            expect(res.statusCode).toBe(200);
+            expect(res.json()).toEqual({ status: "ok", database: "connected" });
+        });
+    });
+
+    describe("rate limiting", () => {
+        it("limits race creation per client and answers 429", async () => {
+            const limited = buildServer({ rateLimits: { max: 100, raceWriteMax: 2 } });
+            limited.log.level = "silent";
+            const create = () => limited.inject({
+                method: "POST", url: "/api/races", payload: { name: "Spam", startDate: "2026-10-16" }
+            });
+            const statuses = [(await create()).statusCode, (await create()).statusCode, (await create()).statusCode];
+            const reads = await limited.inject({ method: "GET", url: "/api/races" });
+            await limited.close();
+
+            expect(statuses).toEqual([200, 200, 429]);
+            // Reading still works: the stricter limit only applies to creating and deleting races.
+            expect(reads.statusCode).toBe(200);
+        });
+
+        it("limits all other requests with the general limit", async () => {
+            const limited = buildServer({ rateLimits: { max: 3, raceWriteMax: 3 } });
+            limited.log.level = "silent";
+            const statuses: number[] = [];
+            for (let i = 0; i < 4; i++) {
+                statuses.push((await limited.inject({ method: "GET", url: "/api/races" })).statusCode);
+            }
+            const health = await limited.inject({ method: "GET", url: "/health" });
+            await limited.close();
+
+            expect(statuses).toEqual([200, 200, 200, 429]);
+            expect(health.statusCode).toBe(200);
         });
     });
 
