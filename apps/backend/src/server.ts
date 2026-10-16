@@ -27,17 +27,24 @@ export const defaultRateLimits = (): RateLimits => ({
     raceWriteMax: envNumber("RATE_LIMIT_RACE_WRITE_MAX", 20)
 });
 
-// Number of proxies in front of the backend (Render's load balancer = 1).
-export const defaultTrustProxyHops = () => envNumber("TRUST_PROXY_HOPS", 1);
+// Proxies trusted in X-Forwarded-For: private network addresses. On Render a request
+// passes through several internal load balancers (10.x addresses), so the client IP is
+// the first public address counting from the right. Entries further left are set by
+// the client and would let anyone pick a new IP (and a fresh rate-limit counter).
+const PRIVATE_NETWORKS = "loopback, linklocal, uniquelocal";
+
+// TRUST_PROXY overrides it: a number of hops ("2") or comma-separated addresses/CIDRs.
+export const defaultTrustProxy = (): string | number => {
+    const value = process.env.TRUST_PROXY?.trim();
+    if (!value) return PRIVATE_NETWORKS;
+    return /^\d+$/.test(value) ? Number(value) : value;
+};
 
 export function buildServer({
     rateLimits = defaultRateLimits(),
-    trustProxyHops = defaultTrustProxyHops()
-}: { rateLimits?: RateLimits; trustProxyHops?: number } = {}) {
-    // On Render every request comes through its proxy, which appends the real client IP
-    // to X-Forwarded-For. Trust only that last hop: earlier entries are set by the client
-    // and would let anyone pick a new IP (and a fresh rate-limit counter) per request.
-    const app = Fastify({ logger: true, trustProxy: trustProxyHops });
+    trustProxy = defaultTrustProxy()
+}: { rateLimits?: RateLimits; trustProxy?: string | number } = {}) {
+    const app = Fastify({ logger: true, trustProxy });
 
     app.decorate("rateLimits", rateLimits);
 

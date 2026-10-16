@@ -238,19 +238,20 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect(reads.statusCode).toBe(200);
         });
 
-        it("counts the IP added by the proxy, not one the client sends", async () => {
+        it("counts the client IP behind Render's internal load balancers, not one the client sends", async () => {
             const limited = buildServer({ rateLimits: { max: 2, raceWriteMax: 2 } });
             limited.log.level = "silent";
-            // The client varies the first X-Forwarded-For entry; the proxy appends the real IP.
+            // As on Render: a client-set (fake) entry, the real client IP appended by Render's
+            // edge, then a different internal 10.x load balancer on every request.
             const get = (forwardedFor: string) => limited.inject({
                 method: "GET", url: "/api/races", headers: { "x-forwarded-for": forwardedFor }
             });
             const sameClient = [
-                (await get("198.51.100.1, 203.0.113.9")).statusCode,
-                (await get("198.51.100.2, 203.0.113.9")).statusCode,
-                (await get("198.51.100.3, 203.0.113.9")).statusCode
+                (await get("198.51.100.1, 203.0.113.9, 10.228.25.1")).statusCode,
+                (await get("10.0.0.7, 203.0.113.9, 10.197.30.213")).statusCode,
+                (await get("198.51.100.3, 203.0.113.9, 10.192.117.149, 10.1.1.1")).statusCode
             ];
-            const otherClient = (await get("198.51.100.1, 203.0.113.10")).statusCode;
+            const otherClient = (await get("198.51.100.1, 203.0.113.10, 10.228.25.1")).statusCode;
             await limited.close();
 
             expect(sameClient).toEqual([200, 200, 429]);
