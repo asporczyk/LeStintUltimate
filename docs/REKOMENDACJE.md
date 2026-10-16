@@ -27,15 +27,9 @@ Wynik przeglądu kodu z 2026-10-16. Pogrupowane wg priorytetu. `tsc` przechodzi 
 **Poprawka:** `<Fragment key={stint._id}>`.
 
 ### ✅ 6. Konfiguracja Render jest niespójna
-**Stan:** `render.yaml` używa `rootDir`, pnpm i uruchamia `tsc`; `VITE_API_URL` ma `/api`. Jeśli usługi na Render są skonfigurowane ręcznie w panelu (nie przez Blueprint), plik nic nie zmienia – trzeba to sprawdzić w panelu.
+`render.yaml` opisywał usługi `stint-backend`/`stint-frontend`, których nie ma. Produkcyjny backend `lestintultimate` jest skonfigurowany ręcznie w panelu i Blueprinty nie są używane. Plik usunięty, a prawdziwa konfiguracja opisana w [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#backend--render).
 
-- `buildCommand: cd apps/backend && npm install` nie uruchamia `tsc`, a `startCommand: node dist/index.js` wymaga zbudowanego `dist/` (który jest w `.gitignore`). Do tego `startCommand` uruchamia się z roota repo, gdzie `dist/` nie ma.
-- `VITE_API_URL` dla `stint-frontend` nie ma sufiksu `/api`, a frontend dokleja tylko `/races` itd.
-- Projekt używa pnpm, Render – npm (inne lockfile).
-
-Jeśli Render faktycznie działa, to dzięki ustawieniom nadpisanym w panelu – warto zsynchronizować plik z rzeczywistością albo usunąć nieużywaną usługę `stint-frontend`.
-
-## 🟠 Bezpieczeństwo
+Zostaje jedna rzecz do rozważenia: Render buduje przez `npm install` bez lockfile, więc wersje zależności na produkcji mogą się różnić od testowanych. Gotowa komenda z pnpm jest w tym samym miejscu dokumentacji.
 
 ### ✅ 7. `CORS: *` (uwierzytelnianie – świadomie pominięte)
 **Decyzja:** aplikacja ma być dostępna dla każdego, kto ma link – logowania **nie dodajemy**.
@@ -69,7 +63,7 @@ Wszystkie tabele pokazują godziny jako `HH:MM:SS` (`formatClock`). Wcześniej t
 ### ⏸️ 14. Logika obliczeń w dwóch miejscach (świadomie odłożone)
 `computeFuelLaps`/`stintStartLap` i `addMinutesToClock` istnieją w backendzie i frontendzie. Obie wersje są małe i pokryte testami.
 
-Wspólny pakiet w `packages/shared` wymagałby, żeby build backendu na Render kompilował też ten pakiet. Produkcyjny backend (`lestintultimate.onrender.com`) jest skonfigurowany ręcznie w panelu Render, więc zmiana grozi niedziałającym deployem. Warto wrócić do tematu, gdy konfiguracja Render będzie w repo (Blueprint).
+Wspólny pakiet wymagałby, żeby build backendu na Render (npm w `apps/backend`) kompilował też pakiet z innego katalogu. Przy kilkunastu liniach zduplikowanej, przetestowanej logiki i prostej, ręcznej konfiguracji Render to się nie opłaca. **Decyzja (16.10.2026): nie robimy.** Katalog `packages/` został usunięty.
 
 ## 🔵 Jakość kodu
 
@@ -97,11 +91,11 @@ Wspólny pakiet w `packages/shared` wymagałby, żeby build backendu na Render k
 ## ⚪ Porządki w repo
 
 26. README był nieaktualny (np. `i18n.ts` jako entry point backendu, `App.css`, jeden endpoint) – zaktualizowany razem z tą dokumentacją.
-27. `dev_output.log` w roocie (ignorowany przez `*.log`, ale wskazuje na nieistniejący `src/services/StintService.ts`) – można usunąć.
-28. `packages/shared` – nieśledzony, zawiera tylko `dist/` i `node_modules/`. Albo go wykorzystać (pkt 14), albo usunąć z `pnpm-workspace.yaml`.
+27. ✅ `dev_output.log` – lokalny log serwera dev, ignorowany przez git (`*.log`). Nic do zrobienia w repo.
+28. ✅ `packages/shared` – usunięty lokalnie, a wpis `packages/*` wyrzucony z `pnpm-workspace.yaml` (patrz pkt 14).
 29. ✅ `netlify.toml` – usunięty `node_bundler`, instalacja z `--frozen-lockfile`; usunięty nieaktualny `apps/frontend/package-lock.json`.
 30. ✅ **Brak testów i CI** – najwięcej wartości dałyby testy jednostkowe funkcji obliczeniowych (pit stop, `fuelLaps`, czasy) + GitHub Action z `tsc`, `eslint`, `vite build`. Teraz: vitest (`pnpm test`) + `.github/workflows/ci.yml`.
 
 ## Sugerowana kolejność
 
-1. Przenieść konfigurację produkcyjnego backendu na Render do `render.yaml` (Blueprint) – wtedy można bezpiecznie zrobić pkt 14.
+1. (Opcjonalnie) Build na Render przez pnpm z `--frozen-lockfile`, żeby produkcja używała wersji z lockfile – zmiana w panelu, komenda w [ROZWOJ_I_WDROZENIE.md](ROZWOJ_I_WDROZENIE.md#backend--render).

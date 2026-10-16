@@ -5,9 +5,8 @@ Le Stint Ultimate to monorepo (pnpm workspaces) z dwiema aplikacjami:
 | Aplikacja | Ścieżka | Stack | Hosting |
 |---|---|---|---|
 | Frontend | `apps/frontend` | React 19, Vite 7, TypeScript, styled-components, react-router 7, i18next, socket.io-client | Netlify (`netlify.toml`) |
-| Backend | `apps/backend` | Fastify 5, Mongoose 8 (MongoDB), Socket.IO 4, TypeScript (ESM) | Render (`render.yaml`) |
+| Backend | `apps/backend` | Fastify 5, Mongoose 8 (MongoDB), Socket.IO 4, TypeScript (ESM) | Render (konfiguracja w panelu) |
 
-Katalog `packages/shared` istnieje lokalnie, ale nie jest śledzony w git i nie jest używany.
 
 ## Przepływ danych
 
