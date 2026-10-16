@@ -1,0 +1,38 @@
+import { describe, expect, it } from 'vitest'
+import { calculatePitstopTime } from 'utils/pitstop'
+
+const stint = (overrides: Partial<Parameters<typeof calculatePitstopTime>[1]> = {}) => ({
+  driver: 'Adam',
+  fuel: 100,
+  tireFL: '-',
+  tireFR: '-',
+  tireRL: '-',
+  tireRR: '-',
+  ...overrides,
+})
+
+describe('calculatePitstopTime', () => {
+  it('is zero for the first stint', () => {
+    expect(calculatePitstopTime(null, stint())).toBe(0)
+  })
+
+  it('refuelling only: 99 L / 3 L/s + 3.9 s handling', () => {
+    expect(calculatePitstopTime(stint(), stint())).toBeCloseTo(36.9)
+  })
+
+  it('scales fuel time with tank capacity', () => {
+    expect(calculatePitstopTime(stint(), stint(), 120)).toBeCloseTo(43.5)
+  })
+
+  it('runs tires in parallel with refuelling (4 tires = 39 s)', () => {
+    expect(calculatePitstopTime(stint(), stint({ fuel: 50, tireFL: 'N', tireFR: 'N', tireRL: 'N', tireRR: 'N' }))).toBeCloseTo(39)
+  })
+
+  it('takes the longer of fuel and tires (2 tires = 22 s < fuel)', () => {
+    expect(calculatePitstopTime(stint(), stint({ tireFL: 'N', tireFR: 'N' }))).toBeCloseTo(36.9)
+  })
+
+  it('driver change (46 s) runs in parallel with the rest', () => {
+    expect(calculatePitstopTime(stint(), stint({ driver: 'Ola', fuel: 10 }))).toBeCloseTo(46)
+  })
+})

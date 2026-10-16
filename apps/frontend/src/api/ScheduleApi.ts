@@ -1,4 +1,5 @@
 import { type Stint } from 'types/Schedule'
+import { request } from 'api/request'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -8,8 +9,5 @@ interface ScheduleResponse {
 }
 
 export const ScheduleApi = {
-  getByRaceId: async (raceId: string): Promise<ScheduleResponse> => {
-    const res = await fetch(`${API_URL}/schedule/${raceId}`)
-    return res.json()
-  },
+  getByRaceId: (raceId: string): Promise<ScheduleResponse> => request(`${API_URL}/schedule/${raceId}`),
 }

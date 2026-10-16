@@ -21,6 +21,7 @@ import {
   InputWithUnitStyle,
   ErrorText
 } from './EditStintModal.styles'
+import { countChangedTires } from 'utils/tires'
 
 interface EditStintModalProps {
   isOpen: boolean
@@ -82,13 +83,10 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
   const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
   const [errors, setErrors] = useState<FormErrors>({})
 
+  // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
-    if (isOpen) {
-      setFormData(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
-      setErrors({})
-      cancelRef.current?.focus()
-    }
-  }, [isOpen, stint, avgStintTime, isFirstStint, tireSets, previousTires])
+    if (isOpen) cancelRef.current?.focus()
+  }, [isOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -125,12 +123,7 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
 
     const calculatedFuelLaps = calculateFuelLaps(formData.duration, avgLapTime, previousFuelLaps, isFirstStint)
 
-    const changedTires = [
-      formData.tireFL !== '-' ? 1 : 0,
-      formData.tireFR !== '-' ? 1 : 0,
-      formData.tireRL !== '-' ? 1 : 0,
-      formData.tireRR !== '-' ? 1 : 0
-    ].reduce((sum, v) => sum + v, 0)
+    const changedTires = countChangedTires(formData)
 
     const calculatedTires = formData.tires - changedTires
 

@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
-import { calculatePitstopTime } from '@/hooks/usePitstopTime'
+import { calculatePitstopTime } from 'utils/pitstop'
+import { addMinutesToClock, formatHoursMinutes } from 'utils/time'
+import { remainingTiresAt } from 'utils/tires'
+import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
@@ -9,6 +12,8 @@ import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
 import { EditStintModal } from 'components/molecules/EditStintModal/EditStintModal'
 import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
 import { StintsApi } from 'api/StintsApi'
+import { ScheduleApi } from 'api/ScheduleApi'
+import { RacesApi } from 'api/RacesApi'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -52,21 +57,6 @@ import {
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
 
-const CheckIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-)
-
-function formatTime(minutes: number, startTime: string): string {
-  const [hours, mins] = startTime.split(':').map(Number)
-  const totalMinutes = hours * 60 + mins + Math.floor(minutes)
-  const newHours = Math.floor(totalMinutes / 60) % 24
-  const newMins = totalMinutes % 60
-  const secs = Math.round((minutes % 1) * 60)
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
-
 function formatDuration(minutes: number): string {
   return `${minutes} min`
 }
@@ -80,31 +70,6 @@ function getMinimumDriverPercentage(driverCount: number): number {
     6: 8.3,
   }
   return minimumPercentages[driverCount] || (100 / driverCount)
-}
-
-function formatTotalTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const mins = Math.round(minutes % 60)
-  return `${hours}:${mins.toString().padStart(2, '0')}`
-}
-
-function getTiresAtIndex(stints: Stint[], index: number, tireSets: number): number {
-  if (stints.length === 0) return tireSets
-  
-  let tires = tireSets
-  for (let i = 0; i <= index; i++) {
-    const stint = stints[i]
-    if (stint) {
-      const changedTires = [
-        stint.tireFL !== '-' ? 1 : 0,
-        stint.tireFR !== '-' ? 1 : 0,
-        stint.tireRL !== '-' ? 1 : 0,
-        stint.tireRR !== '-' ? 1 : 0
-      ].reduce((sum, v) => sum + v, 0)
-      tires = tires - changedTires
-    }
-  }
-  return tires
 }
 
 interface StintScheduleProps {
@@ -152,9 +117,12 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const MAX_CHARS = 200
 
-  useEffect(() => {
+  // Sync notes when another client saves them (adjusting state during render).
+  const [prevInitialNotes, setPrevInitialNotes] = useState(initialNotes)
+  if (initialNotes !== prevInitialNotes) {
+    setPrevInitialNotes(initialNotes)
     setNotes(initialNotes || '')
-  }, [initialNotes])
+  }
 
   const handleNotesChange = (value: string) => {
     setNotes(value)
@@ -163,14 +131,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
 
   const handleSaveNotes = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/races/${raceId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes }),
-      })
-      if (res.ok) {
-        setNotesModified(false)
-      }
+      await RacesApi.update(raceId, { notes })
+      setNotesModified(false)
     } catch (err) {
       console.error('Failed to save notes', err)
     }
@@ -179,11 +141,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   useEffect(() => {
     const loadStints = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/schedule/${raceId}`)
-        const data = await res.json()
-        if (data.stints) {
-          setStints(data.stints)
-        }
+        const data = await ScheduleApi.getByRaceId(raceId)
+        setStints(data.stints)
       } catch (err) {
         console.error('Failed to load stints', err)
       }
@@ -196,13 +155,8 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   useEffect(() => {
     const unsubscribe = onStintRefresh((data) => {
       if (data.raceId === raceId) {
-        fetch(`${import.meta.env.VITE_API_URL}/schedule/${raceId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.stints) {
-              setStints(data.stints)
-            }
-          })
+        ScheduleApi.getByRaceId(raceId)
+          .then(data => setStints(data.stints))
           .catch(err => console.error('Failed to refresh stints', err))
       }
     })
@@ -269,16 +223,16 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
               }
               const stintEndTime = stintStartTime + stint.duration
               const isActive = isStintActive(stintStartTime, stint.duration)
-              const displayTires = getTiresAtIndex(stints, index, tireSets)
+              const displayTires = remainingTiresAt(stints, index, tireSets)
               const stintNumber = stint.order !== undefined ? stint.order : index + 1
               
               return (
-                <>
-                  <TableRow key={stint._id} $isActive={isActive}>
+                <Fragment key={stint._id}>
+                  <TableRow $isActive={isActive}>
                     <StintNumberCell>{stintNumber}</StintNumberCell>
-                    <TableCell>{formatTime(stintStartTime, startTime)}</TableCell>
+                    <TableCell>{addMinutesToClock(startTime, stintStartTime)}</TableCell>
                     <TableCell>{formatDuration(stint.duration)}</TableCell>
-                    <TableCell>{formatTime(stintEndTime, startTime)}</TableCell>
+                    <TableCell>{addMinutesToClock(startTime, stintEndTime)}</TableCell>
                     <TableCell>{stint.fuelLaps}</TableCell>
                     <DriverCell>
                       {stint.driver}
@@ -305,7 +259,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                       </ActionButtonsWrapper>
                     </ActionsCell>
                   </TableRow>
-                  <TableRow key={`separator-${stint._id}`}>
+                  <TableRow>
                     <td colSpan={14} style={{ padding: 0, border: 'none' }}>
                       <RowSeparator 
                         $visible={hoveredSeparatorIndex === index + 1}
@@ -326,14 +280,15 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                       </RowSeparator>
                     </td>
                   </TableRow>
-                </>
+                </Fragment>
               )
             })}
           </TableBody>
         </Table>
       </TableWrapper>
       )}
-      <AddStintModal 
+      <AddStintModal
+        key={addModalOpen ? `open-${addAfterStint}` : 'closed'}
         isOpen={addModalOpen}
         insertAfterStint={addAfterStint}
         totalStints={stints.length}
@@ -342,7 +297,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         avgStintTime={avgStintTime}
         avgLapTime={avgLapTime}
         previousFuelLaps={addAfterStint > 0 ? stints[addAfterStint - 1]?.fuelLaps ?? 0 : 0}
-        previousTires={addAfterStint > 0 ? getTiresAtIndex(stints, addAfterStint - 1, tireSets) : tireSets}
+        previousTires={addAfterStint > 0 ? remainingTiresAt(stints, addAfterStint - 1, tireSets) : tireSets}
         isFirstStint={addAfterStint === 0}
         tireSets={tireSets}
         allStints={stints}
@@ -353,13 +308,14 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
       />
       {editingStint && (
         <EditStintModal
+          key={editModalOpen ? `open-${editingStint._id}` : 'closed'}
           isOpen={editModalOpen}
           stint={editingStint}
           drivers={drivers}
           avgStintTime={avgStintTime}
           avgLapTime={avgLapTime}
           previousFuelLaps={editingStintIndex > 0 ? stints[editingStintIndex - 1].fuelLaps : 0}
-          previousTires={getTiresAtIndex(stints, editingStintIndex, tireSets)}
+          previousTires={remainingTiresAt(stints, editingStintIndex, tireSets)}
           isFirstStint={editingStintIndex === 0}
           tireSets={tireSets}
           onConfirm={async (updatedStint) => {
@@ -481,7 +437,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                         as={isBelowMinimum ? DriverSummaryRowBelowMinimum : DriverSummaryRow}
                       >
                         <DriverNameCell>{driver}</DriverNameCell>
-                        <TotalTimeCell>{formatTotalTime(totalMinutes)}</TotalTimeCell>
+                        <TotalTimeCell>{formatHoursMinutes(totalMinutes)}</TotalTimeCell>
                         <RacePercentageCell>{percentageStr}%</RacePercentageCell>
                       </DriverSummaryRow>
                     )

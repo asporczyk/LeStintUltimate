@@ -2,7 +2,10 @@ import {FastifyInstance} from "fastify";
 import {Race} from "../models/Race.js";
 import {Schedule} from "../models/Schedule.js";
 import {Stint} from "../models/Stint.js";
+import {Training} from "../models/Training.js";
+import {Qualification} from "../models/Qualification.js";
 import {getIO} from "../socket.js";
+import {createRaceBody, idParams, patchRaceBody} from "../schemas.js";
 
 export default async function raceRoutes(app: FastifyInstance) {
     app.get("/races", async () => {
@@ -11,7 +14,7 @@ export default async function raceRoutes(app: FastifyInstance) {
         return { races, count, limit: 100 };
     });
 
-    app.post("/races", async (req, reply) => {
+    app.post("/races", { schema: { body: createRaceBody } }, async (req, reply) => {
         const count = await Race.countDocuments();
         if (count >= 100) {
             return reply.status(400).send({ error: "Limit 100 wyścigów został osiągnięty. Usuń jeden, aby dodać nowy." });
@@ -21,13 +24,20 @@ export default async function raceRoutes(app: FastifyInstance) {
         return await Race.create({name, startDate});
     });
 
-    app.delete("/races/:id", async (req) => {
+    app.delete("/races/:id", { schema: { params: idParams } }, async (req) => {
         const { id } = req.params as any;
         await Race.findByIdAndDelete(id);
+
+        const schedules = await Schedule.find({ raceId: id });
+        await Stint.deleteMany({ scheduleId: { $in: schedules.map(s => s._id) } });
+        await Schedule.deleteMany({ raceId: id });
+        await Training.deleteMany({ raceId: id });
+        await Qualification.deleteMany({ raceId: id });
+
         return { success: true };
     });
 
-    app.get("/races/:id", async (req, reply) => {
+    app.get("/races/:id", { schema: { params: idParams } }, async (req, reply) => {
         const { id } = req.params as any;
         const race = await Race.findById(id);
         if (!race) {
@@ -36,7 +46,7 @@ export default async function raceRoutes(app: FastifyInstance) {
         return race;
     });
 
-    app.patch("/races/:id", async (req, reply) => {
+    app.patch("/races/:id", { schema: { params: idParams, body: patchRaceBody } }, async (req, reply) => {
         const { id } = req.params as any;
         const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; tireSets?: number; fuelTankCapacity?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
         

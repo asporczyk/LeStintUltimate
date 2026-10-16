@@ -20,21 +20,8 @@ import {
 } from '../StintSchedule/StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
 import { useSocket } from '@/hooks/useSocket'
-
-const CheckIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-)
-
-function formatEndTime(startTime: string, durationMinutes: number, extraLapSeconds: number = 0): string {
-  const [hours, mins] = startTime.split(':').map(Number)
-  const totalSeconds = hours * 3600 + mins * 60 + durationMinutes * 60 + extraLapSeconds
-  const newHours = Math.floor(totalSeconds / 3600) % 24
-  const newMins = Math.floor((totalSeconds % 3600) / 60)
-  const newSecs = totalSeconds % 60
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${newSecs.toString().padStart(2, '0')}`
-}
+import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
+import { addMinutesToClock } from 'utils/time'
 
 interface QualificationScheduleProps {
   raceId: string
@@ -94,15 +81,10 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
     }
   }
 
-  const calculatedRaceStartTime = (() => {
-    if (!qualification?.duration) return raceStartTime
-    const [h, m] = (qualification.startTime || raceStartTime).split(':').map(Number)
-    const qualEndSeconds = h * 3600 + m * 60 + qualification.duration * 60 + avgLapTime
-    const twoMinutesLater = qualEndSeconds + 2 * 60
-    const newHours = Math.floor(twoMinutesLater / 3600) % 24
-    const newMins = Math.floor((twoMinutesLater % 3600) / 60)
-    return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
-  })()
+  // Race starts 2 minutes after qualification ends (duration + one extra lap), as "HH:MM".
+  const calculatedRaceStartTime = qualification?.duration
+    ? addMinutesToClock(qualification.startTime || raceStartTime, qualification.duration + avgLapTime / 60 + 2).slice(0, 5)
+    : raceStartTime
 
   useEffect(() => {
     if (onCalculatedRaceStart && qualification) {
@@ -123,8 +105,8 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
 
   const qualStartTime = qualification?.startTime ?? raceStartTime
   const displayEndTime = qualification?.duration 
-    ? formatEndTime(qualStartTime, qualification.duration, avgLapTime)
-    : formatEndTime(qualStartTime, 30, avgLapTime)
+    ? addMinutesToClock(qualStartTime, qualification.duration + avgLapTime / 60)
+    : addMinutesToClock(qualStartTime, 30 + avgLapTime / 60)
 
 if (loading) {
     return (
@@ -148,6 +130,7 @@ if (loading) {
           </TextButton>
         </div>
         <EditQualificationModal
+          key={editModalOpen ? 'open' : 'closed'}
           isOpen={editModalOpen}
           qualification={null}
           raceStartTime={raceStartTime}
@@ -217,6 +200,7 @@ if (loading) {
         </Table>
       </TableWrapper>
       <EditQualificationModal
+        key={editModalOpen ? 'open' : 'closed'}
         isOpen={editModalOpen}
         qualification={qualification}
         raceStartTime={raceStartTime}

@@ -57,5 +57,7 @@ export const GlobalStyles = createGlobalStyle`
 `
 
 declare module 'styled-components' {
+  // Module augmentation requires an interface, so it is empty on purpose.
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface DefaultTheme extends Theme {}
 }

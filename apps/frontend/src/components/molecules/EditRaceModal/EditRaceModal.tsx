@@ -17,6 +17,7 @@ import {
   InputWithUnitStyle
 } from './EditRaceModal.styles'
 import { DriverChips } from './DriverChips'
+import { formatLapTime, parseLapTime } from 'utils/time'
 
 interface EditRaceModalProps {
   isOpen: boolean
@@ -51,23 +52,6 @@ function getInitialFormData(race: Race) {
     avgStintTime: race.avgStintTime?.toString() || '',
     drivers: race.drivers || []
   }
-}
-
-function formatLapTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  const ms = Math.round((seconds % 1) * 1000)
-  return `${mins}:${secs.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`
-}
-
-function parseLapTime(value: string): number | null {
-  const match = value.match(/^(\d+):(\d{1,2}):(\d{1,3})$/)
-  if (!match) return null
-  const mins = parseInt(match[1], 10)
-  const secs = parseInt(match[2], 10)
-  const ms = parseInt(match[3].padEnd(3, '0'), 10)
-  if (secs >= 60) return null
-  return mins * 60 + secs + ms / 1000
 }
 
 function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErrors {
@@ -148,14 +132,10 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
   const [formData, setFormData] = useState(getInitialFormData(race))
   const [errors, setErrors] = useState<FormErrors>({})
 
+  // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData(getInitialFormData(race))
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setErrors({})
-    }
-  }, [isOpen, race])
+    if (isOpen) cancelRef.current?.focus()
+  }, [isOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

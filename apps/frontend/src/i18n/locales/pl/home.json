@@ -8,5 +8,7 @@
   "no-races": "Brak wyścigów. Dodaj swój pierwszy wyścig powyżej.",
   "race-name-max-length": "Nazwa może mieć maksymalnie {{max}} znaków",
   "race-name-invalid-chars": "Dozwolone tylko litery łacińskie, cyfry, spacje i podstawowe znaki",
-  "race-name-required": "Wpisz przynajmniej jedno słowo"
+  "race-name-required": "Wpisz przynajmniej jedno słowo",
+  "race-limit-reached": "Osiągnięto limit {{limit}} wyścigów. Usuń jeden, aby dodać nowy.",
+  "request-failed": "Nie udało się wykonać operacji. Spróbuj ponownie."
 }

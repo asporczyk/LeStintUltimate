@@ -19,15 +19,7 @@ import {
   ActionButtonsWrapper
 } from '../StintSchedule/StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
-
-function formatEndTime(startTime: string, durationMinutes: number): string {
-  const [hours, mins] = startTime.split(':').map(Number)
-  const totalSeconds = hours * 3600 + mins * 60 + durationMinutes * 60
-  const newHours = Math.floor(totalSeconds / 3600) % 24
-  const newMins = Math.floor((totalSeconds % 3600) / 60)
-  const newSecs = totalSeconds % 60
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}:${newSecs.toString().padStart(2, '0')}`
-}
+import { addMinutesToClock } from 'utils/time'
 
 interface TrainingScheduleProps {
   raceId: string
@@ -58,7 +50,7 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
 
   useEffect(() => {
     if (onTrainingStartTime && training?.duration) {
-      const endTime = formatEndTime(training.startTime || raceStartTime, training.duration)
+      const endTime = addMinutesToClock(training.startTime || raceStartTime, training.duration)
       onTrainingStartTime(endTime)
     }
   }, [training, onTrainingStartTime, raceStartTime])
@@ -92,8 +84,8 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
 
   const trainingStartTime = training?.startTime ?? raceStartTime
   const displayEndTime = training?.duration 
-    ? formatEndTime(trainingStartTime, training.duration)
-    : formatEndTime(trainingStartTime, 30)
+    ? addMinutesToClock(trainingStartTime, training.duration)
+    : addMinutesToClock(trainingStartTime, 30)
 
   if (loading) {
     return (

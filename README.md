@@ -4,92 +4,63 @@ Narzędzie do planowania stintów w wyścigach długodystansowych inspirowane gr
 
 ## Funkcje
 
-- Planowanie stintów dla wyścigów długodystansowych
-- Zarządzanie harmonogramem wyścigów
-- Responsywny interfejs mobilny
-- API do integracji z innymi systemami
+- Lista wyścigów (limit 100) z parametrami: długość, kierowcy, komplety opon, zbiornik, średni czas okrążenia, zużycie paliwa, długość stintu
+- Plan treningu i kwalifikacji, z automatycznie wyliczanym startem wyścigu
+- Tabela stintów: kierowca, spotter, tankowanie, zmiana opon, okrążenie pit stopu, czasy z uwzględnieniem modelu pit stopu
+- Podświetlanie aktualnie trwającego stintu
+- Podsumowanie czasu jazdy kierowców i notatki do wyścigu
+- Synchronizacja zmian na żywo między użytkownikami (Socket.IO)
+- Interfejs PL/EN, responsywny
 
 ## Technologie
 
-### Frontend
-- React 19
-- Vite
-- TypeScript
-- Hanken Grotesk & Anton fonts
+| Frontend | Backend |
+|---|---|
+| React 19, Vite 7, TypeScript | Fastify 5, TypeScript |
+| styled-components, react-router 7 | MongoDB (Mongoose 8) |
+| i18next, socket.io-client | Socket.IO 4, Swagger |
 
-### Backend
-- Fastify
-- MongoDB (Mongoose)
-- Socket.IO
-- TypeScript
+## Szybki start
+
+```bash
+pnpm install
+pnpm dev
+```
+
+- Frontend: http://localhost:5173
+- API: http://localhost:3000/api
+- Swagger: http://localhost:3000/docs
+
+Wymaga Node.js 20+, pnpm i MongoDB. Konfiguracja `.env`: [docs/ROZWOJ_I_WDROZENIE.md](docs/ROZWOJ_I_WDROZENIE.md).
+
+## Dokumentacja
+
+| Dokument | Zawartość |
+|---|---|
+| [Architektura](docs/ARCHITEKTURA.md) | Struktura monorepo, model danych, komponenty, przepływ danych |
+| [API](docs/API.md) | Endpointy REST i zdarzenia Socket.IO |
+| [Logika obliczeń](docs/LOGIKA_OBLICZEN.md) | Czasy sesji, pit stopy, okrążenia, opony |
+| [Rozwój i wdrożenie](docs/ROZWOJ_I_WDROZENIE.md) | Uruchomienie, zmienne środowiskowe, Netlify/Render, konwencje |
+| [Rekomendacje](docs/REKOMENDACJE.md) | Znalezione błędy i propozycje usprawnień |
 
 ## Struktura projektu
 
 ```
 LeStintUltimate/
 ├── apps/
-│   ├── frontend/         # Aplikacja React
-│   │   ├── src/
-│   │   │   ├── App.tsx   # Główny komponent
-│   │   │   └── App.css   # Style
-│   │   └── package.json
-│   │
-│   └── backend/          # API serwer
-│       ├── src/
-│       │   ├── i18n.ts  # Entry point
-│       │   ├── server.ts # Konfiguracja Fastify
-│       │   ├── db.ts     # Połączenie z MongoDB
-│       │   ├── routes/   # API endpoints
-│       │   └── models/   # Modele Mongoose
-│       └── package.json
-│
-└── package.json         # Workspace root
+│   ├── frontend/      # React SPA (Netlify)
+│   │   └── src/{api,components,hooks,i18n,pages,styles,types}
+│   └── backend/       # Fastify API + Socket.IO (Render)
+│       └── src/{index,server,socket,db}.ts, models/, routes/
+├── docs/              # Dokumentacja
+├── netlify.toml
+├── render.yaml
+└── pnpm-workspace.yaml
 ```
-
-## Wymagania
-
-- Node.js 20+
-- MongoDB (lokalnie lub Docker)
-- pnpm
-
-## Instalacja
-
-```bash
-# Instalacja zależności
-pnpm install
-
-# Uruchomienie wszystkiego (frontend + backend)
-pnpm dev
-```
-
-## Konfiguracja
-
-Zmienne środowiskowe dla backend (`apps/backend/.env`):
-
-```env
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/stint-planner
-```
-
-## Development
-
-```bash
-# Uruchomienie wszystkiego (frontend + backend)
-pnpm dev
-```
-
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000/api
-
-## API Endpoints
-
-- `GET /api/schedule/:raceId` - Pobierz harmonogram wyścigu
 
 ## Design
 
-Kolorystyka inspirowana Le Mans Ultimate:
-- Kolor główny: #FF1D44
-- Tło: #000833 (gradient)
+Kolorystyka inspirowana Le Mans Ultimate: kolor główny `#FF1D44`, tło – gradient `#000833` → `#001244`. Fonty: Anton (nagłówki), Hanken Grotesk (tekst).
 
 ## Licencja
 

@@ -1,4 +1,5 @@
 import { type Race } from 'types/Race'
+import { request, jsonBody } from 'api/request'
 
 const API_URL = `${import.meta.env.VITE_API_URL}/races`
 
@@ -9,38 +10,17 @@ interface RacesResponse {
 }
 
 export const RacesApi = {
-  getAll: async (): Promise<RacesResponse> => {
-    const res = await fetch(API_URL)
-    return res.json()
-  },
+  getAll: (): Promise<RacesResponse> => request(API_URL),
 
-  create: async (name: string): Promise<Race> => {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, startDate: new Date().toISOString() }),
-    })
-    return res.json()
-  },
+  create: (name: string): Promise<Race> =>
+    request(API_URL, jsonBody('POST', { name, startDate: new Date().toISOString() })),
 
   delete: async (id: string): Promise<void> => {
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+    await request(`${API_URL}/${id}`, { method: 'DELETE' })
   },
 
-  getById: async (id: string): Promise<Race> => {
-    const res = await fetch(`${API_URL}/${id}`)
-    if (!res.ok) {
-      throw new Error('Race not found')
-    }
-    return res.json()
-  },
+  getById: (id: string): Promise<Race> => request(`${API_URL}/${id}`),
 
-  update: async (id: string, data: Partial<Race>): Promise<Race> => {
-    const res = await fetch(`${API_URL}/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    return res.json()
-  },
+  update: (id: string, data: Partial<Race>): Promise<Race> =>
+    request(`${API_URL}/${id}`, jsonBody('PATCH', data)),
 }

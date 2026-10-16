@@ -3,7 +3,9 @@ services:
     name: stint-backend
     env: node
     region: fra
-    buildCommand: cd apps/backend && npm install
+    rootDir: apps/backend
+    # --prod=false: NODE_ENV=production would otherwise skip typescript (devDependency) needed by `tsc`
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm run build
     startCommand: node dist/index.js
     envVars:
       - key: MONGO_URI
@@ -17,9 +19,9 @@ services:
     name: stint-frontend
     env: static
     region: fra
-    buildCommand: cd apps/frontend && npm install && npm run build
-    staticPublishPath: apps/frontend/dist
+    rootDir: apps/frontend
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://stint-backend.onrender.com
-        sync: false
+        value: https://stint-backend.onrender.com/api
