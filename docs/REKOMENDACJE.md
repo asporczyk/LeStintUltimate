@@ -37,8 +37,10 @@ Jeśli Render faktycznie działa, to dzięki ustawieniom nadpisanym w panelu –
 
 ## 🟠 Bezpieczeństwo
 
-### 7. Brak uwierzytelniania + `CORS: *`
-Każdy, kto zna URL backendu, może usunąć wszystkie wyścigi (`DELETE /races/:id`) lub nadpisać dowolne pole przez socket `race:update`. Minimum: prosty klucz zespołu / link z tokenem, ograniczenie CORS do domeny Netlify.
+### ✅ 7. `CORS: *` (uwierzytelnianie – świadomie pominięte)
+**Decyzja:** aplikacja ma być dostępna dla każdego, kto ma link – logowania **nie dodajemy**.
+
+**Stan:** CORS (REST i Socket.IO) ograniczony do znanych domen frontendu (`apps/backend/src/cors.ts`, nadpisywalne przez `CORS_ORIGINS`). Inne strony nie mogą używać API z przeglądarek swoich użytkowników. To nie blokuje zapytań spoza przeglądarki (curl, skrypty) – przed niechcianymi zmianami chroni walidacja z pkt 8.
 
 ### ✅ 8. Niewalidowane patche
 **Stan:** wszystkie trasy mają schematy w `apps/backend/src/schemas.ts` (params z walidacją ObjectId, body z zakresami wartości); nieznane pola są usuwane przez Ajv. Nieużywane handlery socketowe i pole `lockedBy` usunięte. Schematy nie mają jeszcze opisów odpowiedzi, więc Swagger pokazuje tylko wejście.
@@ -91,5 +93,4 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 
 ## Sugerowana kolejność
 
-1. Pkt 7 – uwierzytelnianie i CORS przed udostępnieniem linku szerzej.
-2. Pkt 14, 18 – wspólny moduł obliczeń (`packages/shared`), potem podział `StintSchedule` na mniejsze komponenty.
+1. Pkt 14, 18 – wspólny moduł obliczeń (`packages/shared`), potem podział `StintSchedule` na mniejsze komponenty.

@@ -37,6 +37,7 @@ Dzięki temu kilka osób z zespołu może jednocześnie oglądać ten sam plan w
 | `models/` | Schematy Mongoose (patrz niżej) |
 | `routes/` | Trasy REST – opis w [API.md](API.md) |
 | `schemas.ts` | Schematy JSON walidujące params i body tras |
+| `cors.ts` | Lista dozwolonych originów dla REST i Socket.IO |
 | `calculations.ts` | Czyste funkcje obliczeniowe (`computeFuelLaps`, `addMinutesToClock`) – testy w `test/` |
 
 ### Model danych

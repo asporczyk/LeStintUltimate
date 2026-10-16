@@ -6,12 +6,13 @@ import scheduleRoutes from "./routes/schedule.routes.js";
 import raceRoutes from "./routes/race.routes.js";
 import qualificationRoutes from "./routes/qualification.routes.js";
 import trainingRoutes from "./routes/training.routes.js";
+import { getAllowedOrigins } from "./cors.js";
 
 export function buildServer() {
     const app = Fastify({ logger: true });
 
     app.register(cors, {
-        origin: '*',
+        origin: getAllowedOrigins(),
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     });
 

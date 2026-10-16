@@ -2,7 +2,17 @@
 
 Bazowy URL: `http://localhost:3000/api` (lokalnie). Swagger UI: `http://localhost:3000/docs` (pokazuje parametry i body z `schemas.ts`; schematy odpowiedzi nie są jeszcze opisane).
 
-API nie ma uwierzytelniania – każdy, kto zna adres, może czytać i modyfikować dane.
+API celowo nie ma uwierzytelniania – aplikacja jest dostępna dla każdego, kto ma link.
+
+## CORS
+
+Przeglądarki mogą wywoływać API i łączyć się z Socket.IO tylko z dozwolonych domen (`apps/backend/src/cors.ts`):
+
+- `https://le-stint-ultimate.netlify.app` i deploy preview Netlify (`deploy-preview-N--le-stint-ultimate.netlify.app`),
+- `https://stint-frontend.onrender.com`,
+- `http://localhost:*` i `http://127.0.0.1:*` (development).
+
+Zmienna `CORS_ORIGINS` (lista po przecinku) zastępuje tę listę, np. przy własnej domenie. Socket.IO sprawdza też nagłówek `Origin` przy handshake (`allowRequest`), bo przeglądarki nie stosują CORS do WebSocketów. Zapytania bez nagłówka `Origin` (curl, serwer–serwer) są przepuszczane.
 
 ## Walidacja
 

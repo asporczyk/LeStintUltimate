@@ -26,8 +26,9 @@ Pliki `.env` nie są commitowane – skopiuj `.env.example` do `.env`.
 
 | Zmienna | Przykład | Opis |
 |---|---|---|
-| `PORT` | `3000` | Port HTTP (wymagany – brak domyślnej wartości) |
+| `PORT` | `3000` | Port HTTP (domyślnie 3000) |
 | `MONGO_URI` | `mongodb://localhost:27017/stint-planner` | Connection string MongoDB (wymagany) |
+| `CORS_ORIGINS` | `https://stint.example.com` | Opcjonalnie: dozwolone originy po przecinku, zastępują domyślną listę (patrz [API.md](API.md#cors)) |
 
 ### Frontend – `apps/frontend/.env` (wzór: `.env.example`)
 
@@ -66,6 +67,9 @@ GitHub Actions (`.github/workflows/ci.yml`) na każdym PR i push do `main`: `pnp
 `netlify.toml`: instalacja pnpm, build `apps/frontend`, publikacja `apps/frontend/dist`. Zmienną `VITE_API_URL` trzeba ustawić w panelu Netlify (z `/api` na końcu).
 
 ### Backend – Render
+
+Produkcyjny frontend (`le-stint-ultimate.netlify.app`) łączy się z backendem `https://lestintultimate.onrender.com`. Ta usługa ma inną nazwę niż w `render.yaml` (`stint-backend`), więc najpewniej jest skonfigurowana ręcznie w panelu Render, a `render.yaml` jej nie steruje.
+
 
 `render.yaml` (Blueprint) definiuje usługę `stint-backend`: region Frankfurt, `rootDir: apps/backend`, build `pnpm install --prod=false && pnpm run build` (`tsc` → `dist/`), start `node dist/index.js`, `PORT=10000`, `MONGO_URI` ustawiany w panelu.
 
