@@ -8,8 +8,9 @@ export default async function qualificationRoutes(app: FastifyInstance) {
     app.get("/qualification/:raceId", { schema: { params: raceIdParams } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const qualification = await Qualification.findOne({ raceId });
+        // Not having one yet is a normal state, not an error.
         if (!qualification) {
-            return reply.status(404).send({ error: "Qualification not found" });
+            return reply.status(204).send();
         }
         return qualification;
     });

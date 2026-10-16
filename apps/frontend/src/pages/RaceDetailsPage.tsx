@@ -15,11 +15,13 @@ import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
 import { formatLapTime } from 'utils/time'
+import { useToast } from '@/hooks/useToast'
 
 export function RaceDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('raceDetails')
+  const { showError } = useToast()
   const [race, setRace] = useState<Race | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -69,6 +71,7 @@ export function RaceDetailsPage() {
       setIsEditModalOpen(false)
     } catch {
       console.error('Failed to update race')
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 

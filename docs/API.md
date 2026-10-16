@@ -67,7 +67,7 @@ Body stintu:
 
 | Metoda | Ścieżka | Opis |
 |---|---|---|
-| `GET` | `/training/:raceId` | `404` gdy brak |
+| `GET` | `/training/:raceId` | Trening wyścigu. `204` (pusta odpowiedź), gdy jeszcze go nie ma |
 | `POST` | `/training/:raceId` | Body: `{ startTime?, duration? }`. Domyślnie start wyścigu / 30 min. `400` gdy już istnieje |
 | `PATCH` | `/training/:raceId` | Emituje `training:updated`. Gdy zmienia się `startTime` lub `duration`, ustawia `Qualification.startTime` = koniec treningu (`HH:MM:SS`) i emituje `qualification:updated` |
 | `DELETE` | `/training/:raceId` | Usuwa trening |
@@ -76,7 +76,7 @@ Body stintu:
 
 | Metoda | Ścieżka | Opis |
 |---|---|---|
-| `GET` | `/qualification/:raceId` | `404` gdy brak |
+| `GET` | `/qualification/:raceId` | Kwalifikacje wyścigu. `204` (pusta odpowiedź), gdy jeszcze ich nie ma |
 | `POST` | `/qualification/:raceId` | Body: pola modelu `Qualification`. `400` gdy już istnieje |
 | `PATCH` | `/qualification/:raceId` | Emituje `qualification:updated` |
 | `DELETE` | `/qualification/:raceId` | Usuwa kwalifikacje |

@@ -18,7 +18,8 @@ export interface Qualification {
 }
 
 export const QualificationApi = {
-  getByRaceId: (raceId: string): Promise<Qualification> => request(`${API_URL}/${raceId}`),
+  // null when the race has no qualification yet (204)
+  getByRaceId: (raceId: string): Promise<Qualification | null> => request(`${API_URL}/${raceId}`),
 
   create: (raceId: string, data: Partial<Qualification>): Promise<Qualification> =>
     request(`${API_URL}/${raceId}`, jsonBody('POST', data)),

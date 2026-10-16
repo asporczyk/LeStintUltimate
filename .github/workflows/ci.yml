@@ -8,6 +8,14 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      # Real MongoDB for the backend API integration tests (apps/backend/test/api.test.ts)
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      TEST_MONGO_URI: mongodb://localhost:27017
     steps:
       - uses: actions/checkout@v4
 
@@ -25,7 +33,7 @@ jobs:
       - name: Lint (frontend)
         run: pnpm --filter frontend lint
 
-      - name: Unit tests
+      - name: Tests (unit + API integration)
         run: pnpm test
 
       - name: Build (typecheck + bundle)

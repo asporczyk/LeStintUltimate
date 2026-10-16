@@ -63,11 +63,13 @@ Plik jest śledzony w git mimo wpisu `.env` w `.gitignore` (dodany przed reguł�
 ### ✅ 12. Aktywny stint ignoruje datę wyścigu
 Teraz: liczony od daty wyścigu, z przejściem na następny dzień, gdy start wyścigu po treningu i kwalifikacjach wypada po północy (`utils/raceClock.ts`, testy).
 
-### 13. Niespójne formaty godzin
-`Qualification.startTime` bywa `"HH:MM"` (domyślne) albo `"HH:MM:SS"` (po zmianie treningu); trening wyświetla `{startTime}:00`. Warto ujednolicić (np. przechowywać sekundy od północy lub pełny `Date`).
+### ✅ 13. Niespójne formaty godzin
+Wszystkie tabele pokazują godziny jako `HH:MM:SS` (`formatClock`). Wcześniej trening z sekundami wyświetlał się jako `20:00:00:00`. W danych oba formaty (`HH:MM` i `HH:MM:SS`) dalej są dopuszczalne, a wszystkie obliczenia obsługują oba.
 
-### 14. Czas pit stopu zależy od stintu, którego jeszcze nie ma w obliczeniach serwera
-Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie. Wspólne funkcje obliczeniowe w `packages/shared` (katalog już istnieje) pozwoliłyby liczyć wszystko w jednym miejscu i pokryć testami.
+### ⏸️ 14. Logika obliczeń w dwóch miejscach (świadomie odłożone)
+`computeFuelLaps`/`stintStartLap` i `addMinutesToClock` istnieją w backendzie i frontendzie. Obie wersje są małe i pokryte testami.
+
+Wspólny pakiet w `packages/shared` wymagałby, żeby build backendu na Render kompilował też ten pakiet. Produkcyjny backend (`lestintultimate.onrender.com`) jest skonfigurowany ręcznie w panelu Render, więc zmiana grozi niedziałającym deployem. Warto wrócić do tematu, gdy konfiguracja Render będzie w repo (Blueprint).
 
 ## 🔵 Jakość kodu
 
@@ -83,6 +85,10 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 24. ✅ **`Training`/`Qualification` POST nie emitowały zdarzeń** – inni użytkownicy nie zobaczą nowo dodanego treningu/kwalifikacji bez odświeżenia.
 25. ✅ **`io.emit` do wszystkich** – teraz pokoje Socket.IO per wyścig (`race:join` / `race:leave`).
 
+31. ✅ **Błędy zapisu były niewidoczne** – nieudany zapis stintu, treningu, kwalifikacji, notatek czy wyścigu trafiał tylko do konsoli. Teraz użytkownik widzi komunikat (toast).
+32. ✅ **Brak treningu/kwalifikacji jako błąd** – API zwracało `404` (czerwone błędy w konsoli przy każdym wyścigu bez treningu). Teraz `204`.
+33. ✅ **API bez testów w CI** – testy integracyjne z prawdziwym MongoDB (`apps/backend/test/api.test.ts`).
+
 ## ⚪ Porządki w repo
 
 26. README był nieaktualny (np. `i18n.ts` jako entry point backendu, `App.css`, jeden endpoint) – zaktualizowany razem z tą dokumentacją.
@@ -93,5 +99,4 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 
 ## Sugerowana kolejność
 
-1. Pkt 13 – jeden format godzin w danych.
-2. Pkt 14 – wspólny moduł obliczeń (`packages/shared`): `computeFuelLaps`/`stintStartLap` i `addMinutesToClock` są dziś zduplikowane w backendzie i frontendzie (oba pokryte testami).
+1. Przenieść konfigurację produkcyjnego backendu na Render do `render.yaml` (Blueprint) – wtedy można bezpiecznie zrobić pkt 14.

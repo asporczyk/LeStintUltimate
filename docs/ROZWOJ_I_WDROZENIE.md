@@ -51,12 +51,19 @@ Pliki `.env` nie są commitowane – skopiuj `.env.example` do `.env`.
 
 ## Testy i CI
 
-Testy jednostkowe (vitest) obejmują funkcje obliczeniowe:
+Testy (vitest):
 
-- frontend – `src/utils/*.test.ts` (czas, opony, pit stop),
-- backend – `test/calculations.test.ts` (`fuelLaps`, godziny sesji).
+- **frontend** – `src/utils/*.test.ts`: czas, opony, pit stop, okrążenia startu, start wyścigu przez północ, harmonogram, kierowcy.
+- **backend, jednostkowe** – `test/calculations.test.ts`, `test/cors.test.ts`.
+- **backend, integracyjne API** – `test/api.test.ts`: prawdziwy serwer i MongoDB. Sprawdzają walidację, okrążenia startu, kaskadę średniego czasu stintu, trening → kwalifikacje, kaskadowe usuwanie, pokoje Socket.IO i CORS.
 
-GitHub Actions (`.github/workflows/ci.yml`) na każdym PR i push do `main`: `pnpm install --frozen-lockfile`, ESLint frontendu, `pnpm test`, `pnpm build` (zawiera typecheck obu aplikacji).
+Testy integracyjne uruchamiają się tylko, gdy ustawiona jest zmienna `TEST_MONGO_URI`. Każde uruchomienie tworzy osobną bazę i usuwa ją na końcu. Bez tej zmiennej są pomijane.
+
+```bash
+TEST_MONGO_URI=mongodb://localhost:27017 pnpm test
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) na każdym PR i push do `main`: MongoDB jako usługa, `pnpm install --frozen-lockfile`, ESLint frontendu, `pnpm test` (z testami API), `pnpm build` (zawiera typecheck obu aplikacji).
 
 `apps/frontend/package-lock.json` jest pozostałością po npm – źródłem prawdy jest `pnpm-lock.yaml` w roocie.
 

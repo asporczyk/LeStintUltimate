@@ -10,8 +10,9 @@ export default async function trainingRoutes(app: FastifyInstance) {
     app.get("/training/:raceId", { schema: { params: raceIdParams } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const training = await Training.findOne({ raceId });
+        // Not having one yet is a normal state, not an error.
         if (!training) {
-            return reply.status(404).send({ error: "Training not found" });
+            return reply.status(204).send();
         }
         return training;
     });

@@ -23,6 +23,7 @@ import {
   InputWithUnitStyle,
   ErrorText
 } from './AddStintModal.styles'
+import { useToast } from '@/hooks/useToast'
 
 interface AddStintModalProps {
   isOpen: boolean
@@ -57,6 +58,7 @@ interface FormErrors {
 
 export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, onStintAdded, onCancel }: AddStintModalProps) {
   const { t } = useTranslation('raceDetails')
+  const { showError } = useToast()
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [formData, setFormData] = useState(getInitialFormData(avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
@@ -117,6 +119,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
       onCancel()
     } catch (err) {
       console.error('Failed to add stint', err)
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 
