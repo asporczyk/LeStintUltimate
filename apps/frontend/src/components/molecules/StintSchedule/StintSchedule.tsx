@@ -1,11 +1,11 @@
-import { Fragment, useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
-import { calculatePitstopTime } from 'utils/pitstop'
-import { addMinutesToClock, formatHoursMinutes } from 'utils/time'
+import { addMinutesToClock } from 'utils/time'
 import { remainingTiresAt } from 'utils/tires'
-import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
-import { IconButton } from 'components/atoms/IconButton/IconButton'
+import { stintStartLap } from 'utils/laps'
+import { stintStartTimes } from 'utils/schedule'
+import { minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
 import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
@@ -13,7 +13,9 @@ import { EditStintModal } from 'components/molecules/EditStintModal/EditStintMod
 import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
 import { StintsApi } from 'api/StintsApi'
 import { ScheduleApi } from 'api/ScheduleApi'
-import { RacesApi } from 'api/RacesApi'
+import { StintRow } from './StintRow'
+import { NotesEditor } from './NotesEditor'
+import { DriverSummary } from './DriverSummary'
 import {
   ScheduleContainer,
   ScheduleTitle,
@@ -21,56 +23,8 @@ import {
   Table,
   TableHead,
   TableHeader,
-  TableBody,
-  TableRow,
-  StintNumberCell,
-  DriverCell,
-  TableCell,
-  ActiveIndicator,
-  ActionsCell,
-  ActionButtonsWrapper,
-  RowSeparator,
-  AddIcon,
-  NotesContainer,
-  NotesLabel,
-  NotesTextarea,
-  CharCount,
-  NotesFooter,
-  SaveNotesButton,
-  DriverSummaryContainer,
-  DriverSummaryTitle,
-  DriverSummaryTable,
-  DriverSummaryHead,
-  DriverSummaryHeader,
-  DriverSummaryBody,
-  DriverSummaryRow,
-  DriverNameCell,
-  TotalTimeCell,
-  RacePercentageCell,
-  MinimumRequirementWarning,
-  DriverSummaryRowBelowMinimum,
-  MinimumRequirementInfoIcon,
-  MinimumRequirementTooltip,
-  MinimumRequirementIconWrapper,
-  MinimumRequirementList
+  TableBody
 } from './StintSchedule.styles'
-import EditIcon from 'assets/svg/edit.svg'
-import TrashIcon from 'assets/svg/trash.svg'
-
-function formatDuration(minutes: number): string {
-  return `${minutes} min`
-}
-
-function getMinimumDriverPercentage(driverCount: number): number {
-  const minimumPercentages: Record<number, number> = {
-    2: 25,
-    3: 16.7,
-    4: 12.5,
-    5: 10,
-    6: 8.3,
-  }
-  return minimumPercentages[driverCount] || (100 / driverCount)
-}
 
 interface StintScheduleProps {
   drivers: string[]
@@ -78,105 +32,55 @@ interface StintScheduleProps {
   avgLapTime: number
   raceId: string
   startTime: string
+  raceDate: string | Date
+  eventStartTime: string
   tireSets: number
   fuelTankCapacity: number
   notes?: string
 }
 
-export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, tireSets, fuelTankCapacity, notes: initialNotes }: StintScheduleProps) {
+export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, notes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
-  const getRaceStartDate = (startTime: string): Date => {
-    const [hours, minutes] = startTime.split(':').map(Number)
-    const now = new Date()
-    const raceStart = new Date(now)
-    raceStart.setHours(hours, minutes, 0, 0)
-    if (raceStart > now) {
-      raceStart.setDate(raceStart.getDate() - 1)
-    }
-    return raceStart
-  }
-
-  const [currentRaceTime, setCurrentRaceTime] = useState<number>(() => {
-    const safeStartTime = startTime || '19:30'
-    const raceStart = getRaceStartDate(safeStartTime)
-    const now = new Date()
-    return Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000))
-  })
-  const [hoveredSeparatorIndex, setHoveredSeparatorIndex] = useState<number | null>(null)
+  // Re-render every minute so the active stint follows the clock.
+  const [now, setNow] = useState(() => new Date())
   const [addModalOpen, setAddModalOpen] = useState(false)
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editingStint, setEditingStint] = useState<Stint | null>(null)
-  const [editingStintIndex, setEditingStintIndex] = useState(0)
   const [addAfterStint, setAddAfterStint] = useState(0)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [deletingStint, setDeletingStint] = useState<Stint | null>(null)
-  const [notes, setNotes] = useState(initialNotes || '')
-  const [notesModified, setNotesModified] = useState(false)
-  const notesRef = useRef<HTMLTextAreaElement>(null)
-  const MAX_CHARS = 200
-
-  // Sync notes when another client saves them (adjusting state during render).
-  const [prevInitialNotes, setPrevInitialNotes] = useState(initialNotes)
-  if (initialNotes !== prevInitialNotes) {
-    setPrevInitialNotes(initialNotes)
-    setNotes(initialNotes || '')
-  }
-
-  const handleNotesChange = (value: string) => {
-    setNotes(value)
-    setNotesModified(value !== (initialNotes || ''))
-  }
-
-  const handleSaveNotes = async () => {
-    try {
-      await RacesApi.update(raceId, { notes })
-      setNotesModified(false)
-    } catch (err) {
-      console.error('Failed to save notes', err)
-    }
-  }
 
   useEffect(() => {
-    const loadStints = async () => {
-      try {
-        const data = await ScheduleApi.getByRaceId(raceId)
-        setStints(data.stints)
-      } catch (err) {
-        console.error('Failed to load stints', err)
-      }
-    }
-    if (raceId) {
-      loadStints()
-    }
+    if (!raceId) return
+    ScheduleApi.getByRaceId(raceId)
+      .then(data => setStints(data.stints))
+      .catch(err => console.error('Failed to load stints', err))
   }, [raceId])
 
   useEffect(() => {
-    const unsubscribe = onStintRefresh((data) => {
-      if (data.raceId === raceId) {
-        ScheduleApi.getByRaceId(raceId)
-          .then(data => setStints(data.stints))
-          .catch(err => console.error('Failed to refresh stints', err))
-      }
+    return onStintRefresh((data) => {
+      if (data.raceId !== raceId) return
+      ScheduleApi.getByRaceId(raceId)
+        .then(data => setStints(data.stints))
+        .catch(err => console.error('Failed to refresh stints', err))
     })
-
-    return unsubscribe
   }, [raceId, onStintRefresh])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const safeStartTime = startTime || '19:30'
-      const raceStart = getRaceStartDate(safeStartTime)
-      const now = new Date()
-      setCurrentRaceTime(Math.max(0, Math.floor((now.getTime() - raceStart.getTime()) / 60000)))
-    }, 60000)
+    const interval = setInterval(() => setNow(new Date()), 60000)
     return () => clearInterval(interval)
-  }, [startTime])
+  }, [])
 
-  const isStintActive = (startTime: number, duration: number): boolean => {
-    return currentRaceTime >= startTime && currentRaceTime < startTime + duration
+  const currentRaceTime = minutesSinceRaceStart(raceStartDateTime(raceDate, eventStartTime, startTime), now)
+  const startTimes = stintStartTimes(stints, fuelTankCapacity)
+  const editingStint = editingIndex !== null ? stints[editingIndex] : null
+
+  const openAddModal = (afterOrder: number) => {
+    setAddAfterStint(afterOrder)
+    setAddModalOpen(true)
   }
+
+  const startLapBefore = (index: number) => stintStartLap(stints.slice(0, index).map(s => s.duration), avgLapTime)
 
   return (
     <ScheduleContainer>
@@ -184,108 +88,54 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
       {stints.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1rem' }}>{t('noStints')}</p>
-          <TextButton onClick={() => {
-            setAddAfterStint(0)
-            setAddModalOpen(true)
-          }}>
+          <TextButton onClick={() => openAddModal(0)}>
             {t('addFirstStint')}
           </TextButton>
         </div>
       ) : (
         <TableWrapper>
-        <Table>
-          <TableHead>
-            <tr>
-              <TableHeader>#</TableHeader>
-              <TableHeader>{t('startTime')}</TableHeader>
-              <TableHeader>{t('duration')}</TableHeader>
-              <TableHeader>{t('endTime')}</TableHeader>
-              <TableHeader>{t('pitstopLap')}</TableHeader>
-              <TableHeader>{t('driver')}</TableHeader>
-              <TableHeader>{t('spotter')}</TableHeader>
-              <TableHeader>{t('fuel')}</TableHeader>
-              <TableHeader>FL</TableHeader>
-              <TableHeader>FR</TableHeader>
-              <TableHeader>RL</TableHeader>
-              <TableHeader>RR</TableHeader>
-              <TableHeader>{t('tires')}</TableHeader>
-              <TableHeader></TableHeader>
-            </tr>
-          </TableHead>
-          <TableBody>
-            {stints.map((stint, index) => {
-              let stintStartTime = 0
-              for (let i = 0; i < index; i++) {
-                stintStartTime += stints[i].duration
-                if (i < stints.length - 1) {
-                  stintStartTime += calculatePitstopTime(stints[i], stints[i + 1], fuelTankCapacity) / 60
-                }
-              }
-              const stintEndTime = stintStartTime + stint.duration
-              const isActive = isStintActive(stintStartTime, stint.duration)
-              const displayTires = remainingTiresAt(stints, index, tireSets)
-              const stintNumber = stint.order !== undefined ? stint.order : index + 1
-              
-              return (
-                <Fragment key={stint._id}>
-                  <TableRow $isActive={isActive}>
-                    <StintNumberCell>{stintNumber}</StintNumberCell>
-                    <TableCell>{addMinutesToClock(startTime, stintStartTime)}</TableCell>
-                    <TableCell>{formatDuration(stint.duration)}</TableCell>
-                    <TableCell>{addMinutesToClock(startTime, stintEndTime)}</TableCell>
-                    <TableCell>{stint.fuelLaps}</TableCell>
-                    <DriverCell>
-                      {stint.driver}
-                      {isActive && <ActiveIndicator />}
-                    </DriverCell>
-                    <TableCell>{stint.spotter}</TableCell>
-                    <TableCell>{stint.fuel}%</TableCell>
-                    <TableCell>{stint.tireFL !== '-' ? <CheckIcon /> : stint.tireFL}</TableCell>
-                    <TableCell>{stint.tireFR !== '-' ? <CheckIcon /> : stint.tireFR}</TableCell>
-                    <TableCell>{stint.tireRL !== '-' ? <CheckIcon /> : stint.tireRL}</TableCell>
-                    <TableCell>{stint.tireRR !== '-' ? <CheckIcon /> : stint.tireRR}</TableCell>
-                    <TableCell>{displayTires}</TableCell>
-                    <ActionsCell>
-                      <ActionButtonsWrapper>
-                        <IconButton onClick={() => {
-                          setEditingStint(stint)
-                          setEditingStintIndex(index)
-                          setEditModalOpen(true)
-                        }} title={t('edit')} icon={EditIcon} />
-                        <IconButton onClick={() => {
-                          setDeletingStint(stint)
-                          setDeleteModalOpen(true)
-                        }} title={t('delete')} icon={TrashIcon} />
-                      </ActionButtonsWrapper>
-                    </ActionsCell>
-                  </TableRow>
-                  <TableRow>
-                    <td colSpan={14} style={{ padding: 0, border: 'none' }}>
-                      <RowSeparator 
-                        $visible={hoveredSeparatorIndex === index + 1}
-                        onMouseEnter={() => setHoveredSeparatorIndex(index + 1)}
-                        onMouseLeave={() => setHoveredSeparatorIndex(null)}
-                        onClick={() => {
-                          const insertAfterOrder = stint.order !== undefined ? stint.order : index + 1
-                          setAddAfterStint(insertAfterOrder)
-                          setAddModalOpen(true)
-                        }}
-                      >
-                        <AddIcon $visible={hoveredSeparatorIndex === index + 1}>
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                          </svg>
-                        </AddIcon>
-                      </RowSeparator>
-                    </td>
-                  </TableRow>
-                </Fragment>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </TableWrapper>
+          <Table>
+            <TableHead>
+              <tr>
+                <TableHeader>#</TableHeader>
+                <TableHeader>{t('startTime')}</TableHeader>
+                <TableHeader>{t('duration')}</TableHeader>
+                <TableHeader>{t('endTime')}</TableHeader>
+                <TableHeader>{t('startLap')}</TableHeader>
+                <TableHeader>{t('driver')}</TableHeader>
+                <TableHeader>{t('spotter')}</TableHeader>
+                <TableHeader>{t('fuel')}</TableHeader>
+                <TableHeader>FL</TableHeader>
+                <TableHeader>FR</TableHeader>
+                <TableHeader>RL</TableHeader>
+                <TableHeader>RR</TableHeader>
+                <TableHeader>{t('tires')}</TableHeader>
+                <TableHeader></TableHeader>
+              </tr>
+            </TableHead>
+            <TableBody>
+              {stints.map((stint, index) => {
+                const start = startTimes[index]
+                const end = start + stint.duration
+                const order = stint.order ?? index + 1
+                return (
+                  <StintRow
+                    key={stint._id}
+                    stint={stint}
+                    number={order}
+                    startClock={addMinutesToClock(startTime, start)}
+                    endClock={addMinutesToClock(startTime, end)}
+                    isActive={currentRaceTime >= start && currentRaceTime < end}
+                    remainingTires={remainingTiresAt(stints, index, tireSets)}
+                    onEdit={() => setEditingIndex(index)}
+                    onDelete={() => setDeletingStint(stint)}
+                    onInsertAfter={() => openAddModal(order)}
+                  />
+                )
+              })}
+            </TableBody>
+          </Table>
+        </TableWrapper>
       )}
       <AddStintModal
         key={addModalOpen ? `open-${addAfterStint}` : 'closed'}
@@ -295,47 +145,32 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         raceId={raceId}
         drivers={drivers}
         avgStintTime={avgStintTime}
-        avgLapTime={avgLapTime}
-        previousFuelLaps={addAfterStint > 0 ? stints[addAfterStint - 1]?.fuelLaps ?? 0 : 0}
-        previousTires={addAfterStint > 0 ? remainingTiresAt(stints, addAfterStint - 1, tireSets) : tireSets}
-        isFirstStint={addAfterStint === 0}
-        tireSets={tireSets}
-        allStints={stints}
-        onStintAdded={() => {
-          setAddModalOpen(false)
-        }}
+        startLap={startLapBefore(addAfterStint)}
+        onStintAdded={() => setAddModalOpen(false)}
         onCancel={() => setAddModalOpen(false)}
       />
-      {editingStint && (
+      {editingStint && editingIndex !== null && (
         <EditStintModal
-          key={editModalOpen ? `open-${editingStint._id}` : 'closed'}
-          isOpen={editModalOpen}
+          key={`open-${editingStint._id}`}
+          isOpen
           stint={editingStint}
           drivers={drivers}
           avgStintTime={avgStintTime}
-          avgLapTime={avgLapTime}
-          previousFuelLaps={editingStintIndex > 0 ? stints[editingStintIndex - 1].fuelLaps : 0}
-          previousTires={remainingTiresAt(stints, editingStintIndex, tireSets)}
-          isFirstStint={editingStintIndex === 0}
-          tireSets={tireSets}
+          startLap={startLapBefore(editingIndex)}
           onConfirm={async (updatedStint) => {
             try {
               const updated = await StintsApi.update(editingStint._id, updatedStint)
               setStints(prev => prev.map(s => s._id === editingStint._id ? updated : s))
-              setEditModalOpen(false)
-              setEditingStint(null)
+              setEditingIndex(null)
             } catch (err) {
               console.error('Failed to update stint', err)
             }
           }}
-          onCancel={() => {
-            setEditModalOpen(false)
-            setEditingStint(null)
-          }}
+          onCancel={() => setEditingIndex(null)}
         />
       )}
       <ConfirmModal
-        isOpen={deleteModalOpen}
+        isOpen={deletingStint !== null}
         title={t('deleteStint')}
         message={t('confirmDeleteStint')}
         onConfirm={async () => {
@@ -343,124 +178,16 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           try {
             await StintsApi.delete(deletingStint._id)
             setStints(prev => prev.filter(s => s._id !== deletingStint._id))
-            setDeleteModalOpen(false)
             setDeletingStint(null)
           } catch (err) {
             console.error('Failed to delete stint', err)
           }
         }}
-        onCancel={() => {
-          setDeleteModalOpen(false)
-          setDeletingStint(null)
-        }}
+        onCancel={() => setDeletingStint(null)}
       />
-      <NotesContainer>
-        <NotesLabel>{t('notes')}</NotesLabel>
-        <NotesTextarea 
-          ref={notesRef}
-          value={notes}
-          onChange={(e) => handleNotesChange(e.target.value.slice(0, MAX_CHARS))}
-          placeholder={t('notesPlaceholder')}
-          rows={3}
-        />
-        <NotesFooter>
-          <CharCount $isOver={notes.length >= MAX_CHARS}>
-            {notes.length}/{MAX_CHARS}
-          </CharCount>
-          {notesModified && (
-            <SaveNotesButton onClick={handleSaveNotes}>
-              {t('saveNotes')}
-            </SaveNotesButton>
-          )}
-        </NotesFooter>
-      </NotesContainer>
+      <NotesEditor raceId={raceId} notes={notes} />
       {stints.length > 0 && drivers.length > 0 && (
-        <DriverSummaryContainer>
-          <DriverSummaryTitle>
-            {t('driverTotalTime')}
-            <MinimumRequirementIconWrapper>
-              <MinimumRequirementInfoIcon title={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
-              <MinimumRequirementTooltip>
-                <MinimumRequirementList>
-                  <li>{t('minimumRequirement2Drivers')}: 25%</li>
-                  <li>{t('minimumRequirement3Drivers')}: 16.7%</li>
-                  <li>{t('minimumRequirement4Drivers')}: 12.5%</li>
-                  <li>{t('minimumRequirement5Drivers')}: 10%</li>
-                  <li>{t('minimumRequirement6Drivers')}: 8.3%</li>
-                </MinimumRequirementList>
-              </MinimumRequirementTooltip>
-            </MinimumRequirementIconWrapper>
-          </DriverSummaryTitle>
-          <DriverSummaryTable>
-            <DriverSummaryHead>
-              <tr>
-                <DriverSummaryHeader>{t('driver')}</DriverSummaryHeader>
-                <DriverSummaryHeader>{t('totalTime')}</DriverSummaryHeader>
-                <DriverSummaryHeader>{t('raceTimePercentage')}</DriverSummaryHeader>
-              </tr>
-            </DriverSummaryHead>
-            <DriverSummaryBody>
-              {(() => {
-                // Calculate total race time
-                let totalRaceTime = 0
-                for (let i = 0; i < stints.length; i++) {
-                  totalRaceTime += stints[i].duration
-                  if (i < stints.length - 1) {
-                    totalRaceTime += calculatePitstopTime(stints[i], stints[i + 1], fuelTankCapacity) / 60
-                  }
-                }
-
-                // Calculate driver total times
-                const driverTimes = stints.reduce((acc, stint) => {
-                  if (stint.driver) {
-                    acc[stint.driver] = (acc[stint.driver] || 0) + stint.duration
-                  }
-                  return acc
-                }, {} as Record<string, number>)
-
-                const minimumPercentage = getMinimumDriverPercentage(drivers.length)
-                let hasViolation = false
-
-                const rows = Object.entries(driverTimes)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([driver, totalMinutes]) => {
-                    const percentage = totalRaceTime > 0 ? ((totalMinutes / totalRaceTime) * 100) : 0
-                    const percentageStr = percentage.toFixed(1)
-                    const isBelowMinimum = percentage < minimumPercentage
-                    if (isBelowMinimum) {
-                      hasViolation = true
-                    }
-                    
-                    return (
-                      <DriverSummaryRow 
-                        key={driver}
-                        as={isBelowMinimum ? DriverSummaryRowBelowMinimum : DriverSummaryRow}
-                      >
-                        <DriverNameCell>{driver}</DriverNameCell>
-                        <TotalTimeCell>{formatHoursMinutes(totalMinutes)}</TotalTimeCell>
-                        <RacePercentageCell>{percentageStr}%</RacePercentageCell>
-                      </DriverSummaryRow>
-                    )
-                  })
-
-                return (
-                  <>
-                    {rows}
-                    {hasViolation && (
-                      <tr>
-                        <td colSpan={4} style={{ padding: 0, border: 'none' }}>
-                          <MinimumRequirementWarning>
-                            {t('minimumRequirementWarning')}
-                          </MinimumRequirementWarning>
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                )
-              })()}
-            </DriverSummaryBody>
-          </DriverSummaryTable>
-        </DriverSummaryContainer>
+        <DriverSummary stints={stints} drivers={drivers} fuelTankCapacity={fuelTankCapacity} />
       )}
     </ScheduleContainer>
   )

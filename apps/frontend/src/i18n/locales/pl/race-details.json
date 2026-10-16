@@ -28,7 +28,7 @@
   "duration": "Czas trwania",
   "driver": "Kierowca",
   "spotter": "Spotter",
-  "pitstopLap": "Okrążenie pitstopu",
+  "startLap": "Okrążenie startu",
   "fuel": "Paliwo",
   "usedTires": "Opony",
   "tires": "Opony",
@@ -83,7 +83,6 @@
     "raceLengthRange": "Maksymalnie 24h",
     "tireSetsRange": "Maksymalnie 100 opon",
     "stintTimeRange": "Czas trwania musi być między 0 a 120 minut",
-    "pitstopLapRange": "Okrążenie pitstopu musi być między 0 a 500",
     "nameTooLong": "Nazwa max 100 znaków",
     "editTraining": "Edytuj trening"
   }

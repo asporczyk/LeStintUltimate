@@ -17,6 +17,8 @@ export type Unsubscribe = () => void
 export interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
+  // Subscribe to one race's events (server room); returns the leave function.
+  joinRace: (raceId: string) => Unsubscribe
   onRaceUpdated: (callback: (race: Race) => void) => Unsubscribe
   onStintRefresh: (callback: (data: { raceId: string }) => void) => Unsubscribe
   onTrainingUpdated: (callback: (training: Training) => void) => Unsubscribe
@@ -26,6 +28,7 @@ export interface SocketContextType {
 export const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
+  joinRace: () => () => {},
   onRaceUpdated: () => () => {},
   onStintRefresh: () => () => {},
   onTrainingUpdated: () => () => {},

@@ -17,7 +17,7 @@ const RaceSchema = new Schema(
             default: '',
             validate: {
                 validator: (v: string) => v.length <= 200,
-                message: "Notatka może mieć maksymalnie 200 znaków"
+                message: "Notes can be at most 200 characters"
             }
         }
     },

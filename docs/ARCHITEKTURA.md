@@ -21,7 +21,7 @@ Katalog `packages/shared` istnieje lokalnie, ale nie jest śledzony w git i nie 
 ```
 
 1. Każda zmiana (utworzenie/edycja/usunięcie) idzie przez REST.
-2. Backend po zapisie rozsyła zdarzenie Socket.IO do **wszystkich** podłączonych klientów (`io.emit`).
+2. Backend po zapisie wysyła zdarzenie Socket.IO do pokoju danego wyścigu (`emitToRace`).
 3. Klienci filtrują zdarzenia po `raceId` / `_id` i aktualizują stan lub pobierają dane ponownie.
 
 Dzięki temu kilka osób z zespołu może jednocześnie oglądać ten sam plan wyścigu i widzieć zmiany na żywo.
@@ -38,6 +38,7 @@ Dzięki temu kilka osób z zespołu może jednocześnie oglądać ten sam plan w
 | `routes/` | Trasy REST – opis w [API.md](API.md) |
 | `schemas.ts` | Schematy JSON walidujące params i body tras |
 | `cors.ts` | Lista dozwolonych originów dla REST i Socket.IO |
+| `services/stints.ts` | `recalculateFuelLaps()` – przelicza i zapisuje okrążenia startu stintów |
 | `calculations.ts` | Czyste funkcje obliczeniowe (`computeFuelLaps`, `addMinutesToClock`) – testy w `test/` |
 
 ### Model danych
@@ -56,9 +57,9 @@ Race (1) ──┬── (0..1) Training        [raceId: string]
 
 **Qualification** – kwalifikacje: `raceId`, `startTime`, `duration`, `laps`, `driver`, `spotter`, `fuel`, `tireFL/FR/RL/RR`.
 
-**Schedule** – kontener na stinty jednego wyścigu: `raceId`, `version` (nieużywane).
+**Schedule** – kontener na stinty jednego wyścigu: `raceId`.
 
-**Stint** – pojedynczy stint: `scheduleId`, `order` (od 1), `duration` (min), `driver`, `spotter`, `fuelLaps` (okrążenie pit stopu, liczone na serwerze), `fuel` (% tankowania), `tireFL/FR/RL/RR` (`'N'` = zmiana, `'-'` = bez zmiany), `tires`, `startTime` (nieużywane, zawsze 0).
+**Stint** – pojedynczy stint: `scheduleId`, `order` (od 1), `duration` (min), `driver`, `spotter`, `durationAuto` (czas z średniej wyścigu), `fuelLaps` (okrążenie startu, liczone na serwerze), `fuel` (% tankowania), `tireFL/FR/RL/RR` (`'N'` = zmiana, `'-'` = bez zmiany).
 
 > Uwaga: `raceId` w Training/Qualification/Schedule to zwykły `String`, nie `ObjectId` z referencją.
 
@@ -80,7 +81,7 @@ src/
 ├── pages/          # HomePage (/), RaceDetailsPage (/race/:id)
 ├── styles/theme.ts # Motyw styled-components + style globalne
 ├── types/          # Race, Stint, Schedule
-└── utils/          # Czyste funkcje + testy: time.ts, tires.ts, pitstop.ts
+└── utils/          # Czyste funkcje + testy: time, tires, pitstop, laps, raceClock, schedule, drivers
 ```
 
 Aliasy importów (`vite.config.ts`): `@`, `api`, `components`, `pages`, `assets`, `types`, `styles`, `i18n`, `utils`.

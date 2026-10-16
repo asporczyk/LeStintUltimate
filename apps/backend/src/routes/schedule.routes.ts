@@ -1,18 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { Schedule } from "../models/Schedule.js";
 import { Stint } from "../models/Stint.js";
-import { Race } from "../models/Race.js";
-import { getIO } from "../socket.js";
-import { computeFuelLaps } from "../calculations.js";
+import { recalculateFuelLaps } from "../services/stints.js";
 import { createStintBody, idParams, raceIdParams, updateStintBody } from "../schemas.js";
 
-const DEFAULT_LAP_TIME = 120;
-
 interface StintBody {
-    scheduleId: string
+    raceId: string
     order: number
-    startTime: number
     duration: number
+    durationAuto: boolean
     driver: string
     spotter: string
     fuelLaps: number
@@ -21,23 +17,6 @@ interface StintBody {
     tireFR: string
     tireRL: string
     tireRR: string
-    tires: number
-}
-
-async function recalculateFuelLaps(schedule: { _id: unknown; raceId: string }) {
-    const race = await Race.findById(schedule.raceId);
-    const avgLapTime = race?.avgLapTime || DEFAULT_LAP_TIME;
-
-    const allStints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
-    const fuelLaps = computeFuelLaps(allStints.map(s => s.duration || 0), avgLapTime);
-    for (const [index, stint] of allStints.entries()) {
-        if (stint.fuelLaps !== fuelLaps[index]) {
-            stint.fuelLaps = fuelLaps[index];
-            await stint.save();
-        }
-    }
-
-    getIO()?.emit("stint:refresh", { raceId: schedule.raceId });
 }
 
 export default async function scheduleRoutes(app: FastifyInstance) {
@@ -47,16 +26,17 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         const schedule = await Schedule.findOne({ raceId });
         if (!schedule) return { schedule: null, stints: [] };
 
-        const stints = await Stint.find({ scheduleId: schedule._id }).sort({ order: 1 });
+        // Recalculating on read also migrates stints saved with the old lap formula.
+        const stints = await recalculateFuelLaps(schedule, { notify: false });
         return { schedule, stints };
     });
 
     app.post("/stints", { schema: { body: createStintBody } }, async (req) => {
         const body = req.body as StintBody;
         
-        let schedule = await Schedule.findOne({ raceId: body.scheduleId });
+        let schedule = await Schedule.findOne({ raceId: body.raceId });
         if (!schedule) {
-            schedule = await Schedule.create({ raceId: body.scheduleId });
+            schedule = await Schedule.create({ raceId: body.raceId });
         }
 
         await Stint.updateMany(
@@ -67,8 +47,8 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         const stint = await Stint.create({
             scheduleId: schedule._id,
             order: body.order,
-            startTime: body.startTime,
             duration: body.duration,
+            durationAuto: body.durationAuto,
             driver: body.driver,
             spotter: body.spotter,
             fuelLaps: body.fuelLaps,
@@ -76,8 +56,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
             tireFL: body.tireFL,
             tireFR: body.tireFR,
             tireRL: body.tireRL,
-            tireRR: body.tireRR,
-            tires: body.tires
+            tireRR: body.tireRR
         });
 
         await recalculateFuelLaps(schedule);
@@ -92,8 +71,8 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         const stint = await Stint.findByIdAndUpdate(
             id,
             {
-                startTime: body.startTime,
                 duration: body.duration,
+                durationAuto: body.durationAuto,
                 driver: body.driver,
                 spotter: body.spotter,
                 fuelLaps: body.fuelLaps,
@@ -101,8 +80,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
                 tireFL: body.tireFL,
                 tireFR: body.tireFR,
                 tireRL: body.tireRL,
-                tireRR: body.tireRR,
-                tires: body.tires
+                tireRR: body.tireRR
             },
             { new: true }
         );

@@ -47,8 +47,8 @@ export const patchRaceBody = {
 } as const;
 
 const stintFields = {
-    startTime: { type: "number" },
     duration: { type: "number", minimum: 0, maximum: 120 },
+    durationAuto: { type: "boolean" },
     driver: person,
     spotter: person,
     fuelLaps: { type: "integer", minimum: 0 },
@@ -56,16 +56,15 @@ const stintFields = {
     tireFL: tire,
     tireFR: tire,
     tireRL: tire,
-    tireRR: tire,
-    tires: { type: "integer" }
+    tireRR: tire
 } as const;
 
 export const createStintBody = {
     type: "object",
-    required: ["scheduleId", "order"],
+    required: ["raceId", "order"],
     additionalProperties: false,
     properties: {
-        scheduleId: objectId,
+        raceId: objectId,
         order: { type: "integer", minimum: 1 },
         ...stintFields
     }

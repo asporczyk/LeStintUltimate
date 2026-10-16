@@ -21,18 +21,13 @@ import {
   InputWithUnitStyle,
   ErrorText
 } from './EditStintModal.styles'
-import { countChangedTires } from 'utils/tires'
 
 interface EditStintModalProps {
   isOpen: boolean
   stint: Stint
   drivers: string[]
   avgStintTime: number
-  avgLapTime: number
-  previousFuelLaps: number
-  previousTires: number
-  isFirstStint: boolean
-  tireSets: number
+  startLap: number
   onConfirm: (updatedStint: Partial<Stint>) => void
   onCancel: () => void
 }
@@ -43,19 +38,16 @@ interface FormErrors {
   spotter?: string
 }
 
-function getInitialFormData(stint: Stint, avgStintTime: number, isFirstStint: boolean, tireSets: number, previousTires: number) {
-  const tires = isFirstStint ? tireSets : previousTires
+function getInitialFormData(stint: Stint, avgStintTime: number) {
   return {
     duration: stint.duration || avgStintTime,
-    fuelLaps: stint.fuelLaps || 0,
     fuel: stint.fuel || 100,
     driver: stint.driver || '',
     spotter: stint.spotter || '',
     tireFL: stint.tireFL || '-',
     tireFR: stint.tireFR || '-',
     tireRL: stint.tireRL || '-',
-    tireRR: stint.tireRR || '-',
-    tires
+    tireRR: stint.tireRR || '-'
   }
 }
 
@@ -77,10 +69,10 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTime, previousFuelLaps, previousTires, isFirstStint, tireSets, onConfirm, onCancel }: EditStintModalProps) {
+export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
+  const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
@@ -99,13 +91,6 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onCancel])
 
-  const calculateFuelLaps = (duration: number, avgLapTimeSeconds: number, prevFuelLaps: number, isFirst: boolean): number => {
-    if (isFirst) return 0
-    if (duration <= 0 || avgLapTimeSeconds <= 0) return prevFuelLaps
-    const laps = Math.floor(duration * 60 / avgLapTimeSeconds)
-    return prevFuelLaps + laps
-  }
-
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = Number(e.target.value)
     setFormData(prev => ({ ...prev, duration: newDuration }))
@@ -121,23 +106,22 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
       return
     }
 
-    const calculatedFuelLaps = calculateFuelLaps(formData.duration, avgLapTime, previousFuelLaps, isFirstStint)
-
-    const changedTires = countChangedTires(formData)
-
-    const calculatedTires = formData.tires - changedTires
+    // Stints saved before durationAuto existed count as automatic when they match the average.
+    const wasAuto = stint.durationAuto ?? stint.duration === avgStintTime
+    // Any manual change of the duration detaches the stint from the average.
+    const durationAuto = wasAuto && formData.duration === stint.duration
 
     onConfirm({
       duration: formData.duration,
-      fuelLaps: calculatedFuelLaps,
+      durationAuto,
+      fuelLaps: startLap,
       fuel: formData.fuel,
       driver: formData.driver,
       spotter: formData.spotter,
       tireFL: formData.tireFL,
       tireFR: formData.tireFR,
       tireRL: formData.tireRL,
-      tireRR: formData.tireRR,
-      tires: calculatedTires
+      tireRR: formData.tireRR
     })
   }
 
@@ -164,11 +148,11 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, avgLapTim
           </FormGroup>
 
           <FormGroup>
-            <Label>{t('pitstopLap')}</Label>
+            <Label>{t('startLap')}</Label>
             <InputWithUnit>
               <InputWithUnitStyle
                 type="number"
-                value={formData.fuelLaps}
+                value={startLap}
                 disabled
               />
             </InputWithUnit>

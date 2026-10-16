@@ -1,12 +1,15 @@
-// Pit stop lap of each stint = running total of full laps driven in the
-// stints after the first one. See docs/LOGIKA_OBLICZEN.md, section 3.
+export const DEFAULT_LAP_TIME = 120;
+
+// Lap on which each stint starts = full laps completed during all earlier
+// stints (stint #1 starts on lap 0). Laps are counted from the total time so
+// rounding doesn't accumulate. See docs/LOGIKA_OBLICZEN.md, section 3.
 export function computeFuelLaps(durations: number[], avgLapTime: number): number[] {
-    let cumulativeLaps = 0;
-    return durations.map((duration, index) => {
-        if (index > 0) {
-            cumulativeLaps += Math.floor(duration * 60 / avgLapTime);
-        }
-        return cumulativeLaps;
+    const lapTime = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME;
+    let minutesBefore = 0;
+    return durations.map(duration => {
+        const startLap = Math.floor(minutesBefore * 60 / lapTime);
+        minutesBefore += duration;
+        return startLap;
     });
 }
 

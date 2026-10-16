@@ -54,14 +54,14 @@ Plik jest śledzony w git mimo wpisu `.env` w `.gitignore` (dodany przed reguł�
 
 ## 🟡 Logika domenowa – do weryfikacji
 
-### 10. Formuła `fuelLaps`
-Dla stintu #n dodawane są okrążenia **bieżącego** stintu, a stint #1 zawsze ma 0. Jeśli kolumna ma oznaczać „okrążenie, na którym zjeżdżam do pit stopu na końcu tego stintu”, stint #1 powinien mieć `floor(d1*60/lap)`. Do tego nie uwzględnia czasu pit stopów. Warto opisać intencję i dodać test.
+### ✅ 10. Formuła `fuelLaps`
+**Decyzja:** kolumna pokazuje okrążenie, od którego zaczyna się stint. Teraz: pełne okrążenia ze wszystkich wcześniejszych stintów, liczone z łącznego czasu (stint #1 = 0), z testami. Kolumna nazywa się „Okrążenie startu”.
 
-### 11. Kaskada `avgStintTime`
-Zmiana `avgStintTime` aktualizuje tylko stinty o `duration === staryAvg`. Stinty ręcznie zmienione „przypadkiem” na tę samą wartość też się zmienią; to zachowanie jest nieintuicyjne i niewidoczne dla użytkownika.
+### ✅ 11. Kaskada `avgStintTime`
+**Decyzja:** średnia ma zmieniać stinty, w których czas był uzupełniony automatycznie. Teraz: flaga `Stint.durationAuto` (patrz [LOGIKA_OBLICZEN.md](LOGIKA_OBLICZEN.md) 3a).
 
-### 12. Aktywny stint ignoruje datę wyścigu
-`getRaceStartDate` używa tylko godziny. W dniu przed wyścigiem (lub tydzień po) tabela może podświetlać stint jako aktywny. Lepiej liczyć od `startDate + startTime` (i rozwiązuje to też problem północy).
+### ✅ 12. Aktywny stint ignoruje datę wyścigu
+Teraz: liczony od daty wyścigu, z przejściem na następny dzień, gdy start wyścigu po treningu i kwalifikacjach wypada po północy (`utils/raceClock.ts`, testy).
 
 ### 13. Niespójne formaty godzin
 `Qualification.startTime` bywa `"HH:MM"` (domyślne) albo `"HH:MM:SS"` (po zmianie treningu); trening wyświetla `{startTime}:00`. Warto ujednolicić (np. przechowywać sekundy od północy lub pełny `Date`).
@@ -72,25 +72,26 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 ## 🔵 Jakość kodu
 
 15. ✅ **Duplikacja w `schedule.routes.ts`** – jedna funkcja `recalculateFuelLaps()`; czysta logika w `apps/backend/src/calculations.ts`.
-16. **Pole `scheduleId` w `POST /stints` to `raceId`** – mylące; zmienić nazwę na `raceId`.
+16. ✅ **Pole `scheduleId` w `POST /stints`** – zmienione na `raceId`.
 17. ✅ **`StintSchedule` omijał warstwę `api/`** – teraz używa `ScheduleApi`/`RacesApi` (naprawione razem z pkt 3).
-18. 🟡 **`StintSchedule.tsx` jest duży** – duplikaty wydzielone do `utils/time.ts`, `utils/tires.ts`, `utils/pitstop.ts` i atomu `CheckIcon` (przy okazji naprawione wyświetlanie `:60` sekund/minut i `1000` ms). Pozostaje podział na `StintRow`, `NotesEditor`, `DriverSummary`.
+18. ✅ **`StintSchedule.tsx` był duży** – duplikaty w `utils/`, podział na `StintRow`, `NotesEditor`, `DriverSummary` (445 → 194 linie), czasy startów liczone w jednym przebiegu (`utils/schedule.ts`).
 19. ✅ **`usePitstopTime.ts` to nie hook** – przeniesione do `utils/pitstop.ts`, martwe gałęzie `CONCURRENT_*` usunięte.
 20. ✅ **ESLint: 0 błędów** – typowane zdarzenia socketu, `SocketProvider` w osobnym pliku, modale montowane od nowa przez `key` zamiast resetu stanu w efekcie.
-21. **i18n** – `lng: 'pl'` wyłącza `LanguageDetector`; daty formatowane na sztywno `toLocaleDateString('pl-PL')`; „Loading...” w `TrainingSchedule`/`QualificationSchedule` nie jest tłumaczone; komunikaty błędów backendu mieszają PL i EN.
+21. ✅ **i18n** – teraz: wykrywanie języka przeglądarki (zapamiętane w localStorage, domyślnie polski), daty w bieżącym języku, przetłumaczone „Ładowanie...”, backend po angielsku. Było: `lng: 'pl'` wyłącza `LanguageDetector`; daty formatowane na sztywno `toLocaleDateString('pl-PL')`; „Loading...” w `TrainingSchedule`/`QualificationSchedule` nie jest tłumaczone; komunikaty błędów backendu mieszają PL i EN.
 22. ✅ **Startup backendu** – `Number(process.env.PORT)` daje `NaN` bez zmiennej, `MONGO_URI!` bez sprawdzenia. Teraz: `PORT` domyślnie 3000, brak `MONGO_URI` lub zły `PORT` kończy proces czytelnym komunikatem.
-23. **Nieużywane pola** – `Stint.startTime` (zawsze 0), `Stint.tires` (UI liczy samodzielnie), `Schedule.version`. (`Stint.lockedBy` usunięte razem z handlerami blokad – pkt 8.)
+23. ✅ **Nieużywane pola** – `Stint.startTime`, `Stint.tires`, `Schedule.version` i `Stint.lockedBy` usunięte.
 24. ✅ **`Training`/`Qualification` POST nie emitowały zdarzeń** – inni użytkownicy nie zobaczą nowo dodanego treningu/kwalifikacji bez odświeżenia.
-25. **`io.emit` do wszystkich** – każdy klient dostaje zdarzenia wszystkich wyścigów. Przy większej liczbie użytkowników: pokoje Socket.IO per `raceId`.
+25. ✅ **`io.emit` do wszystkich** – teraz pokoje Socket.IO per wyścig (`race:join` / `race:leave`).
 
 ## ⚪ Porządki w repo
 
 26. README był nieaktualny (np. `i18n.ts` jako entry point backendu, `App.css`, jeden endpoint) – zaktualizowany razem z tą dokumentacją.
 27. `dev_output.log` w roocie (ignorowany przez `*.log`, ale wskazuje na nieistniejący `src/services/StintService.ts`) – można usunąć.
 28. `packages/shared` – nieśledzony, zawiera tylko `dist/` i `node_modules/`. Albo go wykorzystać (pkt 14), albo usunąć z `pnpm-workspace.yaml`.
-29. `netlify.toml` – `node_bundler` dotyczy sekcji `[functions]`, w `[build]` jest ignorowane. `--no-frozen-lockfile` w CI maskuje rozjazdy lockfile.
+29. ✅ `netlify.toml` – usunięty `node_bundler`, instalacja z `--frozen-lockfile`; usunięty nieaktualny `apps/frontend/package-lock.json`.
 30. ✅ **Brak testów i CI** – najwięcej wartości dałyby testy jednostkowe funkcji obliczeniowych (pit stop, `fuelLaps`, czasy) + GitHub Action z `tsc`, `eslint`, `vite build`. Teraz: vitest (`pnpm test`) + `.github/workflows/ci.yml`.
 
 ## Sugerowana kolejność
 
-1. Pkt 14, 18 – wspólny moduł obliczeń (`packages/shared`), potem podział `StintSchedule` na mniejsze komponenty.
+1. Pkt 13 – jeden format godzin w danych.
+2. Pkt 14 – wspólny moduł obliczeń (`packages/shared`): `computeFuelLaps`/`stintStartLap` i `addMinutesToClock` są dziś zduplikowane w backendzie i frontendzie (oba pokryte testami).
