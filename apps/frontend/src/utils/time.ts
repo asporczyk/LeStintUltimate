@@ -8,6 +8,11 @@ export function addMinutesToClock(clock: string, minutes: number): string {
   return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`
 }
 
+// Any "HH:MM" or "HH:MM:SS" as "HH:MM:SS", so all tables show the same format.
+export function formatClock(clock: string): string {
+  return addMinutesToClock(clock, 0)
+}
+
 // Minutes as "H:MM", e.g. 125 -> "2:05".
 export function formatHoursMinutes(minutes: number): string {
   const total = Math.round(minutes)

@@ -76,7 +76,8 @@ src/
 │   └── organisms/  # RacesDashboard
 ├── hooks/
 │   ├── useSocket.ts        # Kontekst, typy zdarzeń i hook useSocket()
-│   └── SocketProvider.tsx  # Połączenie Socket.IO i subskrypcje zdarzeń
+│   ├── SocketProvider.tsx  # Połączenie Socket.IO, pokoje wyścigów i subskrypcje zdarzeń
+│   └── useToast.ts         # showError() – komunikat o błędzie (ToastProvider w molecules/Toast)
 ├── i18n/           # i18next, języki pl/en, przestrzenie: common, home, raceDetails
 ├── pages/          # HomePage (/), RaceDetailsPage (/race/:id)
 ├── styles/theme.ts # Motyw styled-components + style globalne

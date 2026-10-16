@@ -9,6 +9,7 @@ import {
   NotesFooter,
   SaveNotesButton
 } from './StintSchedule.styles'
+import { useToast } from '@/hooks/useToast'
 
 const MAX_CHARS = 200
 
@@ -19,6 +20,7 @@ interface NotesEditorProps {
 
 export function NotesEditor({ raceId, notes: savedNotes }: NotesEditorProps) {
   const { t } = useTranslation('raceDetails')
+  const { showError } = useToast()
   const [notes, setNotes] = useState(savedNotes || '')
   const [notesModified, setNotesModified] = useState(false)
 
@@ -40,6 +42,7 @@ export function NotesEditor({ raceId, notes: savedNotes }: NotesEditorProps) {
       setNotesModified(false)
     } catch (err) {
       console.error('Failed to save notes', err)
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 

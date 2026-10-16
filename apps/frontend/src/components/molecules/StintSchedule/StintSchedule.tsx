@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableBody
 } from './StintSchedule.styles'
+import { useToast } from '@/hooks/useToast'
 
 interface StintScheduleProps {
   drivers: string[]
@@ -41,6 +42,7 @@ interface StintScheduleProps {
 
 export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, notes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
+  const { showError } = useToast()
   const { onStintRefresh } = useSocket()
   const [stints, setStints] = useState<Stint[]>([])
   // Re-render every minute so the active stint follows the clock.
@@ -54,17 +56,23 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
     if (!raceId) return
     ScheduleApi.getByRaceId(raceId)
       .then(data => setStints(data.stints))
-      .catch(err => console.error('Failed to load stints', err))
-  }, [raceId])
+      .catch(err => {
+        console.error('Failed to load stints', err)
+        showError(t('load-failed', { ns: 'common' }))
+      })
+  }, [raceId, showError, t])
 
   useEffect(() => {
     return onStintRefresh((data) => {
       if (data.raceId !== raceId) return
       ScheduleApi.getByRaceId(raceId)
         .then(data => setStints(data.stints))
-        .catch(err => console.error('Failed to refresh stints', err))
+        .catch(err => {
+        console.error('Failed to refresh stints', err)
+        showError(t('load-failed', { ns: 'common' }))
+      })
     })
-  }, [raceId, onStintRefresh])
+  }, [raceId, onStintRefresh, showError, t])
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000)
@@ -164,6 +172,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
               setEditingIndex(null)
             } catch (err) {
               console.error('Failed to update stint', err)
+              showError(t('save-failed', { ns: 'common' }))
             }
           }}
           onCancel={() => setEditingIndex(null)}
@@ -181,6 +190,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
             setDeletingStint(null)
           } catch (err) {
             console.error('Failed to delete stint', err)
+            showError(t('delete-failed', { ns: 'common' }))
           }
         }}
         onCancel={() => setDeletingStint(null)}

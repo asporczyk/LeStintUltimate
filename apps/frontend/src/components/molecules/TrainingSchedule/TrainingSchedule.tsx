@@ -19,7 +19,8 @@ import {
   ActionButtonsWrapper
 } from '../StintSchedule/StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
-import { addMinutesToClock } from 'utils/time'
+import { addMinutesToClock, formatClock } from 'utils/time'
+import { useToast } from '@/hooks/useToast'
 
 interface TrainingScheduleProps {
   raceId: string
@@ -29,6 +30,7 @@ interface TrainingScheduleProps {
 
 export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }: TrainingScheduleProps) {
   const { t } = useTranslation('raceDetails')
+  const { showError } = useToast()
   const [training, setTraining] = useState<Training | null>(null)
   const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -70,6 +72,7 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
       setTraining(created)
     } catch (err) {
       console.error('Failed to create training', err)
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 
@@ -79,6 +82,7 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
       setTraining(updatedTraining)
     } catch (err) {
       console.error('Failed to update training', err)
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 
@@ -137,7 +141,7 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
           </TableHead>
           <TableBody>
             <TableRow>
-              <TableCell>{trainingStartTime}:00</TableCell>
+              <TableCell>{formatClock(trainingStartTime)}</TableCell>
               <TableCell>{training.duration || '30'} min</TableCell>
               <TableCell>{displayEndTime}</TableCell>
               <ActionsCell>

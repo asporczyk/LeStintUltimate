@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addMinutesToClock, formatHoursMinutes, formatLapTime, parseLapTime } from 'utils/time'
+import { addMinutesToClock, formatClock, formatHoursMinutes, formatLapTime, parseLapTime } from 'utils/time'
 
 describe('addMinutesToClock', () => {
   it('adds minutes to HH:MM and returns HH:MM:SS', () => {
@@ -18,6 +18,13 @@ describe('addMinutesToClock', () => {
 
   it('carries rounded seconds instead of printing :60', () => {
     expect(addMinutesToClock('19:30', 59.9999)).toBe('20:30:00')
+  })
+})
+
+describe('formatClock', () => {
+  it('shows HH:MM and HH:MM:SS the same way', () => {
+    expect(formatClock('20:00')).toBe('20:00:00')
+    expect(formatClock('20:00:30')).toBe('20:00:30')
   })
 })
 

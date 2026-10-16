@@ -10,7 +10,8 @@ export interface Training {
 }
 
 export const TrainingApi = {
-  getByRaceId: (raceId: string): Promise<Training> => request(`${API_URL}/${raceId}`),
+  // null when the race has no training yet (204)
+  getByRaceId: (raceId: string): Promise<Training | null> => request(`${API_URL}/${raceId}`),
 
   create: (raceId: string, data: Partial<Training>): Promise<Training> =>
     request(`${API_URL}/${raceId}`, jsonBody('POST', data)),

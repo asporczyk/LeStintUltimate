@@ -21,7 +21,8 @@ import {
 import EditIcon from 'assets/svg/edit.svg'
 import { useSocket } from '@/hooks/useSocket'
 import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
-import { addMinutesToClock } from 'utils/time'
+import { addMinutesToClock, formatClock } from 'utils/time'
+import { useToast } from '@/hooks/useToast'
 
 interface QualificationScheduleProps {
   raceId: string
@@ -35,6 +36,7 @@ interface QualificationScheduleProps {
 
 export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapTime, avgFuelPerLap, drivers, onCalculatedRaceStart }: QualificationScheduleProps) {
   const { t } = useTranslation('raceDetails')
+  const { showError } = useToast()
   const [qualification, setQualification] = useState<Qualification | null>(null)
   const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -69,6 +71,7 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
       setQualification(created)
     } catch (err) {
       console.error('Failed to create qualification', err)
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 
@@ -78,6 +81,7 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
       setQualification(updatedQual)
     } catch (err) {
       console.error('Failed to update qualification', err)
+      showError(t('save-failed', { ns: 'common' }))
     }
   }
 
@@ -171,7 +175,7 @@ if (loading) {
           </TableHead>
           <TableBody>
             <TableRow>
-              <TableCell>{qualStartTime}</TableCell>
+              <TableCell>{formatClock(qualStartTime)}</TableCell>
               <TableCell>
                 {qualification.duration || '30'} min
                 <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>+1 lap</div>
