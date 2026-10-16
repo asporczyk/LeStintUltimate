@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatRaceTime, maxNewStintDuration, maxStintDuration, raceTimeline } from 'utils/raceTimeline'
+import { finishFuel, formatRaceTime, maxNewStintDuration, maxStintDuration, raceTimeline } from 'utils/raceTimeline'
 
 // Same driver and no refuelling, so the pit stops are short and easy to count.
 const stint = (duration: number, driver = 'Adam', fuel = 1) => ({
@@ -98,6 +98,30 @@ describe('maxStintDuration', () => {
   it('does not limit earlier stints when the plan is full', () => {
     const timeline = raceTimeline([stint(30), stint(40)], 1, 100, 100)
     expect(maxStintDuration(timeline, 0, 30)).toBeNull()
+  })
+})
+
+describe('finishFuel', () => {
+  // 1 h race with 110 s laps: 32.7 laps at 60:00, so the flag falls after lap 33.
+  const plan = (duration: number) => raceTimeline([stint(duration)], 1, 110, 100)
+
+  it('fuels the laps left to the flag plus one reserve lap', () => {
+    // 50 min planned = 27.3 laps done, so 6 laps to go: (6 + 1) * 3 % = 21 %.
+    expect(finishFuel(plan(50), 110, 3)).toEqual({ laps: 6, fuel: 21 })
+  })
+
+  it('counts a started lap in full and rounds the fuel up', () => {
+    // 45 min planned = 24.5 laps done, so 9 laps to go: (9 + 1) * 2.55 % = 25.5 => 26 %.
+    expect(finishFuel(plan(45), 110, 2.55)).toEqual({ laps: 9, fuel: 26 })
+  })
+
+  it('never asks for more than a full tank', () => {
+    expect(finishFuel(plan(5), 110, 10)?.fuel).toBe(100)
+  })
+
+  it('has nothing to suggest without fuel use or once the plan is full', () => {
+    expect(finishFuel(plan(50), 110, 0)).toBeNull()
+    expect(finishFuel(raceTimeline([stint(30), stint(40)], 1, 110, 100), 110, 3)).toBeNull()
   })
 })
 

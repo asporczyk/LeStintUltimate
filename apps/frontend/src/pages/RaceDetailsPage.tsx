@@ -169,6 +169,7 @@ export function RaceDetailsPage() {
         drivers={race.drivers || []} 
         avgStintTime={race.avgStintTime} 
         avgLapTime={race.avgLapTime} 
+        avgFuelPerLap={race.avgFuelPerLap || 0}
         raceId={race._id} 
         startTime={calculatedRaceStartTime || race.startTime || '19:30'}
         raceDate={race.startDate}

@@ -130,6 +130,26 @@ export const ErrorText = styled.span`
   color: ${({ theme }) => theme.colors.danger};
 `
 
+// Marks a value the app set by itself, e.g. fuel matched to the finish.
+export const AutoBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.successSoft};
+  color: ${({ theme }) => theme.colors.success};
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+  }
+`
+
 export const FieldHint = styled.span`
   font-size: 0.75rem;
   color: ${({ theme }) => theme.colors.textMuted};
@@ -160,11 +180,15 @@ export const SliderContainer = styled.div`
   gap: 0.75rem;
 `
 
-export const Slider = styled.input`
+// $limit (%): values above it are blocked and the track shows that part hatched.
+export const Slider = styled.input<{ $limit?: number }>`
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: ${({ theme }) => theme.colors.border};
+  background: ${({ $limit = 100, theme }) => $limit >= 100
+    ? theme.colors.border
+    : `linear-gradient(90deg, ${theme.colors.border} 0 ${$limit}%, transparent ${$limit}%),
+       repeating-linear-gradient(135deg, ${theme.colors.primarySoft} 0 4px, transparent 4px 8px)`};
   appearance: none;
   cursor: pointer;
   accent-color: ${({ theme }) => theme.colors.primary};

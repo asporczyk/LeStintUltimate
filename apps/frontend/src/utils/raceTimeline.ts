@@ -42,6 +42,8 @@ export interface RaceTimeline {
   stints: TimelineStint[]
   finish: RaceFinish
   plannedEnd: number
+  // Minutes of driving in the whole plan (pit stops excluded).
+  totalDriving: number
   // The plan reaches the checkered flag.
   coversRace: boolean
   // Minutes between the end of the plan and the flag (0 when covered).
@@ -128,6 +130,7 @@ export function raceTimeline(
     stints: timelineStints,
     finish: { timeUpAt: raceMinutes, timeUpLap: totalLaps, flagAt, totalLaps },
     plannedEnd,
+    totalDriving,
     coversRace,
     gap: coversRace ? 0 : Math.max(0, flagAt - plannedEnd),
     finishingIndex,
@@ -142,6 +145,26 @@ export function maxNewStintDuration(timeline: RaceTimeline, lastStint: TimelineI
     ? calculatePitstopTime(lastStint, { ...lastStint, driver: `${lastStint.driver}-next`, fuel: 100 }, fuelTankCapacity) / 60
     : 0
   return Math.max(0, Math.ceil(timeline.finish.flagAt - timeline.plannedEnd - pitMinutes))
+}
+
+// Laps of fuel kept in the tank on top of what the last stint needs.
+export const FUEL_RESERVE_LAPS = 1
+
+export interface FinishFuel {
+  // Laps the final stint drives to the checkered flag (a started lap counts in full).
+  laps: number
+  // Smallest refuel (% of the tank) that covers those laps plus the reserve.
+  fuel: number
+}
+
+// Fuel for a new stint added at the end of the plan that drives on to the flag.
+// It starts after all planned driving and runs to the end of the flag lap.
+export function finishFuel(timeline: RaceTimeline, avgLapTime: number, avgFuelPerLap: number): FinishFuel | null {
+  if (avgFuelPerLap <= 0 || timeline.coversRace) return null
+  const lapSeconds = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME
+  const lapsDone = (timeline.totalDriving * 60) / lapSeconds
+  const laps = Math.max(1, Math.ceil(timeline.finish.totalLaps - lapsDone - 1e-9))
+  return { laps, fuel: Math.min(100, Math.ceil((laps + FUEL_RESERVE_LAPS) * avgFuelPerLap - 1e-9)) }
 }
 
 // Longest duration (whole minutes) for an existing stint. The stint that drives to the
