@@ -39,8 +39,8 @@ export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
           <RaceDate>{new Date(race.createdAt).toLocaleDateString(i18n.language)}</RaceDate>
         </RaceInfo>
         <RaceActions>
-          <TextButton onClick={() => onOpen(race._id)} $variant="secondary">{t('open-race')}</TextButton>
-          <IconButton onClick={handleDelete} title={tCommon('delete')} icon={TrashIcon} />
+          <TextButton onClick={() => onOpen(race._id)} $variant="secondary" $size="sm">{t('open-race')}</TextButton>
+          <IconButton onClick={handleDelete} title={tCommon('delete')} icon={TrashIcon} size="sm" />
         </RaceActions>
       </RaceItemContainer>
       <ConfirmModal

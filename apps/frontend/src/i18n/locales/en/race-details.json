@@ -2,7 +2,7 @@
   "title": "Race Details",
   "created": "Created",
   "startDate": "Start date",
-  "startTime": "Start time",
+  "startTime": "Start Time",
   "notSet": "Not set",
   "notFound": "Race not found",
   "failedToLoad": "Failed to load race",
@@ -23,7 +23,6 @@
   "editQualification": "Edit Qualification",
   "stintSchedule": "Stint Schedule",
   "stint": "Stint",
-  "startTime": "Start Time",
   "endTime": "End Time",
   "duration": "Duration",
   "driver": "Driver",
@@ -83,7 +82,12 @@
     "raceLengthRange": "Maximum 24h",
     "tireSetsRange": "Maximum 100 tires",
     "stintTimeRange": "Duration must be between 0 and 120 minutes",
-    "nameTooLong": "Name max 100 characters",
-    "editTraining": "Edit Training"
-  }
+    "nameTooLong": "Name max 100 characters"
+  },
+  "editTraining": "Edit Training",
+  "extraLap": "+1 lap",
+  "raceSettings": "Race settings",
+  "startLapShort": "Start lap",
+  "tireChange": "Change",
+  "tiresLeft": "Tires"
 }

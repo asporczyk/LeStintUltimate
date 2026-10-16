@@ -1,31 +1,37 @@
 import styled from 'styled-components'
 
 export const IconTextButton = styled.button`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-weight: 600;
-  letter-spacing: 0.15em;
-  padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  letter-spacing: 0.04em;
+  padding: 0.625rem 1rem;
+  min-height: 2.75rem;
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.sm};
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 
-  img {
-    filter: brightness(0) invert(1);
-  }
-
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #fff;
+    color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 
-  &:active {
-    transform: translateY(0);
+  @media (max-width: 600px) {
+    padding: 0.625rem 0.75rem;
+
+    .label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 `

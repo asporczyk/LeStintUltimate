@@ -45,8 +45,9 @@ export function DriverSummary({ stints, drivers, fuelTankCapacity }: DriverSumma
       <DriverSummaryTitle>
         {t('driverTotalTime')}
         <MinimumRequirementIconWrapper>
-          <MinimumRequirementInfoIcon title={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
-          <MinimumRequirementTooltip>
+          <MinimumRequirementInfoIcon type="button" aria-label={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
+          <MinimumRequirementTooltip role="tooltip">
+            <p>{t('minimumRequirementTooltip')}</p>
             <MinimumRequirementList>
               <li>{t('minimumRequirement2Drivers')}: 25%</li>
               <li>{t('minimumRequirement3Drivers')}: 16.7%</li>
@@ -69,24 +70,20 @@ export function DriverSummary({ stints, drivers, fuelTankCapacity }: DriverSumma
           {rows.map(({ driver, totalMinutes, percentage, isBelowMinimum }) => (
             <DriverSummaryRow
               key={driver}
-              as={isBelowMinimum ? DriverSummaryRowBelowMinimum : DriverSummaryRow}
+              as={isBelowMinimum ? DriverSummaryRowBelowMinimum : undefined}
             >
               <DriverNameCell>{driver}</DriverNameCell>
               <TotalTimeCell>{formatHoursMinutes(totalMinutes)}</TotalTimeCell>
               <RacePercentageCell>{percentage.toFixed(1)}%</RacePercentageCell>
             </DriverSummaryRow>
           ))}
-          {hasViolation && (
-            <tr>
-              <td colSpan={4} style={{ padding: 0, border: 'none' }}>
-                <MinimumRequirementWarning>
-                  {t('minimumRequirementWarning')}
-                </MinimumRequirementWarning>
-              </td>
-            </tr>
-          )}
         </DriverSummaryBody>
       </DriverSummaryTable>
+      {hasViolation && (
+        <MinimumRequirementWarning role="status">
+          {t('minimumRequirementWarning')}
+        </MinimumRequirementWarning>
+      )}
     </DriverSummaryContainer>
   )
 }

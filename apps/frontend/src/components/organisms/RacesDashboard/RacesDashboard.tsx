@@ -6,7 +6,7 @@ import { RacesList } from 'components/molecules/RacesList/RacesList'
 import { Loader } from 'components/atoms/Loader/Loader'
 import { RacesApi } from 'api/RacesApi'
 import { type Race } from 'types/Race'
-import { DashboardContainer, ErrorMessage, LimitBadge } from './RacesDashboard.styles'
+import { DashboardContainer, ErrorMessage, LimitBadge, ListHeader, ListTitle } from './RacesDashboard.styles'
 
 interface RacesDashboardProps {
   initialRaces?: Race[]
@@ -75,8 +75,11 @@ export function RacesDashboard({ initialRaces }: RacesDashboardProps) {
     <DashboardContainer>
       <RaceInputGroup onAdd={handleAdd} />
       {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
+      <ListHeader>
+        <ListTitle>{t('races')}</ListTitle>
+        <LimitBadge>{raceCount}/{raceLimit}</LimitBadge>
+      </ListHeader>
       {loading ? <Loader /> : <RacesList races={races} onDelete={handleDelete} onOpen={handleOpen} />}
-      <LimitBadge>{raceCount}/{raceLimit}</LimitBadge>
     </DashboardContainer>
   )
 }

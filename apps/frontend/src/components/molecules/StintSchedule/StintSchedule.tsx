@@ -13,17 +13,18 @@ import { EditStintModal } from 'components/molecules/EditStintModal/EditStintMod
 import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
 import { StintsApi } from 'api/StintsApi'
 import { ScheduleApi } from 'api/ScheduleApi'
-import { StintRow } from './StintRow'
+import { ScheduleCard, TireMap } from './ScheduleCard'
+import { CardList } from './ScheduleCard.styles'
+import { InsertDivider } from './InsertDivider'
+import { IconButton } from 'components/atoms/IconButton/IconButton'
+import EditIcon from 'assets/svg/edit.svg'
+import TrashIcon from 'assets/svg/trash.svg'
 import { NotesEditor } from './NotesEditor'
 import { DriverSummary } from './DriverSummary'
 import {
   ScheduleContainer,
   ScheduleTitle,
-  TableWrapper,
-  Table,
-  TableHead,
-  TableHeader,
-  TableBody
+  EmptyState
 } from './StintSchedule.styles'
 import { useToast } from '@/hooks/useToast'
 
@@ -88,62 +89,71 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
     setAddModalOpen(true)
   }
 
+  const rows = stints.map((stint, index) => {
+    const start = startTimes[index]
+    const end = start + stint.duration
+    return {
+      stint,
+      index,
+      order: stint.order ?? index + 1,
+      startClock: addMinutesToClock(startTime, start),
+      endClock: addMinutesToClock(startTime, end),
+      isActive: currentRaceTime >= start && currentRaceTime < end,
+      remainingTires: remainingTiresAt(stints, index, tireSets),
+    }
+  })
+
   const startLapBefore = (index: number) => stintStartLap(stints.slice(0, index).map(s => s.duration), avgLapTime)
 
   return (
     <ScheduleContainer>
       <ScheduleTitle>{t('stintSchedule')}</ScheduleTitle>
       {stints.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1rem' }}>{t('noStints')}</p>
+        <EmptyState>
+          <p>{t('noStints')}</p>
           <TextButton onClick={() => openAddModal(0)}>
             {t('addFirstStint')}
           </TextButton>
-        </div>
+        </EmptyState>
       ) : (
-        <TableWrapper>
-          <Table>
-            <TableHead>
-              <tr>
-                <TableHeader>#</TableHeader>
-                <TableHeader>{t('startTime')}</TableHeader>
-                <TableHeader>{t('duration')}</TableHeader>
-                <TableHeader>{t('endTime')}</TableHeader>
-                <TableHeader>{t('startLap')}</TableHeader>
-                <TableHeader>{t('driver')}</TableHeader>
-                <TableHeader>{t('spotter')}</TableHeader>
-                <TableHeader>{t('fuel')}</TableHeader>
-                <TableHeader>FL</TableHeader>
-                <TableHeader>FR</TableHeader>
-                <TableHeader>RL</TableHeader>
-                <TableHeader>RR</TableHeader>
-                <TableHeader>{t('tires')}</TableHeader>
-                <TableHeader></TableHeader>
-              </tr>
-            </TableHead>
-            <TableBody>
-              {stints.map((stint, index) => {
-                const start = startTimes[index]
-                const end = start + stint.duration
-                const order = stint.order ?? index + 1
-                return (
-                  <StintRow
-                    key={stint._id}
-                    stint={stint}
-                    number={order}
-                    startClock={addMinutesToClock(startTime, start)}
-                    endClock={addMinutesToClock(startTime, end)}
-                    isActive={currentRaceTime >= start && currentRaceTime < end}
-                    remainingTires={remainingTiresAt(stints, index, tireSets)}
-                    onEdit={() => setEditingIndex(index)}
-                    onDelete={() => setDeletingStint(stint)}
-                    onInsertAfter={() => openAddModal(order)}
-                  />
-                )
-              })}
-            </TableBody>
-          </Table>
-        </TableWrapper>
+        <CardList>
+          {rows.map(row => (
+            <div key={row.stint._id}>
+              <ScheduleCard
+                badge={row.order}
+                start={row.startClock}
+                end={row.endClock}
+                duration={`${row.stint.duration} min`}
+                isActive={row.isActive}
+                driver={row.stint.driver}
+                spotter={row.stint.spotter}
+                stats={[
+                  { label: t('startLapShort'), value: row.stint.fuelLaps },
+                  { label: t('fuel'), value: `${row.stint.fuel}%` },
+                  {
+                    label: t('tireChange'),
+                    value: (
+                      <TireMap
+                        fl={row.stint.tireFL !== '-'}
+                        fr={row.stint.tireFR !== '-'}
+                        rl={row.stint.tireRL !== '-'}
+                        rr={row.stint.tireRR !== '-'}
+                      />
+                    ),
+                  },
+                  { label: t('tiresLeft'), value: row.remainingTires },
+                ]}
+                actions={
+                  <>
+                    <IconButton onClick={() => setEditingIndex(row.index)} title={t('edit')} icon={EditIcon} size="sm" />
+                    <IconButton onClick={() => setDeletingStint(row.stint)} title={t('delete')} icon={TrashIcon} size="sm" />
+                  </>
+                }
+              />
+              <InsertDivider inset after={row.order} onInsert={() => openAddModal(row.order)} />
+            </div>
+          ))}
+        </CardList>
       )}
       <AddStintModal
         key={addModalOpen ? `open-${addAfterStint}` : 'closed'}

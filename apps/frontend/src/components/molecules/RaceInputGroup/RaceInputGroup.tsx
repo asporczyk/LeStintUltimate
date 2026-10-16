@@ -1,8 +1,9 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { TextInput } from 'components/atoms/TextInput/TextInput.styles'
-import { InputGroupContainer, InputWrapper, ValidationError, ButtonWrapper, AddText, AddIcon } from './RaceInputGroup.styles'
+import { InputGroupContainer, InputRow, ValidationError, AddText } from './RaceInputGroup.styles'
+import { Icon } from 'components/atoms/Icon/Icon'
 import PlusIcon from 'assets/svg/plus.svg'
 
 interface RaceInputGroupProps {
@@ -40,15 +41,8 @@ export function RaceInputGroup({ onAdd }: RaceInputGroupProps) {
     }
   }
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !error && value) {
-      onAdd(value)
-      setValue('')
-      setError('')
-    }
-  }
-
-  const handleAdd = () => {
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
     if (!error && value) {
       onAdd(value)
       setValue('')
@@ -57,26 +51,24 @@ export function RaceInputGroup({ onAdd }: RaceInputGroupProps) {
   }
 
   return (
-    <InputGroupContainer>
-      <InputWrapper>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <TextInput
-            type="text"
-            placeholder={t('race-name-placeholder')}
-            value={value}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            style={{ borderColor: error ? '#e74c3c' : undefined }}
-          />
-          <ButtonWrapper>
-            <TextButton onClick={handleAdd} disabled={!!error || !value}>
-              <AddText>{t('add-race')}</AddText>
-              <AddIcon src={PlusIcon} alt="" />
-            </TextButton>
-          </ButtonWrapper>
-        </div>
-        {error && <ValidationError>{error}</ValidationError>}
-      </InputWrapper>
+    <InputGroupContainer onSubmit={handleSubmit}>
+      <InputRow>
+        <TextInput
+          type="text"
+          placeholder={t('race-name-placeholder')}
+          aria-label={t('race-name-placeholder')}
+          aria-invalid={!!error}
+          aria-describedby={error ? 'race-name-error' : undefined}
+          value={value}
+          onChange={handleChange}
+          $invalid={!!error}
+        />
+        <TextButton type="submit" disabled={!!error || !value}>
+          <Icon src={PlusIcon} />
+          <AddText>{t('add-race')}</AddText>
+        </TextButton>
+      </InputRow>
+      {error && <ValidationError id="race-name-error" role="alert">{error}</ValidationError>}
     </InputGroupContainer>
   )
 }

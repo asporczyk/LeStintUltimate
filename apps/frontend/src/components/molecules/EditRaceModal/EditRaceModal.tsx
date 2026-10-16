@@ -191,7 +191,7 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
 
   return (
     <Overlay onClick={onCancel}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalContent $width="560px" onClick={(e) => e.stopPropagation()}>
         <ModalTitle>{t('editRace')}</ModalTitle>
         <Form ref={formRef} onSubmit={handleSubmit}>
             <FormGroup>

@@ -2,25 +2,18 @@ import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { Loader } from 'components/atoms/Loader/Loader'
 import { EditQualificationModal } from '../EditQualificationModal/EditQualificationModal'
 import { QualificationApi, type Qualification } from 'api/QualificationApi'
 import {
   ScheduleContainer,
   ScheduleTitle,
-  TableWrapper,
-  Table,
-  TableHead,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableCell,
-  DriverCell,
-  ActionsCell,
-  ActionButtonsWrapper
+  EmptyState
 } from '../StintSchedule/StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
+import { ScheduleCard, TireMap } from '../StintSchedule/ScheduleCard'
+import { CardList } from '../StintSchedule/ScheduleCard.styles'
 import { useSocket } from '@/hooks/useSocket'
-import { CheckIcon } from 'components/atoms/CheckIcon/CheckIcon'
 import { addMinutesToClock, formatClock } from 'utils/time'
 import { useToast } from '@/hooks/useToast'
 
@@ -112,13 +105,11 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
     ? addMinutesToClock(qualStartTime, qualification.duration + avgLapTime / 60)
     : addMinutesToClock(qualStartTime, 30 + avgLapTime / 60)
 
-if (loading) {
+  if (loading) {
     return (
       <ScheduleContainer>
         <ScheduleTitle>{t('qualificationSchedule')}</ScheduleTitle>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)' }}>{t('loading', { ns: 'common' })}</p>
-        </div>
+        <Loader />
       </ScheduleContainer>
     )
   }
@@ -127,12 +118,12 @@ if (loading) {
     return (
       <ScheduleContainer>
         <ScheduleTitle>{t('qualificationSchedule')}</ScheduleTitle>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1rem' }}>{t('noQualification')}</p>
+        <EmptyState>
+          <p>{t('noQualification')}</p>
           <TextButton onClick={() => setEditModalOpen(true)}>
             {t('addQualification')}
           </TextButton>
-        </div>
+        </EmptyState>
         <EditQualificationModal
           key={editModalOpen ? 'open' : 'closed'}
           isOpen={editModalOpen}
@@ -154,55 +145,22 @@ if (loading) {
   return (
     <ScheduleContainer>
       <ScheduleTitle>{t('qualificationSchedule')}</ScheduleTitle>
-      <TableWrapper>
-        <Table>
-          <TableHead>
-            <tr>
-              <TableHeader>{t('startTime')}</TableHeader>
-              <TableHeader>{t('duration')}</TableHeader>
-              <TableHeader>{t('endTime')}</TableHeader>
-              <TableHeader>{t('laps')}</TableHeader>
-              <TableHeader>{t('driver')}</TableHeader>
-              <TableHeader>{t('spotter')}</TableHeader>
-              <TableHeader>{t('fuel')}</TableHeader>
-              <TableHeader>FL</TableHeader>
-              <TableHeader>FR</TableHeader>
-              <TableHeader>RL</TableHeader>
-              <TableHeader>RR</TableHeader>
-              <TableHeader>{t('tires')}</TableHeader>
-              <TableHeader></TableHeader>
-            </tr>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell>{formatClock(qualStartTime)}</TableCell>
-              <TableCell>
-                {qualification.duration || '30'} min
-                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>+1 lap</div>
-              </TableCell>
-              <TableCell>{displayEndTime}</TableCell>
-              <TableCell>{calculatedLaps}</TableCell>
-              <DriverCell>{qualification.driver || '-'}</DriverCell>
-              <TableCell>{qualification.spotter || '-'}</TableCell>
-              <TableCell>{calculatedFuel}%</TableCell>
-              <TableCell><CheckIcon /></TableCell>
-              <TableCell><CheckIcon /></TableCell>
-              <TableCell><CheckIcon /></TableCell>
-              <TableCell><CheckIcon /></TableCell>
-              <TableCell>{availableTires}</TableCell>
-              <ActionsCell>
-                <ActionButtonsWrapper>
-                  <IconButton 
-                    onClick={() => setEditModalOpen(true)} 
-                    title={t('edit')} 
-                    icon={EditIcon} 
-                  />
-                </ActionButtonsWrapper>
-              </ActionsCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableWrapper>
+      <CardList>
+        <ScheduleCard
+          start={formatClock(qualStartTime)}
+          end={displayEndTime}
+          duration={`${qualification.duration || '30'} min ${t('extraLap')}`}
+          driver={qualification.driver}
+          spotter={qualification.spotter}
+          stats={[
+            { label: t('laps'), value: calculatedLaps },
+            { label: t('fuel'), value: `${calculatedFuel}%` },
+            { label: t('tireChange'), value: <TireMap fl fr rl rr /> },
+            { label: t('tiresLeft'), value: availableTires },
+          ]}
+          actions={<IconButton onClick={() => setEditModalOpen(true)} title={t('edit')} icon={EditIcon} size="sm" />}
+        />
+      </CardList>
       <EditQualificationModal
         key={editModalOpen ? 'open' : 'closed'}
         isOpen={editModalOpen}

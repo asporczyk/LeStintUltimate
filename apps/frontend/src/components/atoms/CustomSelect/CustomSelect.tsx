@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
+import { fieldStyles } from 'styles/theme'
 
 const SelectContainer = styled.div`
   position: relative;
@@ -7,29 +8,15 @@ const SelectContainer = styled.div`
 `
 
 const SelectButton = styled.button`
-  width: 100%;
-  padding: 10px 14px;
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 14px;
-  border: 2px solid #334466;
-  border-radius: 4px;
-  background-color: rgba(0, 8, 51, 0.8);
-  color: #fff;
+  ${fieldStyles}
   text-align: left;
   cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  &:hover {
-    border-color: #556677;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #FF1D44;
-    box-shadow: 0 0 20px rgba(255, 29, 68, 0.3);
+  svg {
+    color: ${({ theme }) => theme.colors.textMuted};
   }
 `
 
@@ -38,9 +25,10 @@ const SelectDropdown = styled.div`
   top: 100%;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, #000833 0%, #001244 100%);
-  border: 2px solid #334466;
-  border-radius: 4px;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  box-shadow: ${({ theme }) => theme.colors.shadow};
   margin-top: 4px;
   max-height: 200px;
   overflow-y: auto;
@@ -50,21 +38,24 @@ const SelectDropdown = styled.div`
 const SelectOption = styled.button<{ $selected: boolean }>`
   width: 100%;
   padding: 10px 14px;
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 14px;
+  font-size: 0.9375rem;
   background: transparent;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
   border: none;
   text-align: left;
   cursor: pointer;
   transition: background 0.2s ease;
 
   &:hover {
-    background: rgba(255, 29, 68, 0.2);
+    background: ${({ theme }) => theme.colors.surfaceHover};
   }
 
-  ${props => props.$selected && `
-    background: rgba(255, 29, 68, 0.3);
+  ${({ $selected, theme }) => $selected && `
+    &, &:hover {
+      background: ${theme.colors.primarySoft};
+      color: ${theme.colors.primary};
+      font-weight: 600;
+    }
   `}
 `
 
@@ -104,16 +95,24 @@ export function CustomSelect({ value, onChange, options, placeholder = '--' }: C
 
   return (
     <SelectContainer ref={containerRef}>
-      <SelectButton type="button" onClick={() => setIsOpen(!isOpen)}>
+      <SelectButton
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => { if (e.key === 'Escape') setIsOpen(false) }}
+      >
         <span>{selectedOption?.label || placeholder}</span>
         <ChevronIcon />
       </SelectButton>
       {isOpen && (
-        <SelectDropdown>
+        <SelectDropdown role="listbox">
           {options.map(option => (
             <SelectOption
               key={option.value}
               $selected={option.value === value}
+              role="option"
+              aria-selected={option.value === value}
               type="button"
               onClick={() => {
                 onChange(option.value)

@@ -1,83 +1,73 @@
 import styled from 'styled-components'
 
 export const Title = styled.h1`
-  font-family: 'Anton', sans-serif;
-  font-size: 4rem;
+  font-family: ${({ theme }) => theme.fonts.anton};
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
   font-weight: 400;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
-  color: #FF1D44;
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  color: ${({ theme }) => theme.colors.primary};
   text-transform: uppercase;
-
-  @media (max-width: 600px) {
-    font-size: 2.5rem;
-  }
 `
 
 export const Subtitle = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
-  color: #8899aa;
-  font-size: 1rem;
-  margin-bottom: 3rem;
-  letter-spacing: 0.15em;
+  font-family: ${({ theme }) => theme.fonts.hanken};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 0.9375rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
 
   @media (max-width: 600px) {
-    font-size: 0.85rem;
-    margin-bottom: 2rem;
+    font-size: 0.8125rem;
   }
 `
 
 export const LabelL = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-size: 1.25rem;
   font-weight: 600;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
 `
 
 export const LabelM = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
 `
 
 export const LabelS = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-size: 0.875rem;
   font-weight: 600;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
 `
 
 export const BodyL = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-size: 1.25rem;
-  font-weight: 400;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
   line-height: 1.5;
 `
 
 export const BodyM = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-size: 1rem;
-  font-weight: 400;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
   line-height: 1.5;
 `
 
 export const BodyS = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: ${({ theme }) => theme.fonts.hanken};
   font-size: 0.875rem;
-  font-weight: 400;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
   line-height: 1.5;
 `
 
 export const Caption = styled.p`
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 400;
-  color: #667788;
+  font-family: ${({ theme }) => theme.fonts.hanken};
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.colors.textMuted};
   line-height: 1.4;
 `

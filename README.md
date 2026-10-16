@@ -10,7 +10,7 @@ Narzędzie do planowania stintów w wyścigach długodystansowych inspirowane gr
 - Podświetlanie aktualnie trwającego stintu
 - Podsumowanie czasu jazdy kierowców i notatki do wyścigu
 - Synchronizacja zmian na żywo między użytkownikami (Socket.IO)
-- Interfejs PL/EN, responsywny
+- Interfejs PL/EN, responsywny, jasny i ciemny motyw (domyślnie wg ustawień urządzenia)
 
 ## Technologie
 
@@ -59,7 +59,7 @@ LeStintUltimate/
 
 ## Design
 
-Kolorystyka inspirowana Le Mans Ultimate: kolor główny `#FF1D44`, tło – gradient `#000833` → `#001244`. Fonty: Anton (nagłówki), Hanken Grotesk (tekst).
+Kolorystyka inspirowana Le Mans Ultimate: kolor główny `#FF1D44`, tło – gradient `#000833` → `#001244`. Jasny motyw używa tego samego granatu jako koloru tekstu i ciemniejszej czerwieni `#D90F3A`. Fonty: Anton (nagłówki), Hanken Grotesk (tekst). Paleta: [docs/ARCHITEKTURA.md](docs/ARCHITEKTURA.md#motywy).
 
 ## Licencja
 

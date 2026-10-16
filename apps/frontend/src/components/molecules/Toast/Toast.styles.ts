@@ -12,11 +12,11 @@ export const ToastContainer = styled.div`
   max-width: calc(100vw - 32px);
   padding: 12px 16px;
   border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: 8px;
-  background: ${({ theme }) => theme.colors.bgDarkMid};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.surfaceRaised};
   color: ${({ theme }) => theme.colors.text};
   font-size: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: ${({ theme }) => theme.colors.shadow};
 `
 
 export const ToastClose = styled.button`

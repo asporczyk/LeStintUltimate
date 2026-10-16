@@ -70,19 +70,30 @@ Struktura oparta na **Atomic Design**:
 src/
 ├── api/            # Wrappery REST (RacesApi, StintsApi, …); request.ts rzuca ApiError przy błędzie HTTP
 ├── components/
-│   ├── atoms/      # IconButton, TextButton, CustomSelect, CustomCheckbox, Loader, Typography…
-│   ├── molecules/  # Harmonogramy (Training/Qualification/Stint), modale edycji, lista wyścigów
+│   ├── atoms/      # Icon, IconButton, TextButton, ThemeToggle, CustomSelect, CustomCheckbox, Loader, Typography…
+│   ├── molecules/  # Harmonogramy (Training/Qualification/Stint), modale edycji (wspólne style w Modal/), lista wyścigów
 │   └── organisms/  # RacesDashboard
 ├── hooks/
 │   ├── useSocket.ts        # Kontekst, typy zdarzeń i hook useSocket()
 │   ├── SocketProvider.tsx  # Połączenie Socket.IO, pokoje wyścigów i subskrypcje zdarzeń
-│   └── useToast.ts         # showError() – komunikat o błędzie (ToastProvider w molecules/Toast)
+│   ├── useToast.ts         # showError() – komunikat o błędzie (ToastProvider w molecules/Toast)
+│   └── useThemeMode.ts     # Motyw jasny/ciemny: tryb system/light/dark (ThemeModeProvider.tsx)
 ├── i18n/           # i18next, języki pl/en, przestrzenie: common, home, raceDetails
 ├── pages/          # HomePage (/), RaceDetailsPage (/race/:id)
-├── styles/theme.ts # Motyw styled-components + style globalne
+├── styles/theme.ts # Paleta jasna i ciemna jako zmienne CSS, motyw styled-components, style globalne
 ├── types/          # Race, Stint, Schedule
 └── utils/          # Czyste funkcje + testy: time, tires, pitstop, laps, raceClock, schedule, drivers
 ```
+
+### Motywy
+
+Kolory są zmiennymi CSS (`--primary`, `--surface`, `--text`, …) zdefiniowanymi w `styles/theme.ts` dla `:root[data-theme='dark']` i `:root[data-theme='light']`. Obiekt `theme.colors` w styled-components zawiera tylko odwołania `var(--…)`, więc zmiana motywu nie wymaga ponownego renderowania. Komponenty nie powinny używać kolorów wpisanych na sztywno.
+
+Domyślnie motyw wynika z ustawień urządzenia (`prefers-color-scheme`). Przełącznik `ThemeToggle` (strona główna i strona wyścigu) zapisuje wybór `light`/`dark` w `localStorage` pod kluczem `theme`; tryb „systemowy” usuwa wpis. Skrypt w `index.html` ustawia `data-theme` przed pierwszym renderem, żeby nie było mignięcia.
+
+### Harmonogramy jako karty
+
+Trening, kwalifikacje i stinty są listą kart (`StintSchedule/ScheduleCard.tsx`), nie tabelą. Od 1000 px karta jest jednym wierszem (czas │ kierowca i spotter │ okrążenie, paliwo, wymiana opon, pozostałe opony │ akcje), węziej układa się w pionie. Poniżej 720 px (`MOBILE_QUERY` w `styles/theme.ts`) sekcje strony wyścigu sięgają krawędzi ekranu. Przycisk wstawiania stintu (`InsertDivider`) pojawia się po najechaniu myszą na przerwę między stintami, a na ekranach dotykowych jest widoczny stale jako mały „+”.
 
 Aliasy importów (`vite.config.ts`): `@`, `api`, `components`, `pages`, `assets`, `types`, `styles`, `i18n`, `utils`.
 

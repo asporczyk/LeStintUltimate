@@ -1,28 +1,37 @@
 import styled, { keyframes } from 'styled-components'
+import { useTranslation } from 'react-i18next'
 
 const spin = keyframes`
   to { transform: rotate(360deg); }
 `
 
-const LoaderWrapper = styled.div`
+const LoaderWrapper = styled.div<{ $fullPage: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 32px;
+  width: 100%;
+  padding: 2rem;
+  min-height: ${({ $fullPage }) => $fullPage ? '100vh' : 'auto'};
 `
 
 const Spinner = styled.div`
-  width: 32px;
-  height: 32px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #FF1D44;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid ${({ theme }) => theme.colors.border};
+  border-top-color: ${({ theme }) => theme.colors.primary};
   border-radius: 50%;
-  animation: ${spin} 1s linear infinite;
+  animation: ${spin} 0.8s linear infinite;
 `
 
-export function Loader() {
+interface LoaderProps {
+  // Centers the spinner in the whole viewport instead of its container.
+  fullPage?: boolean
+}
+
+export function Loader({ fullPage = false }: LoaderProps) {
+  const { t } = useTranslation('common')
   return (
-    <LoaderWrapper>
+    <LoaderWrapper $fullPage={fullPage} role="status" aria-label={t('loading')}>
       <Spinner />
     </LoaderWrapper>
   )

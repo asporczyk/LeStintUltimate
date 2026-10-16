@@ -1,10 +1,24 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PageTitle, RaceDetailsContainer, RaceInfo, HeaderRow, HeaderLeft } from './RaceDetailsPage.styles'
+import {
+  PageTitle,
+  RaceDetailsContainer,
+  TopBar,
+  TopBarActions,
+  RaceHeader,
+  RaceMeta,
+  StatsGrid,
+  Stat,
+  StatLabel,
+  StatValue,
+  DriverList,
+  DriverTag,
+  ErrorState
+} from './RaceDetailsPage.styles'
 import { Loader } from 'components/atoms/Loader/Loader'
-import { BodyM } from 'components/atoms/Typography/Typography.styles'
 import { IconTextButton } from 'components/atoms/IconTextButton/IconTextButton'
+import { ThemeToggle } from 'components/atoms/ThemeToggle/ThemeToggle'
 import { StintSchedule } from 'components/molecules/StintSchedule/StintSchedule'
 import { TrainingSchedule } from 'components/molecules/TrainingSchedule/TrainingSchedule'
 import { QualificationSchedule } from 'components/molecules/QualificationSchedule/QualificationSchedule'
@@ -75,54 +89,68 @@ export function RaceDetailsPage() {
     }
   }
 
+  // Back to the list even when the page was opened from a shared link.
+  const goBack = () => navigate('/')
+
   if (loading) {
-    return (
-      <RaceDetailsContainer>
-        <Loader />
-      </RaceDetailsContainer>
-    )
+    return <Loader fullPage />
   }
 
   if (error || !race) {
     return (
       <RaceDetailsContainer>
-        <PageTitle>{error || t('notFound')}</PageTitle>
+        <ErrorState>
+          <p>{error || t('notFound')}</p>
+          <IconTextButton icon={ArrowBackIcon} onClick={goBack}>{t('back')}</IconTextButton>
+        </ErrorState>
       </RaceDetailsContainer>
     )
   }
 
+  const formatDate = (date: string | Date) => new Date(date).toLocaleDateString(i18n.language)
+  const stats = [
+    { label: t('startDate'), value: race.startDate ? `${formatDate(race.startDate)} ${race.startTime || '19:30'}` : t('notSet') },
+    { label: t('raceLength'), value: `${race.raceLength} h` },
+    { label: t('tireSets'), value: race.tireSets },
+    { label: t('fuelTankCapacity'), value: `${race.fuelTankCapacity} L` },
+    { label: t('avgLapTime'), value: race.avgLapTime ? formatLapTime(race.avgLapTime) : '-' },
+    { label: t('avgFuelPerLap'), value: `${race.avgFuelPerLap}%` },
+    { label: t('avgStintTime'), value: `${race.avgStintTime} min` },
+  ]
+
   return (
     <RaceDetailsContainer>
-      <IconTextButton 
-        icon={ArrowBackIcon} 
-        onClick={() => navigate(-1)} 
-        style={{ position: 'absolute', top: '1rem', left: '1rem' }}
-      >
-        {t('back')}
-      </IconTextButton>
-      <IconTextButton 
-        icon={EditIcon} 
-        onClick={() => setIsEditModalOpen(true)} 
-        style={{ position: 'absolute', top: '1rem', right: '1rem' }}
-      >
-        {t('editRace')}
-      </IconTextButton>
-      <HeaderRow>
-        <HeaderLeft>
-          <PageTitle>{race.name}</PageTitle>
-          <RaceInfo>
-            <BodyM>{t('created')}: {new Date(race.createdAt).toLocaleDateString(i18n.language)}</BodyM>
-            <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString(i18n.language) + ' ' + (race.startTime || '19:30') : t('notSet')}</BodyM>
-            <BodyM>{t('raceLength')}: {race.raceLength}h</BodyM>
-            <BodyM>{t('tireSets')}: {race.tireSets}</BodyM>
-            <BodyM>{t('fuelTankCapacity')}: {race.fuelTankCapacity}L</BodyM>
-            <BodyM>{t('avgLapTime')}: {race.avgLapTime ? formatLapTime(race.avgLapTime) : '-'}</BodyM>
-            <BodyM>{t('avgFuelPerLap')}: {race.avgFuelPerLap}%</BodyM>
-            <BodyM>{t('avgStintTime')}: {race.avgStintTime} min</BodyM>
-            <BodyM>{t('drivers')}: {race.drivers?.join(', ') || '-'}</BodyM>
-          </RaceInfo>
-        </HeaderLeft>
-      </HeaderRow>
+      <TopBar>
+        <IconTextButton icon={ArrowBackIcon} onClick={goBack}>
+          {t('back')}
+        </IconTextButton>
+        <TopBarActions>
+          <ThemeToggle />
+          <IconTextButton icon={EditIcon} onClick={() => setIsEditModalOpen(true)}>
+            {t('editRace')}
+          </IconTextButton>
+        </TopBarActions>
+      </TopBar>
+      <RaceHeader>
+        <PageTitle>{race.name}</PageTitle>
+        <RaceMeta>{t('created')}: {formatDate(race.createdAt)}</RaceMeta>
+      </RaceHeader>
+      <StatsGrid aria-label={t('raceSettings')}>
+        {stats.map(({ label, value }) => (
+          <Stat key={label}>
+            <StatLabel>{label}</StatLabel>
+            <StatValue>{value}</StatValue>
+          </Stat>
+        ))}
+        <Stat $wide>
+          <StatLabel>{t('drivers')}</StatLabel>
+          <DriverList>
+            {race.drivers?.length
+              ? race.drivers.map(driver => <DriverTag key={driver}>{driver}</DriverTag>)
+              : '-'}
+          </DriverList>
+        </Stat>
+      </StatsGrid>
       {race && <TrainingSchedule 
         raceId={race._id}
         raceStartTime={race.startTime} 

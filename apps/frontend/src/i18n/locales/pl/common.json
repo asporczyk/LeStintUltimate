@@ -13,5 +13,9 @@
   "delete-confirm-title": "Usuń wyścig",
   "save-failed": "Nie udało się zapisać zmian. Spróbuj ponownie.",
   "load-failed": "Nie udało się wczytać danych. Odśwież stronę.",
-  "delete-failed": "Nie udało się usunąć. Spróbuj ponownie."
+  "delete-failed": "Nie udało się usunąć. Spróbuj ponownie.",
+  "theme": "Motyw",
+  "theme-system": "Motyw systemowy",
+  "theme-light": "Jasny motyw",
+  "theme-dark": "Ciemny motyw"
 }
