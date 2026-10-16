@@ -20,18 +20,26 @@ Jeśli kwalifikacje nie istnieją, tabela stintów startuje od `Race.startTime`.
 - **Paliwo:** `ceil(qualification.laps * avgFuelPerLap)` [%] – liczone z pola `laps` zapisanego w kwalifikacjach, a nie z wyliczonych okrążeń.
 - **Opony:** w kwalifikacjach zakładany jest nowy komplet; do wyścigu zostaje `max(0, tireSets − 4)` opon.
 
-## 3. Okrążenie pit stopu (`fuelLaps`)
+## 3. Okrążenie startu stintu (`fuelLaps`)
 
-Liczone na backendzie (`computeFuelLaps` w `calculations.ts`, wywoływane z `schedule.routes.ts`) po każdej zmianie w stintach:
+Okrążenie, od którego zaczyna się stint = liczba pełnych okrążeń przejechanych we **wszystkich wcześniejszych** stintach. Stint #1 zaczyna się na okrążeniu 0.
 
 ```
-fuelLaps(stint #1) = 0
-fuelLaps(stint #n) = fuelLaps(stint #n−1) + floor(duration_n * 60 / avgLapTime)
+fuelLaps(stint #n) = floor( (duration_1 + … + duration_{n−1}) * 60 / avgLapTime )
 ```
 
-`avgLapTime` domyślnie 120 s, gdy wyścig go nie ma. Kolumna w tabeli nazywa się „okrążenie pit stopu”.
+- Okrążenia liczone są z **łącznego** czasu wcześniejszych stintów, więc zaokrąglenia się nie kumulują (2 × 40 min przy 225,5 s → 21, a nie 10 + 10 = 20).
+- Czas trwania samego stintu nie wpływa na jego okrążenie startu.
+- Czas pit stopów nie jest wliczany.
+- `avgLapTime` domyślnie 120 s, gdy wyścig go nie ma.
 
-> Formuła używa czasu trwania **bieżącego** stintu, a pierwszy stint zawsze ma 0 – warto zweryfikować, czy to zamierzone (patrz [REKOMENDACJE.md](REKOMENDACJE.md)).
+Liczone na backendzie (`computeFuelLaps` w `calculations.ts`, `services/stints.ts`) po każdej zmianie stintów, po zmianie `avgLapTime` lub `avgStintTime` wyścigu i przy każdym odczycie harmonogramu (to migruje stare dane). Frontend pokazuje tę samą wartość w modalach (`utils/laps.ts`).
+
+## 3a. Automatyczny czas stintu (`durationAuto`)
+
+Nowy stint ma czas wypełniony średnią z wyścigu (`avgStintTime`). Jeśli zostanie zapisany z tą wartością, dostaje `durationAuto: true`. Ręczna zmiana czasu w edycji ustawia `durationAuto: false`.
+
+Zmiana `avgStintTime` wyścigu aktualizuje czas **tylko** stintów z `durationAuto: true`. Stinty zapisane przed wprowadzeniem flagi (bez pola) są traktowane jak automatyczne, jeśli ich czas był równy poprzedniej średniej.
 
 ## 4. Czas pit stopu
 
@@ -60,7 +68,18 @@ Wyświetlane jako `startWyścigu + start_i` w formacie `HH:MM:SS`.
 
 ## 6. Aktywny stint
 
-`StintSchedule` co 60 s liczy, ile minut minęło od dzisiejszego `startTime` (jeśli godzina startu jest jeszcze w przyszłości – od wczorajszej, żeby wyścig trwający przez północ działał poprawnie). Stint jest aktywny, gdy `start_i ≤ teraz < koniec_i` – wiersz jest podświetlony, a przy kierowcy pojawia się wskaźnik.
+Start wyścigu jako konkretny moment (`utils/raceClock.ts`):
+
+```
+startDnia   = startDate (data) + race.startTime (godzina startu dnia / treningu)
+startWyścigu = startDnia + ((godzinaStartuWyścigu − race.startTime) mod 24 h)
+```
+
+`godzinaStartuWyścigu` to start po treningu i kwalifikacjach (sekcja 1). Jeśli trening i kwalifikacje kończą się po północy (np. start dnia 23:30, wyścig 00:40), wyścig wypada **następnego dnia**. Stinty, które trwają przez północ, działają same, bo czas liczony jest w minutach od tego momentu.
+
+Co minutę `StintSchedule` liczy minuty od startu wyścigu. Stint jest aktywny, gdy `start_i ≤ teraz < koniec_i`. Przed startem (i w inne dni) żaden stint nie jest aktywny.
+
+Data jest przechowywana jako północ UTC wybranego dnia, więc dzień odczytywany jest w UTC.
 
 ## 7. Pozostałe opony
 

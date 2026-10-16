@@ -31,17 +31,17 @@ Odpowiedź błędu walidacji: `{ "statusCode": 400, "error": "Bad Request", "mes
 | `GET` | `/races` | Lista wyścigów (najnowsze pierwsze). Odpowiedź: `{ races, count, limit: 100 }` |
 | `POST` | `/races` | Tworzy wyścig. Body: `{ name, startDate }`. `400` gdy osiągnięto limit 100 |
 | `GET` | `/races/:id` | Pojedynczy wyścig. `404` gdy brak |
-| `PATCH` | `/races/:id` | Częściowa aktualizacja. `400` gdy `notes` > 200 znaków. Emituje `race:updated` |
+| `PATCH` | `/races/:id` | Częściowa aktualizacja. Emituje `race:updated` |
 | `DELETE` | `/races/:id` | Usuwa wyścig razem z harmonogramem, stintami, treningiem i kwalifikacjami |
 
-**Efekt uboczny `PATCH /races/:id`:** jeśli zmienia się `avgStintTime`, wszystkie stinty, których `duration` było równe **staremu** `avgStintTime`, dostają nową wartość; emitowane jest `stint:refresh`.
+**Efekty uboczne `PATCH /races/:id`:** zmiana `avgStintTime` ustawia nowy czas stintom z `durationAuto: true` (oraz starym stintom bez flagi, których czas był równy poprzedniej średniej); zmiana `avgStintTime` lub `avgLapTime` przelicza `fuelLaps` i emituje `stint:refresh`.
 
 ## Harmonogram i stinty
 
 | Metoda | Ścieżka | Opis |
 |---|---|---|
-| `GET` | `/schedule/:raceId` | `{ schedule, stints }` – stinty posortowane po `order`. Gdy brak: `{ schedule: null, stints: [] }` |
-| `POST` | `/stints` | Dodaje stint. **Pole `scheduleId` w body to w rzeczywistości `raceId`.** Tworzy `Schedule`, jeśli nie istnieje; przesuwa `order` kolejnych stintów o +1 |
+| `GET` | `/schedule/:raceId` | `{ schedule, stints }` – stinty posortowane po `order`, z aktualnym `fuelLaps`. Gdy brak: `{ schedule: null, stints: [] }` |
+| `POST` | `/stints` | Dodaje stint do wyścigu `raceId`. Tworzy `Schedule`, jeśli nie istnieje; przesuwa `order` kolejnych stintów o +1 |
 | `PUT` | `/stints/:id` | Aktualizuje pola stintu |
 | `DELETE` | `/stints/:id` | Usuwa stint; przesuwa `order` kolejnych o −1 |
 
@@ -51,16 +51,15 @@ Body stintu:
 
 ```json
 {
-  "scheduleId": "<raceId>",
+  "raceId": "<raceId>",
   "order": 2,
-  "startTime": 0,
   "duration": 50,
+  "durationAuto": true,
   "driver": "Adam",
   "spotter": "Ola",
   "fuelLaps": 0,
   "fuel": 100,
-  "tireFL": "N", "tireFR": "N", "tireRL": "-", "tireRR": "-",
-  "tires": 10
+  "tireFL": "N", "tireFR": "N", "tireRL": "-", "tireRR": "-"
 }
 ```
 
@@ -95,4 +94,9 @@ Body stintu:
 
 ### Klient → serwer
 
-Brak. Socket.IO służy wyłącznie do rozgłaszania zmian; wszystkie zapisy idą przez REST.
+| Zdarzenie | Payload | Działanie |
+|---|---|---|
+| `race:join` | `raceId` | Dołącza do pokoju wyścigu – od teraz klient dostaje jego zdarzenia |
+| `race:leave` | `raceId` | Opuszcza pokój |
+
+Wszystkie zdarzenia serwer → klient trafiają tylko do pokoju danego wyścigu. Frontend dołącza na stronie wyścigu i ponawia dołączenie po reconnect. Zapisy idą wyłącznie przez REST.

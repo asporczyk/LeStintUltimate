@@ -32,7 +32,6 @@ interface AddStintModalProps {
   drivers: string[]
   avgStintTime: number
   startLap: number
-  allStints: Stint[]
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
