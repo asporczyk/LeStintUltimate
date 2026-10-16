@@ -10,5 +10,6 @@
   "race-name-invalid-chars": "Only Latin letters, numbers, spaces and basic characters allowed",
   "race-name-required": "Enter at least one word",
   "race-limit-reached": "Limit of {{limit}} races reached. Delete one to add a new race.",
-  "request-failed": "Operation failed. Please try again."
+  "request-failed": "Operation failed. Please try again.",
+  "races": "Races"
 }

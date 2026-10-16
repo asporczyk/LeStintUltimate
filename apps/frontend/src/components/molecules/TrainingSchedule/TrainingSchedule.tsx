@@ -2,23 +2,18 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { Loader } from 'components/atoms/Loader/Loader'
 import { EditTrainingModal } from '../EditTrainingModal/EditTrainingModal'
 import { TrainingApi, type Training } from 'api/TrainingApi'
 import { useSocket } from '@/hooks/useSocket'
 import {
   ScheduleContainer,
   ScheduleTitle,
-  TableWrapper,
-  Table,
-  TableHead,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableCell,
-  ActionsCell,
-  ActionButtonsWrapper
+  EmptyState
 } from '../StintSchedule/StintSchedule.styles'
 import EditIcon from 'assets/svg/edit.svg'
+import { ScheduleCard } from '../StintSchedule/ScheduleCard'
+import { CardList } from '../StintSchedule/ScheduleCard.styles'
 import { addMinutesToClock, formatClock } from 'utils/time'
 import { useToast } from '@/hooks/useToast'
 
@@ -95,9 +90,7 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
     return (
       <ScheduleContainer>
         <ScheduleTitle>{t('trainingSchedule')}</ScheduleTitle>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)' }}>{t('loading', { ns: 'common' })}</p>
-        </div>
+        <Loader />
       </ScheduleContainer>
     )
   }
@@ -106,13 +99,14 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
     return (
       <ScheduleContainer>
         <ScheduleTitle>{t('trainingSchedule')}</ScheduleTitle>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1rem' }}>{t('noTraining')}</p>
+        <EmptyState>
+          <p>{t('noTraining')}</p>
           <TextButton onClick={() => setEditModalOpen(true)}>
             {t('addTraining')}
           </TextButton>
-        </div>
+        </EmptyState>
         <EditTrainingModal
+          key={editModalOpen ? 'open' : 'closed'}
           isOpen={editModalOpen}
           training={null}
           raceStartTime={raceStartTime}
@@ -129,35 +123,16 @@ export function TrainingSchedule({ raceId, raceStartTime, onTrainingStartTime }:
   return (
     <ScheduleContainer>
       <ScheduleTitle>{t('trainingSchedule')}</ScheduleTitle>
-      <TableWrapper>
-        <Table>
-          <TableHead>
-            <tr>
-              <TableHeader>{t('startTime')}</TableHeader>
-              <TableHeader>{t('duration')}</TableHeader>
-              <TableHeader>{t('endTime')}</TableHeader>
-              <TableHeader></TableHeader>
-            </tr>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell>{formatClock(trainingStartTime)}</TableCell>
-              <TableCell>{training.duration || '30'} min</TableCell>
-              <TableCell>{displayEndTime}</TableCell>
-              <ActionsCell>
-                <ActionButtonsWrapper>
-                  <IconButton 
-                    onClick={() => setEditModalOpen(true)} 
-                    title={t('edit')} 
-                    icon={EditIcon} 
-                  />
-                </ActionButtonsWrapper>
-              </ActionsCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableWrapper>
+      <CardList>
+        <ScheduleCard
+          start={formatClock(trainingStartTime)}
+          end={displayEndTime}
+          duration={`${training.duration || '30'} min`}
+          actions={<IconButton onClick={() => setEditModalOpen(true)} title={t('edit')} icon={EditIcon} size="sm" />}
+        />
+      </CardList>
       <EditTrainingModal
+        key={editModalOpen ? 'open' : 'closed'}
         isOpen={editModalOpen}
         training={training}
         raceStartTime={raceStartTime}

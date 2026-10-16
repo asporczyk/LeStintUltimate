@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useTranslation } from 'react-i18next'
 import { type Training } from 'api/TrainingApi'
@@ -48,11 +48,20 @@ export function EditTrainingModal({
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
   }
 
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onCancel])
+
   if (!isOpen) return null
 
   return (
     <Overlay onClick={onCancel}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalContent $width="400px" onClick={(e) => e.stopPropagation()}>
         <ModalTitle>{training ? t('editTraining') : t('addTraining')}</ModalTitle>
         <Form onSubmit={handleSubmit}>
           <FormGroup>

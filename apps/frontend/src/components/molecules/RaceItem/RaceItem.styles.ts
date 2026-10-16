@@ -1,56 +1,67 @@
 import styled from 'styled-components'
 
 export const RaceItemContainer = styled.div`
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid #334466;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  gap: 1rem;
+  padding: 0.875rem 1rem 0.875rem 1.25rem;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
-  &:hover {
-    border-color: #FF1D44;
+  /* Red marker on the left edge, shown on hover. */
+  &::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: ${({ theme }) => theme.colors.primary};
+    opacity: 0;
+    transition: opacity 0.15s ease;
   }
 
-  @media (max-width: 600px) {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.borderStrong};
+    box-shadow: ${({ theme }) => theme.colors.shadow};
+  }
+
+  &:hover::before {
+    opacity: 1;
   }
 `
 
 export const RaceInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  flex: 1;
+  gap: 0.125rem;
+  min-width: 0;
   text-align: left;
-
-  @media (max-width: 600px) {
-    flex: none;
-  }
 `
 
 export const RaceName = styled.span`
-  font-family: 'Hanken Grotesk', sans-serif;
-  color: #fff;
-  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text};
+  font-weight: 600;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 export const RaceDate = styled.span`
-  font-family: 'Hanken Grotesk', sans-serif;
-  color: #667788;
-  font-size: 0.85rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
 `
 
 export const RaceActions = styled.div`
   display: flex;
   gap: 0.5rem;
   align-items: center;
-
-  @media (max-width: 600px) {
-    justify-content: flex-end;
-  }
+  flex-shrink: 0;
 `

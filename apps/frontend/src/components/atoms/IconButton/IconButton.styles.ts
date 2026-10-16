@@ -1,40 +1,27 @@
 import styled from 'styled-components'
 
-export const IconButton = styled.button`
-  display: flex;
+export const IconButton = styled.button<{ $size?: 'sm' | 'md' }>`
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  flex-shrink: 0;
+  width: ${({ $size }) => $size === 'sm' ? '2.125rem' : '2.75rem'};
+  height: ${({ $size }) => $size === 'sm' ? '2.125rem' : '2.75rem'};
   background: transparent;
-  color: #667788;
-  border: 1px solid #667788;
-  border-radius: 4px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.sm};
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 3.25rem;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 
-  img {
-    filter: invert(100%);
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
-  &:hover {
-    color: #FF1D44;
-    border-color: #FF1D44;
-
-    img {
-      filter: invert(36%) sepia(98%) saturate(1848%) hue-rotate(329deg) brightness(101%) contrast(101%);
-    }
+  &:hover:not(:disabled) {
+    color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primarySoft};
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-
-  @media (max-width: 600px) {
-    padding: 0.6rem 0.8rem;
-    min-height: 2.8rem;
   }
 `

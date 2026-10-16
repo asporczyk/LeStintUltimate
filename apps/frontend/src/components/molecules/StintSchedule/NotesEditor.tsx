@@ -6,9 +6,9 @@ import {
   NotesLabel,
   NotesTextarea,
   CharCount,
-  NotesFooter,
-  SaveNotesButton
+  NotesFooter
 } from './StintSchedule.styles'
+import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useToast } from '@/hooks/useToast'
 
 const MAX_CHARS = 200
@@ -48,8 +48,9 @@ export function NotesEditor({ raceId, notes: savedNotes }: NotesEditorProps) {
 
   return (
     <NotesContainer>
-      <NotesLabel>{t('notes')}</NotesLabel>
+      <NotesLabel htmlFor={`notes-${raceId}`}>{t('notes')}</NotesLabel>
       <NotesTextarea
+        id={`notes-${raceId}`}
         value={notes}
         onChange={(e) => handleNotesChange(e.target.value.slice(0, MAX_CHARS))}
         placeholder={t('notesPlaceholder')}
@@ -60,9 +61,9 @@ export function NotesEditor({ raceId, notes: savedNotes }: NotesEditorProps) {
           {notes.length}/{MAX_CHARS}
         </CharCount>
         {notesModified && (
-          <SaveNotesButton onClick={handleSaveNotes}>
+          <TextButton $size="sm" onClick={handleSaveNotes}>
             {t('saveNotes')}
-          </SaveNotesButton>
+          </TextButton>
         )}
       </NotesFooter>
     </NotesContainer>

@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { RaceItem } from 'components/molecules/RaceItem/RaceItem'
-import { RacesListContainer } from './RacesList.styles'
+import { RacesListContainer, EmptyList } from './RacesList.styles'
 import { type Race } from 'types/Race'
-import { Caption } from 'components/atoms/Typography/Typography.styles'
 
 interface RacesListProps {
   races: Race[]
@@ -17,7 +16,7 @@ export function RacesList({ races, onDelete, onOpen }: RacesListProps) {
   return (
     <RacesListContainer>
       {sortedRaces.length === 0 ? (
-        <Caption>{t('no-races')}</Caption>
+        <EmptyList>{t('no-races')}</EmptyList>
       ) : (
         sortedRaces.map((race) => (
           <RaceItem key={race._id} race={race} onDelete={onDelete} onOpen={onOpen} />

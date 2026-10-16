@@ -1,51 +1,30 @@
 import styled from 'styled-components'
 
-export const InputGroupContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-
-  @media (max-width: 600px) {
-    flex-wrap: wrap;
-  }
-`
-
-export const InputWrapper = styled.div`
+export const InputGroupContainer = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  flex: 1;
-  min-width: 200px;
-  max-width: 500px;
+  gap: 0.375rem;
+  width: 100%;
+`
+
+export const InputRow = styled.div`
+  display: flex;
+  gap: 0.75rem;
 `
 
 export const ValidationError = styled.span`
-  color: #e74c3c;
-  font-size: 12px;
-  display: block;
-  max-width: 320px;
-  margin: 0;
-  padding: 0;
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: 0.8125rem;
   text-align: left;
 `
 
-export const ButtonWrapper = styled.div`
-  min-width: 120px;
-`
-
 export const AddText = styled.span`
-  @media (max-width: 600px) {
-    display: none;
-  }
-`
-
-export const AddIcon = styled.img`
-  display: none;
-
-  @media (max-width: 600px) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  @media (max-width: 480px) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 `

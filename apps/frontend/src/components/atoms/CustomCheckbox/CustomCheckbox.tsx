@@ -20,13 +20,19 @@ const HiddenCheckbox = styled.input.attrs({ type: 'checkbox' })`
 const CheckboxBox = styled.span<{ $checked: boolean }>`
   width: 20px;
   height: 20px;
-  border: 2px solid ${props => props.$checked ? '#FF1D44' : '#334466'};
+  flex-shrink: 0;
+  border: 2px solid ${({ $checked, theme }) => $checked ? theme.colors.primary : theme.colors.borderStrong};
   border-radius: 4px;
-  background: ${props => props.$checked ? '#FF1D44' : 'transparent'};
+  background: ${({ $checked, theme }) => $checked ? theme.colors.primary : theme.colors.inputBg};
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+
+  input:focus-visible + & {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
 
   svg {
     opacity: ${props => props.$checked ? 1 : 0};
@@ -36,8 +42,7 @@ const CheckboxBox = styled.span<{ $checked: boolean }>`
 
 const LabelText = styled.span`
   font-size: 14px;
-  color: #fff;
-  font-family: 'Hanken Grotesk', sans-serif;
+  color: ${({ theme }) => theme.colors.text};
 `
 
 interface CustomCheckboxProps {

@@ -13,5 +13,9 @@
   "delete-confirm-title": "Delete race",
   "save-failed": "Could not save your changes. Please try again.",
   "load-failed": "Could not load data. Please refresh the page.",
-  "delete-failed": "Could not delete. Please try again."
+  "delete-failed": "Could not delete. Please try again.",
+  "theme": "Theme",
+  "theme-system": "System theme",
+  "theme-light": "Light theme",
+  "theme-dark": "Dark theme"
 }
