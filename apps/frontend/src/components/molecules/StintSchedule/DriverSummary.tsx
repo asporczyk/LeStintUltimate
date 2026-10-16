@@ -1,8 +1,7 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type Stint } from 'types/Schedule'
 import { formatHoursMinutes } from 'utils/time'
-import { scheduleLength } from 'utils/schedule'
-import { driverTotals, minimumDriverPercentage } from 'utils/drivers'
+import { driverColor, driverTotals, minimumDriverPercentage } from 'utils/drivers'
 import {
   DriverSummaryContainer,
   DriverSummaryTitle,
@@ -19,20 +18,25 @@ import {
   MinimumRequirementInfoIcon,
   MinimumRequirementTooltip,
   MinimumRequirementIconWrapper,
-  MinimumRequirementList
+  MinimumRequirementList,
+  DriverSwatch
 } from './StintSchedule.styles'
 
 interface DriverSummaryProps {
-  stints: Stint[]
+  // Stints as driven: the finishing one cut at the flag, those after it left out.
+  stints: { driver: string; duration: number }[]
   drivers: string[]
-  fuelTankCapacity: number
+  // Race time the shares are counted from, pit stops included.
+  totalRaceTime: number
+  // The race strip, shown above the table in the same colors.
+  strip: ReactNode
 }
 
-// Driving time per driver and its share of the race, flagged below the minimum.
-export function DriverSummary({ stints, drivers, fuelTankCapacity }: DriverSummaryProps) {
+// Race overview: the strip of stints, then driving time per driver and its share of the
+// race, flagged below the minimum.
+export function DriverSummary({ stints, drivers, totalRaceTime, strip }: DriverSummaryProps) {
   const { t } = useTranslation('raceDetails')
 
-  const totalRaceTime = scheduleLength(stints, fuelTankCapacity)
   const minimumPercentage = minimumDriverPercentage(drivers.length)
   const rows = driverTotals(stints).map(([driver, totalMinutes]) => {
     const percentage = totalRaceTime > 0 ? (totalMinutes / totalRaceTime) * 100 : 0
@@ -43,7 +47,7 @@ export function DriverSummary({ stints, drivers, fuelTankCapacity }: DriverSumma
   return (
     <DriverSummaryContainer>
       <DriverSummaryTitle>
-        {t('driverTotalTime')}
+        {t('raceOverview')}
         <MinimumRequirementIconWrapper>
           <MinimumRequirementInfoIcon type="button" aria-label={t('minimumRequirementTooltip')}>?</MinimumRequirementInfoIcon>
           <MinimumRequirementTooltip role="tooltip">
@@ -58,6 +62,7 @@ export function DriverSummary({ stints, drivers, fuelTankCapacity }: DriverSumma
           </MinimumRequirementTooltip>
         </MinimumRequirementIconWrapper>
       </DriverSummaryTitle>
+      {strip}
       <DriverSummaryTable>
         <DriverSummaryHead>
           <tr>
@@ -72,7 +77,10 @@ export function DriverSummary({ stints, drivers, fuelTankCapacity }: DriverSumma
               key={driver}
               as={isBelowMinimum ? DriverSummaryRowBelowMinimum : undefined}
             >
-              <DriverNameCell>{driver}</DriverNameCell>
+              <DriverNameCell>
+                <DriverSwatch $bg={driverColor(drivers, driver)} />
+                {driver}
+              </DriverNameCell>
               <TotalTimeCell>{formatHoursMinutes(totalMinutes)}</TotalTimeCell>
               <RacePercentageCell>{percentage.toFixed(1)}%</RacePercentageCell>
             </DriverSummaryRow>

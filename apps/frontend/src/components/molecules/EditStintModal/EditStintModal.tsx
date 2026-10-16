@@ -19,7 +19,8 @@ import {
   InputWithUnit,
   InputUnit,
   InputWithUnitStyle,
-  ErrorText
+  ErrorText,
+  FieldHint
 } from './EditStintModal.styles'
 
 interface EditStintModalProps {
@@ -28,6 +29,8 @@ interface EditStintModalProps {
   drivers: string[]
   avgStintTime: number
   startLap: number
+  // Longest duration that keeps the stint within the race (minutes); null when unlimited.
+  maxDuration?: number | null
   onConfirm: (updatedStint: Partial<Stint>) => void
   onCancel: () => void
 }
@@ -51,11 +54,13 @@ function getInitialFormData(stint: Stint, avgStintTime: number) {
   }
 }
 
-function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErrors {
+function validateForm(formData: ReturnType<typeof getInitialFormData>, maxDuration: number | null): FormErrors {
   const errors: FormErrors = {}
 
   if (!formData.duration || formData.duration < 0 || formData.duration > 120) {
     errors.duration = 'validation.stintTimeRange'
+  } else if (maxDuration !== null && formData.duration > maxDuration) {
+    errors.duration = 'validation.beyondRaceEnd'
   }
 
   if (!formData.driver.trim()) {
@@ -69,8 +74,9 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap, onConfirm, onCancel }: EditStintModalProps) {
+export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap, maxDuration = null, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
+  const durationLimit = maxDuration !== null && maxDuration < 120 ? maxDuration : null
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
@@ -99,7 +105,7 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const formErrors = validateForm(formData)
+    const formErrors = validateForm(formData, durationLimit)
     setErrors(formErrors)
 
     if (Object.keys(formErrors).length > 0) {
@@ -144,7 +150,8 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap,
               />
               <InputUnit>min</InputUnit>
             </InputWithUnit>
-            {errors.duration && <ErrorText>{t(errors.duration)}</ErrorText>}
+            {errors.duration && <ErrorText>{t(errors.duration, { max: durationLimit })}</ErrorText>}
+            {!errors.duration && durationLimit !== null && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
           </FormGroup>
 
           <FormGroup>

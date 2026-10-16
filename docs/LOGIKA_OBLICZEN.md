@@ -89,6 +89,27 @@ opony_i = (tireSets − 4) − Σ_{k≤i} liczba_zmienionych_opon_k
 
 Opona jest „zmieniona”, gdy pole ma wartość inną niż `'-'`.
 
-## 8. Podsumowanie kierowców
+## 8. Przebieg wyścigu i podsumowanie kierowców
 
-Suma `duration` wszystkich stintów danego kierowcy (bez czasu pit stopów), sortowana malejąco, format `H:MM`.
+Pod harmonogramem jest jeden widok: pasek wyścigu (stinty w kolorach kierowców; kolejne stinty tego samego kierowcy tworzą jeden blok, inaczej pit stopy są przerwami; niezaplanowany czas jest zakreskowany) i tabela kierowców w tych samych kolorach.
+
+Czas kierowcy to suma czasu jego stintów tak, jak zostaną przejechane: stint na metę liczy się do flagi, a stinty po mecie się nie liczą (bez czasu pit stopów). Sortowanie malejąco, format `H:MM`. Procent liczony jest od końca ostatniego przejechanego stintu (z pit stopami).
+
+## 9. Meta i oś czasu wyścigu
+
+Liczone w `utils/raceTimeline.ts` (testy: `utils/raceTimeline.test.ts`). Czasy w minutach od startu wyścigu.
+
+- **Czas mija** po `raceLength` godzinach. Okrążenia liczone są z czasu jazdy (bez pit stopów), tak jak okrążenie startu stintu (sekcja 3).
+- **Flaga w szachownicę**: wyścig na czas kończy się po okrążeniu, w trakcie którego minął czas. `totalLaps = floor(jazda_w_chwili_końca * 60 / avgLapTime) + 1`, a flaga pada, gdy czas jazdy osiągnie `totalLaps * avgLapTime`. Jeśli plan kończy się wcześniej, zakładamy jazdę bez kolejnych pit stopów.
+- **Stint na metę**: stint, w którym pada flaga, kończy się razem z nią. Karta pokazuje jego rzeczywisty czas („do mety”), nawet jeśli zapisany czas jest dłuższy.
+- **Dokładność planu**: czasy stintów są w pełnych minutach, więc plan kończący się mniej niż minutę przed flagą uznajemy za pełny. Ostatni stint dojeżdża wtedy do flagi i nie da się dodać kolejnego.
+- **Stinty po mecie**: stinty zaczynające się po fladze są wyszarzone i oznaczone na osi. Karta mety podpowiada, żeby je usunąć albo skrócić wcześniejsze.
+- **Godziny wyścigu**: na osi przy kartach każda pełna godzina jest pokazana w stincie, w którym mija, razem z godziną zegarową i okrążeniem (w podpowiedzi).
+
+Limity w modalach:
+
+- Gdy plan sięga flagi, nie da się dodać nowego stintu (znikają przyciski „+”).
+- Nowy stint może trwać najwyżej do flagi, licząc pit stop przed nim (zmiana kierowcy, pełny bak): `ceil(flaga − koniec_planu − pit_stop)`.
+- Stint, w którym pada flaga, oraz ostatni stint mogą trwać najwyżej do flagi. Wcześniejsze stinty mogą się wydłużyć o czas, który plan jeszcze ma wolny; przy pełnym planie nie mają limitu, a skraca się stint na metę.
+
+Model nie uwzględnia straty czasu na przejazd przez aleję serwisową (tylko postój z sekcji 4).

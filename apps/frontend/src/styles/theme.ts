@@ -113,6 +113,9 @@ export const theme: Theme = {
   },
 }
 
+// Driver colors on the race strip: light enough for dark navy text in both themes.
+export const DRIVER_COLORS = ['#A99BFF', '#5FD4C4', '#FF9E7A', '#F7CF5C', '#7DB8F0', '#F08DBE']
+
 // Phones and small tablets: full-width sections and card lists instead of wide tables.
 export const MOBILE_QUERY = '(max-width: 720px)'
 

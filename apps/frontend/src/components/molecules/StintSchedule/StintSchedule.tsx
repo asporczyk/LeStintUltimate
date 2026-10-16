@@ -4,7 +4,7 @@ import { type Stint } from 'types/Schedule'
 import { addMinutesToClock } from 'utils/time'
 import { remainingTiresAt } from 'utils/tires'
 import { stintStartLap } from 'utils/laps'
-import { stintStartTimes } from 'utils/schedule'
+import { raceTimeline, maxNewStintDuration, maxStintDuration } from 'utils/raceTimeline'
 import { minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
@@ -16,6 +16,7 @@ import { ScheduleApi } from 'api/ScheduleApi'
 import { ScheduleCard, TireMap } from './ScheduleCard'
 import { CardList } from './ScheduleCard.styles'
 import { InsertDivider } from './InsertDivider'
+import { TimelineItem, FinishItem, RaceStrip } from './RaceTimeline'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -38,10 +39,11 @@ interface StintScheduleProps {
   eventStartTime: string
   tireSets: number
   fuelTankCapacity: number
+  raceLength: number
   notes?: string
 }
 
-export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, notes }: StintScheduleProps) {
+export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, raceLength, notes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const { onStintRefresh } = useSocket()
@@ -81,7 +83,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   }, [])
 
   const currentRaceTime = minutesSinceRaceStart(raceStartDateTime(raceDate, eventStartTime, startTime), now)
-  const startTimes = stintStartTimes(stints, fuelTankCapacity)
+  const timeline = raceTimeline(stints, raceLength, avgLapTime, fuelTankCapacity)
   const editingStint = editingIndex !== null ? stints[editingIndex] : null
 
   const openAddModal = (afterOrder: number) => {
@@ -90,18 +92,32 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
   }
 
   const rows = stints.map((stint, index) => {
-    const start = startTimes[index]
-    const end = start + stint.duration
+    const timelineStint = timeline.stints[index]
+    const { start, end } = timelineStint
+    const toFlag = timelineStint.status === 'finish'
     return {
       stint,
       index,
+      timelineStint,
       order: stint.order ?? index + 1,
       startClock: addMinutesToClock(startTime, start),
       endClock: addMinutesToClock(startTime, end),
+      duration: toFlag ? `${Math.round(end - start)} min · ${t('toFlag')}` : `${stint.duration} min`,
       isActive: currentRaceTime >= start && currentRaceTime < end,
       remainingTires: remainingTiresAt(stints, index, tireSets),
     }
   })
+  const lastOrder = rows.length ? rows[rows.length - 1].order : 0
+  // No new stints once the plan reaches the checkered flag.
+  const canInsert = !timeline.coversRace
+  const afterFinishOrders = rows.filter(row => row.timelineStint.status === 'after').map(row => row.order)
+  // As driven: the finishing stint is cut at the flag and stints after the finish don't count.
+  const drivenStints = rows
+    .filter(row => row.timelineStint.status !== 'after')
+    .map(row => ({ driver: row.stint.driver, duration: row.timelineStint.end - row.timelineStint.start }))
+  const drivenEnd = Math.max(0, ...rows.filter(row => row.timelineStint.status !== 'after').map(row => row.timelineStint.end))
+  const scrollToStint = (id: string) =>
+    document.getElementById(`stint-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 
   const startLapBefore = (index: number) => stintStartLap(stints.slice(0, index).map(s => s.duration), avgLapTime)
 
@@ -116,14 +132,21 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           </TextButton>
         </EmptyState>
       ) : (
-        <CardList>
-          {rows.map(row => (
-            <div key={row.stint._id}>
+        <>
+        <CardList $plain>
+          {rows.map((row, i) => (
+            <div key={row.stint._id} id={`stint-${row.stint._id}`}>
+              <TimelineItem
+                timelineStint={row.timelineStint}
+                raceStartClock={startTime}
+                isActive={row.isActive}
+                isFirst={i === 0}
+                card={
               <ScheduleCard
                 badge={row.order}
                 start={row.startClock}
                 end={row.endClock}
-                duration={`${row.stint.duration} min`}
+                duration={row.duration}
                 isActive={row.isActive}
                 driver={row.stint.driver}
                 spotter={row.stint.spotter}
@@ -150,10 +173,21 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
                   </>
                 }
               />
-              <InsertDivider inset after={row.order} onInsert={() => openAddModal(row.order)} />
+                }
+                divider={canInsert && row.timelineStint.status !== 'after' && (
+                  <InsertDivider after={row.order} onInsert={() => openAddModal(row.order)} />
+                )}
+              />
             </div>
           ))}
+          <FinishItem
+            timeline={timeline}
+            raceStartClock={startTime}
+            afterFinishOrders={afterFinishOrders}
+            onAddStint={() => openAddModal(lastOrder)}
+          />
         </CardList>
+        </>
       )}
       <AddStintModal
         key={addModalOpen ? `open-${addAfterStint}` : 'closed'}
@@ -164,6 +198,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         drivers={drivers}
         avgStintTime={avgStintTime}
         startLap={startLapBefore(addAfterStint)}
+        maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity)}
         onStintAdded={() => setAddModalOpen(false)}
         onCancel={() => setAddModalOpen(false)}
       />
@@ -175,6 +210,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           drivers={drivers}
           avgStintTime={avgStintTime}
           startLap={startLapBefore(editingIndex)}
+          maxDuration={maxStintDuration(timeline, editingIndex, editingStint.duration)}
           onConfirm={async (updatedStint) => {
             try {
               const updated = await StintsApi.update(editingStint._id, updatedStint)
@@ -205,10 +241,23 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         }}
         onCancel={() => setDeletingStint(null)}
       />
-      <NotesEditor raceId={raceId} notes={notes} />
-      {stints.length > 0 && drivers.length > 0 && (
-        <DriverSummary stints={stints} drivers={drivers} fuelTankCapacity={fuelTankCapacity} />
+      {stints.length > 0 && (
+        <DriverSummary
+          stints={drivenStints}
+          drivers={drivers}
+          totalRaceTime={drivenEnd}
+          strip={
+              <RaceStrip
+                timeline={timeline}
+                stints={rows.map(row => ({ id: row.stint._id, order: row.order, driver: row.stint.driver }))}
+                drivers={drivers}
+                currentRaceTime={currentRaceTime}
+                onSelectStint={scrollToStint}
+              />
+          }
+        />
       )}
+      <NotesEditor raceId={raceId} notes={notes} />
     </ScheduleContainer>
   )
 }

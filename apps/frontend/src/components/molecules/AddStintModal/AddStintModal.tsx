@@ -21,7 +21,8 @@ import {
   InputWithUnit,
   InputUnit,
   InputWithUnitStyle,
-  ErrorText
+  ErrorText,
+  FieldHint
 } from './AddStintModal.styles'
 import { useToast } from '@/hooks/useToast'
 
@@ -33,6 +34,8 @@ interface AddStintModalProps {
   drivers: string[]
   avgStintTime: number
   startLap: number
+  // Longest stint that still ends by the checkered flag (minutes).
+  maxDuration?: number
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
@@ -56,11 +59,15 @@ interface FormErrors {
   spotter?: string
 }
 
-export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, onStintAdded, onCancel }: AddStintModalProps) {
+export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, maxDuration, onStintAdded, onCancel }: AddStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const [formData, setFormData] = useState(getInitialFormData(avgStintTime))
+  const durationLimit = maxDuration !== undefined && maxDuration < 120 ? maxDuration : undefined
+  // The average stint time, or less when the race ends sooner.
+  const [formData, setFormData] = useState(getInitialFormData(
+    durationLimit !== undefined ? Math.min(avgStintTime, durationLimit) : avgStintTime
+  ))
   const [errors, setErrors] = useState<FormErrors>({})
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
@@ -83,6 +90,8 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     const newErrors: FormErrors = {}
     if (!formData.duration || formData.duration < 0 || formData.duration > 120) {
       newErrors.duration = 'validation.stintTimeRange'
+    } else if (durationLimit !== undefined && formData.duration > durationLimit) {
+      newErrors.duration = 'validation.beyondRaceEnd'
     }
     if (!formData.driver.trim()) {
       newErrors.driver = 'validation.required'
@@ -154,7 +163,8 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
               />
               <InputUnit>min</InputUnit>
             </InputWithUnit>
-            {errors.duration && <ErrorText>{t(errors.duration)}</ErrorText>}
+            {errors.duration && <ErrorText>{t(errors.duration, { max: durationLimit })}</ErrorText>}
+            {!errors.duration && durationLimit !== undefined && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
           </FormGroup>
 
           <FormGroup>

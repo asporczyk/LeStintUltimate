@@ -130,6 +130,11 @@ export const ErrorText = styled.span`
   color: ${({ theme }) => theme.colors.danger};
 `
 
+export const FieldHint = styled.span`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+`
+
 export const InputWithUnit = styled.div`
   position: relative;
   display: flex;
