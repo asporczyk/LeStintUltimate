@@ -110,5 +110,6 @@
   "afterFinishWarning_one": "Stint {{list}} starts after the finish. Delete it or shorten earlier ones.",
   "afterFinishWarning_other": "Stints {{list}} start after the finish. Delete them or shorten earlier ones.",
   "stintsN_one": "stint {{list}}",
-  "stintsN_other": "stints {{list}}"
+  "stintsN_other": "stints {{list}}",
+  "fuelToFinish": "Matched to the finish: {{laps}} laps + {{reserve}} in reserve"
 }

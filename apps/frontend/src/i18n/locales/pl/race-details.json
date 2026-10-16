@@ -114,5 +114,6 @@
   "stintsN_one": "stint {{list}}",
   "stintsN_few": "stinty {{list}}",
   "stintsN_many": "stinty {{list}}",
-  "stintsN_other": "stinty {{list}}"
+  "stintsN_other": "stinty {{list}}",
+  "fuelToFinish": "Dostosowano do mety: {{laps}} okr. + {{reserve}} zapasu"
 }

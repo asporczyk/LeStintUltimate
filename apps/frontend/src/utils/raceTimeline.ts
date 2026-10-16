@@ -42,6 +42,8 @@ export interface RaceTimeline {
   stints: TimelineStint[]
   finish: RaceFinish
   plannedEnd: number
+  // Minutes of driving in the whole plan (pit stops excluded).
+  totalDriving: number
   // The plan reaches the checkered flag.
   coversRace: boolean
   // Minutes between the end of the plan and the flag (0 when covered).
@@ -128,20 +130,61 @@ export function raceTimeline(
     stints: timelineStints,
     finish: { timeUpAt: raceMinutes, timeUpLap: totalLaps, flagAt, totalLaps },
     plannedEnd,
+    totalDriving,
     coversRace,
     gap: coversRace ? 0 : Math.max(0, flagAt - plannedEnd),
     finishingIndex,
   }
 }
 
-// Longest new stint (whole minutes) that still ends by the checkered flag, counting the
-// pit stop before it (driver change, full tank). 0 once the plan covers the race.
-export function maxNewStintDuration(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number): number {
-  if (timeline.coversRace) return 0
+// Minutes a new stint at the end of the plan has until the checkered flag, counting the
+// pit stop before it (driver change, full tank).
+export function newStintMinutesToFlag(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number): number {
   const pitMinutes = lastStint
     ? calculatePitstopTime(lastStint, { ...lastStint, driver: `${lastStint.driver}-next`, fuel: 100 }, fuelTankCapacity) / 60
     : 0
-  return Math.max(0, Math.ceil(timeline.finish.flagAt - timeline.plannedEnd - pitMinutes))
+  return timeline.finish.flagAt - timeline.plannedEnd - pitMinutes
+}
+
+// Longest new stint (whole minutes) that still ends by the checkered flag. 0 once the plan
+// covers the race.
+export function maxNewStintDuration(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number): number {
+  if (timeline.coversRace) return 0
+  return Math.max(0, Math.ceil(newStintMinutesToFlag(timeline, lastStint, fuelTankCapacity)))
+}
+
+// Laps of fuel kept in the tank on top of what the last stint needs.
+export const FUEL_RESERVE_LAPS = 1
+
+export interface FinishFuel {
+  // Laps the final stint drives to the checkered flag (a started lap counts in full).
+  laps: number
+  // Smallest refuel (% of the tank) that covers those laps plus the reserve.
+  fuel: number
+  // The stint runs to the flag once its duration is longer than this (minutes), the same
+  // one-minute precision the timeline uses for a complete plan.
+  minDuration: number
+}
+
+// Fuel for the stint that drives on to the flag, starting after `drivingBefore` minutes
+// of driving and `minutesToFlag` before the flag: a new stint at the end of the plan or
+// the finishing one.
+export function finishFuel(
+  timeline: RaceTimeline,
+  drivingBefore: number,
+  minutesToFlag: number,
+  avgLapTime: number,
+  avgFuelPerLap: number,
+): FinishFuel | null {
+  if (avgFuelPerLap <= 0) return null
+  const lapSeconds = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME
+  const lapsDone = (drivingBefore * 60) / lapSeconds
+  const laps = Math.max(1, Math.ceil(timeline.finish.totalLaps - lapsDone - 1e-9))
+  return {
+    laps,
+    fuel: Math.min(100, Math.ceil((laps + FUEL_RESERVE_LAPS) * avgFuelPerLap - 1e-9)),
+    minDuration: minutesToFlag - PLAN_PRECISION,
+  }
 }
 
 // Longest duration (whole minutes) for an existing stint. The stint that drives to the

@@ -14,9 +14,6 @@ import {
   Form,
   FormGroup,
   Label,
-  SliderContainer,
-  Slider,
-  SliderValue,
   CheckboxGroup,
   InputWithUnit,
   InputUnit,
@@ -24,6 +21,8 @@ import {
   ErrorText,
   FieldHint
 } from './AddStintModal.styles'
+import { type FinishFuel } from 'utils/raceTimeline'
+import { FuelField } from 'components/molecules/FuelField/FuelField'
 import { useToast } from '@/hooks/useToast'
 
 interface AddStintModalProps {
@@ -36,6 +35,8 @@ interface AddStintModalProps {
   startLap: number
   // Longest stint that still ends by the checkered flag (minutes).
   maxDuration?: number
+  // Fuel for a stint added at the end that drives on to the flag.
+  finishFuel?: FinishFuel | null
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
@@ -59,7 +60,7 @@ interface FormErrors {
   spotter?: string
 }
 
-export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, maxDuration, onStintAdded, onCancel }: AddStintModalProps) {
+export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, maxDuration, finishFuel, onStintAdded, onCancel }: AddStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -69,6 +70,11 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     durationLimit !== undefined ? Math.min(avgStintTime, durationLimit) : avgStintTime
   ))
   const [errors, setErrors] = useState<FormErrors>({})
+  // A stint that runs to the flag needs only the fuel for the laps left (plus a reserve),
+  // so the fuel is capped there; a shorter duration lifts the cap again.
+  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
+  const activeFinishFuel = runsToFlag ? finishFuel ?? null : null
+  const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
@@ -118,7 +124,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
         driver: formData.driver,
         spotter: formData.spotter,
         fuelLaps: startLap,
-        fuel: formData.fuel,
+        fuel,
         tireFL: formData.tireFL,
         tireFR: formData.tireFR,
         tireRL: formData.tireRL,
@@ -204,20 +210,11 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
             {errors.spotter && <ErrorText>{t(errors.spotter)}</ErrorText>}
           </FormGroup>
 
-          <FormGroup>
-            <Label>{t('fuel')}</Label>
-            <SliderContainer>
-              <Slider
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={formData.fuel}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, fuel: Number(e.target.value) }))}
-              />
-              <SliderValue>{formData.fuel}%</SliderValue>
-            </SliderContainer>
-          </FormGroup>
+          <FuelField
+            value={formData.fuel}
+            onChange={(value) => setFormData(prev => ({ ...prev, fuel: value }))}
+            finishFuel={activeFinishFuel}
+          />
 
           <FormGroup>
             <Label>{t('tiresToChange')}</Label>

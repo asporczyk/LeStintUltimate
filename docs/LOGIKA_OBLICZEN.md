@@ -112,4 +112,13 @@ Limity w modalach:
 - Nowy stint może trwać najwyżej do flagi, licząc pit stop przed nim (zmiana kierowcy, pełny bak): `ceil(flaga − koniec_planu − pit_stop)`.
 - Stint, w którym pada flaga, oraz ostatni stint mogą trwać najwyżej do flagi. Wcześniejsze stinty mogą się wydłużyć o czas, który plan jeszcze ma wolny; przy pełnym planie nie mają limitu, a skraca się stint na metę.
 
+Paliwo na ostatni stint: gdy stint dojeżdża do flagi (jego czas równa się limitowi „do mety”), modal dodawania i edycji proponuje najmniejsze tankowanie, które wystarczy do mety, i nie pozwala ustawić więcej. Dotyczy nowego stintu dodawanego na końcu oraz edycji stintu na metę (albo ostatniego stintu):
+
+```
+okrążenia = ceil(totalLaps − czas_jazdy_przed_stintem * 60 / avgLapTime)   // zaczęte okrążenie liczy się w całości
+paliwo    = min(100, ceil((okrążenia + 1) * avgFuelPerLap))         // +1 okrążenie zapasu
+```
+
+Krótszy stint zdejmuje limit i wraca pełny bak. Bez `avgFuelPerLap` nic nie jest proponowane (`finishFuel` w `utils/raceTimeline.ts`).
+
 Model nie uwzględnia straty czasu na przejazd przez aleję serwisową (tylko postój z sekcji 4).
