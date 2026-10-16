@@ -23,7 +23,6 @@ import {
   InputWithUnitStyle,
   ErrorText
 } from './AddStintModal.styles'
-import { countChangedTires } from 'utils/tires'
 
 interface AddStintModalProps {
   isOpen: boolean
@@ -33,16 +32,12 @@ interface AddStintModalProps {
   drivers: string[]
   avgStintTime: number
   startLap: number
-  previousTires: number
-  isFirstStint: boolean
-  tireSets: number
   allStints: Stint[]
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
 
-function getInitialFormData(avgStintTime: number, isFirst: boolean, tireSets: number, previousTires: number) {
-  const tires = isFirst ? tireSets : previousTires
+function getInitialFormData(avgStintTime: number) {
   return {
     duration: avgStintTime,
     fuel: 100,
@@ -51,8 +46,7 @@ function getInitialFormData(avgStintTime: number, isFirst: boolean, tireSets: nu
     tireFL: '-',
     tireFR: '-',
     tireRL: '-',
-    tireRR: '-',
-    tires
+    tireRR: '-'
   }
 }
 
@@ -62,10 +56,10 @@ interface FormErrors {
   spotter?: string
 }
 
-export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, previousTires, isFirstStint, tireSets, onStintAdded, onCancel }: AddStintModalProps) {
+export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, onStintAdded, onCancel }: AddStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const [formData, setFormData] = useState(getInitialFormData(avgStintTime, isFirstStint, tireSets, previousTires))
+  const [formData, setFormData] = useState(getInitialFormData(avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
@@ -104,14 +98,10 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     if (!validateForm()) return
 
     try {
-      const changedTires = countChangedTires(formData)
-
-      const calculatedTires = formData.tires - changedTires
 
       const newStint = await StintsApi.create({
-        scheduleId: raceId,
+        raceId,
         order: insertAfterStint + 1,
-        startTime: 0,
         duration: formData.duration,
         // Follows the race's average stint time while it is left at the prefilled value.
         durationAuto: formData.duration === avgStintTime,
@@ -122,8 +112,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
         tireFL: formData.tireFL,
         tireFR: formData.tireFR,
         tireRL: formData.tireRL,
-        tireRR: formData.tireRR,
-        tires: calculatedTires
+        tireRR: formData.tireRR
       })
       onStintAdded(newStint)
       onCancel()

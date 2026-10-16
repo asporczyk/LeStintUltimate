@@ -1,10 +1,10 @@
-import { type Stint } from 'types/Schedule'
+import { type NewStint, type Stint } from 'types/Schedule'
 import { request, jsonBody } from 'api/request'
 
 const API_URL = `${import.meta.env.VITE_API_URL}/stints`
 
 export const StintsApi = {
-  create: (stint: Omit<Stint, '_id'>): Promise<Stint> => request(API_URL, jsonBody('POST', stint)),
+  create: (stint: NewStint): Promise<Stint> => request(API_URL, jsonBody('POST', stint)),
 
   update: (id: string, data: Partial<Stint>): Promise<Stint> =>
     request(`${API_URL}/${id}`, jsonBody('PUT', data)),

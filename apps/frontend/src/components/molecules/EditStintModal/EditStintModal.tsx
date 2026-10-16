@@ -21,7 +21,6 @@ import {
   InputWithUnitStyle,
   ErrorText
 } from './EditStintModal.styles'
-import { countChangedTires } from 'utils/tires'
 
 interface EditStintModalProps {
   isOpen: boolean
@@ -29,9 +28,6 @@ interface EditStintModalProps {
   drivers: string[]
   avgStintTime: number
   startLap: number
-  previousTires: number
-  isFirstStint: boolean
-  tireSets: number
   onConfirm: (updatedStint: Partial<Stint>) => void
   onCancel: () => void
 }
@@ -42,8 +38,7 @@ interface FormErrors {
   spotter?: string
 }
 
-function getInitialFormData(stint: Stint, avgStintTime: number, isFirstStint: boolean, tireSets: number, previousTires: number) {
-  const tires = isFirstStint ? tireSets : previousTires
+function getInitialFormData(stint: Stint, avgStintTime: number) {
   return {
     duration: stint.duration || avgStintTime,
     fuel: stint.fuel || 100,
@@ -52,8 +47,7 @@ function getInitialFormData(stint: Stint, avgStintTime: number, isFirstStint: bo
     tireFL: stint.tireFL || '-',
     tireFR: stint.tireFR || '-',
     tireRL: stint.tireRL || '-',
-    tireRR: stint.tireRR || '-',
-    tires
+    tireRR: stint.tireRR || '-'
   }
 }
 
@@ -75,10 +69,10 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap, previousTires, isFirstStint, tireSets, onConfirm, onCancel }: EditStintModalProps) {
+export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime, isFirstStint, tireSets, previousTires))
+  const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
@@ -117,10 +111,6 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap,
     // Any manual change of the duration detaches the stint from the average.
     const durationAuto = wasAuto && formData.duration === stint.duration
 
-    const changedTires = countChangedTires(formData)
-
-    const calculatedTires = formData.tires - changedTires
-
     onConfirm({
       duration: formData.duration,
       durationAuto,
@@ -131,8 +121,7 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap,
       tireFL: formData.tireFL,
       tireFR: formData.tireFR,
       tireRL: formData.tireRL,
-      tireRR: formData.tireRR,
-      tires: calculatedTires
+      tireRR: formData.tireRR
     })
   }
 

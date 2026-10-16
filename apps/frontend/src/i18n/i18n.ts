@@ -27,8 +27,14 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'pl',
-    fallbackLng: 'en',
+    // Language comes from the browser (remembered in localStorage); Polish otherwise.
+    supportedLngs: ['pl', 'en'],
+    nonExplicitSupportedLngs: true,
+    fallbackLng: 'pl',
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
     ns: ['common', 'home', 'raceDetails'],
     defaultNS: 'common',
     interpolation: {

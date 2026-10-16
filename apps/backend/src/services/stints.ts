@@ -1,6 +1,6 @@
 import { Race } from "../models/Race.js";
 import { Stint } from "../models/Stint.js";
-import { getIO } from "../socket.js";
+import { emitToRace } from "../socket.js";
 import { computeFuelLaps } from "../calculations.js";
 
 // Recomputes the start lap (fuelLaps) of every stint in a schedule, saves the
@@ -19,7 +19,7 @@ export async function recalculateFuelLaps(schedule: { _id: unknown; raceId: stri
     }
 
     if (notify) {
-        getIO()?.emit("stint:refresh", { raceId: schedule.raceId });
+        emitToRace(schedule.raceId, "stint:refresh", { raceId: schedule.raceId });
     }
     return allStints;
 }

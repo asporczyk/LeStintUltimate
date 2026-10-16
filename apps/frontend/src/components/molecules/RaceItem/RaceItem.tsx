@@ -14,7 +14,7 @@ interface RaceItemProps {
 }
 
 export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
-  const { t } = useTranslation('home')
+  const { t, i18n } = useTranslation('home')
   const { t: tCommon } = useTranslation('common')
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -36,7 +36,7 @@ export function RaceItem({ race, onDelete, onOpen }: RaceItemProps) {
       <RaceItemContainer>
         <RaceInfo>
           <RaceName>{race.name}</RaceName>
-          <RaceDate>{new Date(race.createdAt).toLocaleDateString('pl-PL')}</RaceDate>
+          <RaceDate>{new Date(race.createdAt).toLocaleDateString(i18n.language)}</RaceDate>
         </RaceInfo>
         <RaceActions>
           <TextButton onClick={() => onOpen(race._id)} $variant="secondary">{t('open-race')}</TextButton>

@@ -2,7 +2,7 @@ import {FastifyInstance} from "fastify";
 import {Training} from "../models/Training.js";
 import {Qualification} from "../models/Qualification.js";
 import {Race} from "../models/Race.js";
-import {getIO} from "../socket.js";
+import {emitToRace} from "../socket.js";
 import {addMinutesToClock} from "../calculations.js";
 import {raceIdParams, trainingBody} from "../schemas.js";
 
@@ -30,7 +30,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
             duration: body.duration || 30
         };
         const training = await Training.create(trainingData);
-        getIO()?.emit("training:updated", training);
+        emitToRace(raceId, "training:updated", training);
 
         return training;
     });
@@ -49,10 +49,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
             return reply.status(404).send({ error: "Training not found" });
         }
 
-        const io = getIO();
-        if (io) {
-            io.emit("training:updated", training);
-        }
+        emitToRace(raceId, "training:updated", training);
 
         if (patch.startTime !== undefined || patch.duration !== undefined) {
             const newQualStartTime = addMinutesToClock(training.startTime, training.duration);
@@ -63,8 +60,8 @@ export default async function trainingRoutes(app: FastifyInstance) {
                 { new: true }
             );
 
-            if (io && qualification) {
-                io.emit("qualification:updated", qualification);
+            if (qualification) {
+                emitToRace(raceId, "qualification:updated", qualification);
             }
         }
         

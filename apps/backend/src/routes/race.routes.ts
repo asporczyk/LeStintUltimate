@@ -4,7 +4,7 @@ import {Schedule} from "../models/Schedule.js";
 import {Stint} from "../models/Stint.js";
 import {Training} from "../models/Training.js";
 import {Qualification} from "../models/Qualification.js";
-import {getIO} from "../socket.js";
+import {emitToRace} from "../socket.js";
 import {recalculateFuelLaps} from "../services/stints.js";
 import {createRaceBody, idParams, patchRaceBody} from "../schemas.js";
 
@@ -18,7 +18,7 @@ export default async function raceRoutes(app: FastifyInstance) {
     app.post("/races", { schema: { body: createRaceBody } }, async (req, reply) => {
         const count = await Race.countDocuments();
         if (count >= 100) {
-            return reply.status(400).send({ error: "Limit 100 wyścigów został osiągnięty. Usuń jeden, aby dodać nowy." });
+            return reply.status(400).send({ error: "Race limit of 100 reached. Delete a race to add a new one." });
         }
 
         const { name, startDate } = req.body as any;
@@ -42,7 +42,7 @@ export default async function raceRoutes(app: FastifyInstance) {
         const { id } = req.params as any;
         const race = await Race.findById(id);
         if (!race) {
-            return reply.status(404).send({ error: "Wyścig nie znaleziony" });
+            return reply.status(404).send({ error: "Race not found" });
         }
         return race;
     });
@@ -51,13 +51,9 @@ export default async function raceRoutes(app: FastifyInstance) {
         const { id } = req.params as any;
         const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; tireSets?: number; fuelTankCapacity?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
         
-        if (patch.notes && patch.notes.length > 200) {
-            return reply.status(400).send({ error: "Notatka może mieć maksymalnie 200 znaków" });
-        }
-
         const oldRace = await Race.findById(id);
         if (!oldRace) {
-            return reply.status(404).send({ error: "Wyścig nie znaleziony" });
+            return reply.status(404).send({ error: "Race not found" });
         }
 
         const race = await Race.findByIdAndUpdate(
@@ -67,7 +63,7 @@ export default async function raceRoutes(app: FastifyInstance) {
         );
         
         if (!race) {
-            return reply.status(404).send({ error: "Wyścig nie znaleziony" });
+            return reply.status(404).send({ error: "Race not found" });
         }
 
         const avgStintChanged = patch.avgStintTime !== undefined && patch.avgStintTime !== oldRace.avgStintTime;
@@ -94,10 +90,7 @@ export default async function raceRoutes(app: FastifyInstance) {
             }
         }
 
-        const io = getIO();
-        if (io) {
-            io.emit("race:updated", race);
-        }
+        emitToRace(id, "race:updated", race);
         
         return race;
     });

@@ -282,9 +282,6 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
         drivers={drivers}
         avgStintTime={avgStintTime}
         startLap={stintStartLap(stints.slice(0, addAfterStint).map(s => s.duration), avgLapTime)}
-        previousTires={addAfterStint > 0 ? remainingTiresAt(stints, addAfterStint - 1, tireSets) : tireSets}
-        isFirstStint={addAfterStint === 0}
-        tireSets={tireSets}
         allStints={stints}
         onStintAdded={() => {
           setAddModalOpen(false)
@@ -299,9 +296,6 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, raceId, start
           drivers={drivers}
           avgStintTime={avgStintTime}
           startLap={stintStartLap(stints.slice(0, editingStintIndex).map(s => s.duration), avgLapTime)}
-          previousTires={remainingTiresAt(stints, editingStintIndex, tireSets)}
-          isFirstStint={editingStintIndex === 0}
-          tireSets={tireSets}
           onConfirm={async (updatedStint) => {
             try {
               const updated = await StintsApi.update(editingStint._id, updatedStint)

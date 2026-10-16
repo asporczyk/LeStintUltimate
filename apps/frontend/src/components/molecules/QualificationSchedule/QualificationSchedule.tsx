@@ -113,7 +113,7 @@ if (loading) {
       <ScheduleContainer>
         <ScheduleTitle>{t('qualificationSchedule')}</ScheduleTitle>
         <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)' }}>Loading...</p>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>{t('loading', { ns: 'common' })}</p>
         </div>
       </ScheduleContainer>
     )

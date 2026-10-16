@@ -19,14 +19,14 @@ import { formatLapTime } from 'utils/time'
 export function RaceDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { t } = useTranslation('raceDetails')
+  const { t, i18n } = useTranslation('raceDetails')
   const [race, setRace] = useState<Race | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [calculatedRaceStartTime, setCalculatedRaceStartTime] = useState<string | null>(null)
   const [trainingEndTime, setTrainingEndTime] = useState<string | null>(null)
-  const { onRaceUpdated } = useSocket()
+  const { onRaceUpdated, joinRace } = useSocket()
 
   useEffect(() => {
     const fetchRace = async () => {
@@ -43,6 +43,11 @@ export function RaceDetailsPage() {
     }
     fetchRace()
   }, [id, t])
+
+  useEffect(() => {
+    if (!id) return
+    return joinRace(id)
+  }, [id, joinRace])
 
   useEffect(() => {
     if (!id) return
@@ -103,8 +108,8 @@ export function RaceDetailsPage() {
         <HeaderLeft>
           <PageTitle>{race.name}</PageTitle>
           <RaceInfo>
-            <BodyM>{t('created')}: {new Date(race.createdAt).toLocaleDateString('pl-PL')}</BodyM>
-            <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString('pl-PL') + ' ' + (race.startTime || '19:30') : t('notSet')}</BodyM>
+            <BodyM>{t('created')}: {new Date(race.createdAt).toLocaleDateString(i18n.language)}</BodyM>
+            <BodyM>{t('startDate')}: {race.startDate ? new Date(race.startDate).toLocaleDateString(i18n.language) + ' ' + (race.startTime || '19:30') : t('notSet')}</BodyM>
             <BodyM>{t('raceLength')}: {race.raceLength}h</BodyM>
             <BodyM>{t('tireSets')}: {race.tireSets}</BodyM>
             <BodyM>{t('fuelTankCapacity')}: {race.fuelTankCapacity}L</BodyM>

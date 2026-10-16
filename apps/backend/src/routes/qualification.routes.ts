@@ -1,7 +1,7 @@
 import {FastifyInstance} from "fastify";
 import {Qualification} from "../models/Qualification.js";
 import {Race} from "../models/Race.js";
-import {getIO} from "../socket.js";
+import {emitToRace} from "../socket.js";
 import {qualificationBody, raceIdParams} from "../schemas.js";
 
 export default async function qualificationRoutes(app: FastifyInstance) {
@@ -35,7 +35,7 @@ export default async function qualificationRoutes(app: FastifyInstance) {
             tireRR: body.tireRR || 'N'
         };
         const qualification = await Qualification.create(qualificationData);
-        getIO()?.emit("qualification:updated", qualification);
+        emitToRace(raceId, "qualification:updated", qualification);
 
         return qualification;
     });
@@ -54,10 +54,7 @@ export default async function qualificationRoutes(app: FastifyInstance) {
             return reply.status(404).send({ error: "Qualification not found" });
         }
 
-        const io = getIO();
-        if (io) {
-            io.emit("qualification:updated", qualification);
-        }
+        emitToRace(raceId, "qualification:updated", qualification);
         
         return qualification;
     });
