@@ -82,7 +82,7 @@ export function EditStintModal({ isOpen, stint, drivers, avgStintTime, startLap,
   const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
   // While the stint runs to the flag, its fuel is capped at what it needs to get there.
-  const runsToFlag = !!finishFuel && durationLimit !== null && formData.duration >= durationLimit
+  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
   const activeFinishFuel = runsToFlag ? finishFuel : null
   const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
 

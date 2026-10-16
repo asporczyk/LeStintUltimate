@@ -107,26 +107,37 @@ describe('finishFuel', () => {
 
   it('fuels the laps left to the flag plus one reserve lap', () => {
     // 50 min planned = 27.3 laps done, so 6 laps to go: (6 + 1) * 3 % = 21 %.
-    expect(finishFuel(plan(50), 50, 110, 3)).toEqual({ laps: 6, fuel: 21 })
+    expect(finishFuel(plan(50), 50, 10, 110, 3)).toEqual({ laps: 6, fuel: 21, minDuration: 9 })
   })
 
   it('counts a started lap in full and rounds the fuel up', () => {
     // 45 min planned = 24.5 laps done, so 9 laps to go: (9 + 1) * 2.55 % = 25.5 => 26 %.
-    expect(finishFuel(plan(45), 45, 110, 2.55)).toEqual({ laps: 9, fuel: 26 })
+    expect(finishFuel(plan(45), 45, 15, 110, 2.55)).toMatchObject({ laps: 9, fuel: 26 })
   })
 
   it('never asks for more than a full tank', () => {
-    expect(finishFuel(plan(5), 5, 110, 10)?.fuel).toBe(100)
+    expect(finishFuel(plan(5), 5, 55, 110, 10)?.fuel).toBe(100)
   })
 
   it('fuels the finishing stint of a full plan from its own start', () => {
     // Stint 2 starts after 30 min of driving (16.4 laps) and drives to the flag after lap 33.
     const timeline = raceTimeline([stint(30), stint(40)], 1, 110, 100)
-    expect(finishFuel(timeline, timeline.stints[1].drivingBefore, 110, 3)).toEqual({ laps: 17, fuel: 54 })
+    const finishing = timeline.stints[1]
+    expect(finishFuel(timeline, finishing.drivingBefore, timeline.finish.flagAt - finishing.start, 110, 3))
+      .toMatchObject({ laps: 17, fuel: 54 })
+  })
+
+  it('treats a stint ending less than a minute before the flag as running to it', () => {
+    // 10.5 min to the flag: the 10 min stint the timeline lets drive on to the flag counts,
+    // even though the duration limit rounds up to 11 min.
+    const fuel = finishFuel(plan(50), 50, 10.5, 110, 3)
+    expect(fuel?.minDuration).toBeCloseTo(9.5)
+    expect(10 > fuel!.minDuration).toBe(true)
+    expect(9 > fuel!.minDuration).toBe(false)
   })
 
   it('has nothing to suggest without fuel use', () => {
-    expect(finishFuel(plan(50), 50, 110, 0)).toBeNull()
+    expect(finishFuel(plan(50), 50, 10, 110, 0)).toBeNull()
   })
 })
 

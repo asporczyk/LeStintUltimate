@@ -4,7 +4,7 @@ import { type Stint } from 'types/Schedule'
 import { addMinutesToClock } from 'utils/time'
 import { remainingTiresAt } from 'utils/tires'
 import { stintStartLap } from 'utils/laps'
-import { raceTimeline, maxNewStintDuration, maxStintDuration, finishFuel } from 'utils/raceTimeline'
+import { raceTimeline, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
 import { minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
@@ -201,7 +201,13 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
         startLap={startLapBefore(addAfterStint)}
         maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity)}
         finishFuel={addAfterStint === stints.length && !timeline.coversRace
-          ? finishFuel(timeline, timeline.totalDriving, avgLapTime, avgFuelPerLap)
+          ? finishFuel(
+            timeline,
+            timeline.totalDriving,
+            newStintMinutesToFlag(timeline, stints[stints.length - 1] ?? null, fuelTankCapacity),
+            avgLapTime,
+            avgFuelPerLap,
+          )
           : null}
         onStintAdded={() => setAddModalOpen(false)}
         onCancel={() => setAddModalOpen(false)}
@@ -217,7 +223,13 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
           maxDuration={maxStintDuration(timeline, editingIndex, editingStint.duration)}
           finishFuel={timeline.stints[editingIndex].status !== 'after'
             && (editingIndex === timeline.finishingIndex || editingIndex === stints.length - 1)
-            ? finishFuel(timeline, timeline.stints[editingIndex].drivingBefore, avgLapTime, avgFuelPerLap)
+            ? finishFuel(
+              timeline,
+              timeline.stints[editingIndex].drivingBefore,
+              timeline.finish.flagAt - timeline.stints[editingIndex].start,
+              avgLapTime,
+              avgFuelPerLap,
+            )
             : null}
           onConfirm={async (updatedStint) => {
             try {

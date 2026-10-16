@@ -72,7 +72,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
   const [errors, setErrors] = useState<FormErrors>({})
   // A stint that runs to the flag needs only the fuel for the laps left (plus a reserve),
   // so the fuel is capped there; a shorter duration lifts the cap again.
-  const runsToFlag = !!finishFuel && durationLimit !== undefined && formData.duration >= durationLimit
+  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
   const activeFinishFuel = runsToFlag ? finishFuel ?? null : null
   const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
 
