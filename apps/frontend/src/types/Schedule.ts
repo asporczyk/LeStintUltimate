@@ -13,7 +13,6 @@ export interface Stint {
   tireRL: string
   tireRR: string
   tires: number
-  lockedBy?: string
 }
 
 export interface Schedule {

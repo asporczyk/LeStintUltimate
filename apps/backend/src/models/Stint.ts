@@ -14,13 +14,11 @@ const StintSchema = new Schema(
         tireFR: String,
         tireRL: String,
         tireRR: String,
-        tires: Number,
-        lockedBy: String
+        tires: Number
     },
     { timestamps: true }
 );
 
 StintSchema.index({ scheduleId: 1 });
-StintSchema.index({ lockedBy: 1 });
 
 export const Stint = model("Stint", StintSchema);

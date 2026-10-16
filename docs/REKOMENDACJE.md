@@ -18,7 +18,7 @@ Wynik przeglądu kodu z 2026-10-16. Pogrupowane wg priorytetu. `tsc` przechodzi 
 `create`/`update`/`getAll` zwracają `res.json()` niezależnie od statusu. Przy `400`/`500` komponent dostaje `{ error: "..." }` jako dane (np. `setRace({error})` w `RaceDetailsPage`, cicha porażka przy limicie 100 wyścigów).
 **Poprawka:** wspólny helper `request()` rzucający wyjątek przy `!res.ok` + komunikat w UI.
 
-### 4. Nieprawidłowe ID → 500
+### ✅ 4. Nieprawidłowe ID → 500
 `Race.findById("abc")` rzuca `CastError`, co daje `500`. Dotyczy `/races/:id`, `/training/:raceId` (POST/PATCH), `/stints`.
 **Poprawka:** walidacja `mongoose.isValidObjectId()` lub schemat Fastify dla params → `400`/`404`.
 
@@ -26,7 +26,9 @@ Wynik przeglądu kodu z 2026-10-16. Pogrupowane wg priorytetu. `tsc` przechodzi 
 `stints.map(... => <>...</>)` – klucze są na wewnętrznych `TableRow`, a nie na fragmencie. React zgłasza ostrzeżenie i może źle odtwarzać wiersze przy wstawianiu stintu w środek.
 **Poprawka:** `<Fragment key={stint._id}>`.
 
-### 6. Konfiguracja Render jest niespójna
+### ✅ 6. Konfiguracja Render jest niespójna
+**Stan:** `render.yaml` używa `rootDir`, pnpm i uruchamia `tsc`; `VITE_API_URL` ma `/api`. Jeśli usługi na Render są skonfigurowane ręcznie w panelu (nie przez Blueprint), plik nic nie zmienia – trzeba to sprawdzić w panelu.
+
 - `buildCommand: cd apps/backend && npm install` nie uruchamia `tsc`, a `startCommand: node dist/index.js` wymaga zbudowanego `dist/` (który jest w `.gitignore`). Do tego `startCommand` uruchamia się z roota repo, gdzie `dist/` nie ma.
 - `VITE_API_URL` dla `stint-frontend` nie ma sufiksu `/api`, a frontend dokleja tylko `/races` itd.
 - Projekt używa pnpm, Render – npm (inne lockfile).
@@ -38,11 +40,13 @@ Jeśli Render faktycznie działa, to dzięki ustawieniom nadpisanym w panelu –
 ### 7. Brak uwierzytelniania + `CORS: *`
 Każdy, kto zna URL backendu, może usunąć wszystkie wyścigi (`DELETE /races/:id`) lub nadpisać dowolne pole przez socket `race:update`. Minimum: prosty klucz zespołu / link z tokenem, ograniczenie CORS do domeny Netlify.
 
-### 8. Niewalidowane patche
+### ✅ 8. Niewalidowane patche
+**Stan:** wszystkie trasy mają schematy w `apps/backend/src/schemas.ts` (params z walidacją ObjectId, body z zakresami wartości); nieznane pola są usuwane przez Ajv. Nieużywane handlery socketowe i pole `lockedBy` usunięte. Schematy nie mają jeszcze opisów odpowiedzi, więc Swagger pokazuje tylko wejście.
+
 `PATCH /races/:id`, `PATCH /qualification`, socket `race:update` i `stint:update` przyjmują dowolny obiekt i wykonują `$set` / `Object.assign`. Można dopisać dowolne pola lub nadpisać `_id`/`lockedBy`.
 **Poprawka:** schematy JSON w Fastify (`schema: { body, params }`) – przy okazji uzupełnią Swagger pod `/docs`. Nieużywane handlery socketowe (`stint:lock/update/unlock`, `race:update`) można usunąć.
 
-### 9. `apps/backend/.env` jest w repozytorium
+### ✅ 9. `apps/backend/.env` jest w repozytorium
 Plik jest śledzony w git mimo wpisu `.env` w `.gitignore` (dodany przed regułą). Obecnie zawiera tylko lokalny URI, ale każda przyszła zmiana na URI Atlasa z hasłem trafi do publicznego repo.
 **Poprawka:** `git rm --cached apps/backend/.env` + dodać `apps/backend/.env.example`.
 
@@ -73,7 +77,7 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 20. **ESLint: 16 błędów** – głównie `any` w `useSocket.tsx` (brak typów `Training`/`Qualification` w callbackach), `set-state-in-effect`, `only-export-components`, puste interfejsy w `theme.ts`.
 21. **i18n** – `lng: 'pl'` wyłącza `LanguageDetector`; daty formatowane na sztywno `toLocaleDateString('pl-PL')`; „Loading...” w `TrainingSchedule`/`QualificationSchedule` nie jest tłumaczone; komunikaty błędów backendu mieszają PL i EN.
 22. **Startup backendu** – `Number(process.env.PORT)` daje `NaN` bez zmiennej, `MONGO_URI!` bez sprawdzenia. Dodać walidację env z czytelnym błędem.
-23. **Nieużywane pola** – `Stint.startTime` (zawsze 0), `Stint.tires` (UI liczy samodzielnie), `Schedule.version`, `Stint.lockedBy` (blokady nie są używane przez UI).
+23. **Nieużywane pola** – `Stint.startTime` (zawsze 0), `Stint.tires` (UI liczy samodzielnie), `Schedule.version`. (`Stint.lockedBy` usunięte razem z handlerami blokad – pkt 8.)
 24. **`Training`/`Qualification` POST nie emitują zdarzeń** – inni użytkownicy nie zobaczą nowo dodanego treningu/kwalifikacji bez odświeżenia.
 25. **`io.emit` do wszystkich** – każdy klient dostaje zdarzenia wszystkich wyścigów. Przy większej liczbie użytkowników: pokoje Socket.IO per `raceId`.
 
@@ -87,6 +91,5 @@ Czas pit stopów liczony jest tylko na froncie, a `fuelLaps` tylko na backendzie
 
 ## Sugerowana kolejność
 
-2. Pkt 9, 6 – porządek w konfiguracji i sekretach.
-3. Pkt 7, 8 – minimum bezpieczeństwa przed udostępnieniem linku szerzej.
-4. Pkt 14, 15, 18, 30 – wspólny moduł obliczeń + testy, potem refaktor `StintSchedule`.
+1. Pkt 7 – uwierzytelnianie i CORS przed udostępnieniem linku szerzej.
+2. Pkt 14, 15, 18, 30 – wspólny moduł obliczeń + testy, potem refaktor `StintSchedule`.

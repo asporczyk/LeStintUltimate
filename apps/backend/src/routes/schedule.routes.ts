@@ -3,6 +3,7 @@ import { Schedule } from "../models/Schedule.js";
 import { Stint } from "../models/Stint.js";
 import { Race } from "../models/Race.js";
 import { getIO } from "../socket.js";
+import { createStintBody, idParams, raceIdParams, updateStintBody } from "../schemas.js";
 
 interface StintBody {
     scheduleId: string
@@ -21,7 +22,7 @@ interface StintBody {
 }
 
 export default async function scheduleRoutes(app: FastifyInstance) {
-    app.get("/schedule/:raceId", async (req) => {
+    app.get("/schedule/:raceId", { schema: { params: raceIdParams } }, async (req) => {
         const { raceId } = req.params as any;
 
         const schedule = await Schedule.findOne({ raceId });
@@ -31,7 +32,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         return { schedule, stints };
     });
 
-    app.post("/stints", async (req) => {
+    app.post("/stints", { schema: { body: createStintBody } }, async (req) => {
         const body = req.body as StintBody;
         
         let schedule = await Schedule.findOne({ raceId: body.scheduleId });
@@ -85,7 +86,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         return stint;
     });
 
-    app.put("/stints/:id", async (req) => {
+    app.put("/stints/:id", { schema: { params: idParams, body: updateStintBody } }, async (req) => {
         const { id } = req.params as any;
         const body = req.body as Partial<StintBody>;
 
@@ -137,7 +138,7 @@ export default async function scheduleRoutes(app: FastifyInstance) {
         return stint;
     });
 
-    app.delete("/stints/:id", async (req) => {
+    app.delete("/stints/:id", { schema: { params: idParams } }, async (req) => {
         const { id } = req.params as any;
 
         const stint = await Stint.findById(id);

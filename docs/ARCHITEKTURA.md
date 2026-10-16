@@ -33,9 +33,10 @@ Dzięki temu kilka osób z zespołu może jednocześnie oglądać ten sam plan w
 | `index.ts` | Punkt wejścia: ładuje `.env`, łączy z MongoDB, startuje HTTP i Socket.IO |
 | `server.ts` | Buduje instancję Fastify: CORS, Swagger (`/docs`), rejestracja tras z prefiksem `/api` |
 | `db.ts` | `connectDB(uri)` – połączenie Mongoose |
-| `socket.ts` | Inicjalizacja Socket.IO, `getIO()` dla tras, handlery blokowania stintów |
+| `socket.ts` | Inicjalizacja Socket.IO i `getIO()` dla tras (tylko rozgłaszanie) |
 | `models/` | Schematy Mongoose (patrz niżej) |
 | `routes/` | Trasy REST – opis w [API.md](API.md) |
+| `schemas.ts` | Schematy JSON walidujące params i body tras |
 
 ### Model danych
 
@@ -55,7 +56,7 @@ Race (1) ──┬── (0..1) Training        [raceId: string]
 
 **Schedule** – kontener na stinty jednego wyścigu: `raceId`, `version` (nieużywane).
 
-**Stint** – pojedynczy stint: `scheduleId`, `order` (od 1), `duration` (min), `driver`, `spotter`, `fuelLaps` (okrążenie pit stopu, liczone na serwerze), `fuel` (% tankowania), `tireFL/FR/RL/RR` (`'N'` = zmiana, `'-'` = bez zmiany), `tires`, `startTime` (nieużywane, zawsze 0), `lockedBy` (id socketu).
+**Stint** – pojedynczy stint: `scheduleId`, `order` (od 1), `duration` (min), `driver`, `spotter`, `fuelLaps` (okrążenie pit stopu, liczone na serwerze), `fuel` (% tankowania), `tireFL/FR/RL/RR` (`'N'` = zmiana, `'-'` = bez zmiany), `tires`, `startTime` (nieużywane, zawsze 0).
 
 > Uwaga: `raceId` w Training/Qualification/Schedule to zwykły `String`, nie `ObjectId` z referencją.
 
@@ -65,7 +66,7 @@ Struktura oparta na **Atomic Design**:
 
 ```
 src/
-├── api/            # Cienkie wrappery fetch na REST (RacesApi, StintsApi, …)
+├── api/            # Wrappery REST (RacesApi, StintsApi, …); request.ts rzuca ApiError przy błędzie HTTP
 ├── components/
 │   ├── atoms/      # IconButton, TextButton, CustomSelect, CustomCheckbox, Loader, Typography…
 │   ├── molecules/  # Harmonogramy (Training/Qualification/Stint), modale edycji, lista wyścigów

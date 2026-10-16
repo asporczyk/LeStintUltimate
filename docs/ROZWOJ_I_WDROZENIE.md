@@ -20,7 +20,9 @@ pnpm dev
 
 ## Zmienne środowiskowe
 
-### Backend – `apps/backend/.env`
+### Backend – `apps/backend/.env` (wzór: `.env.example`)
+
+Pliki `.env` nie są commitowane – skopiuj `.env.example` do `.env`.
 
 | Zmienna | Przykład | Opis |
 |---|---|---|
@@ -55,9 +57,11 @@ Projekt nie ma testów automatycznych ani CI.
 
 ### Backend – Render
 
-`render.yaml` definiuje usługę `stint-backend` (region Frankfurt, `PORT=10000`, `MONGO_URI` ustawiany w panelu).
+`render.yaml` (Blueprint) definiuje usługę `stint-backend`: region Frankfurt, `rootDir: apps/backend`, build `pnpm install --prod=false && pnpm run build` (`tsc` → `dist/`), start `node dist/index.js`, `PORT=10000`, `MONGO_URI` ustawiany w panelu.
 
-`render.yaml` zawiera też usługę `stint-frontend`, ale frontend jest hostowany na Netlify – patrz uwagi w [REKOMENDACJE.md](REKOMENDACJE.md) dot. niespójności tej konfiguracji.
+`--prod=false` jest potrzebne, bo przy `NODE_ENV=production` pnpm pominąłby `typescript` (devDependency).
+
+Plik zawiera też statyczną usługę `stint-frontend` (alternatywa dla Netlify) z `VITE_API_URL=https://stint-backend.onrender.com/api`.
 
 ## Konwencje
 

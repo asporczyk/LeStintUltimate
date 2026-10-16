@@ -1,8 +1,18 @@
 # API
 
-Bazowy URL: `http://localhost:3000/api` (lokalnie). Swagger UI: `http://localhost:3000/docs` (trasy nie mają jeszcze schematów, więc dokumentacja Swaggera jest szczątkowa).
+Bazowy URL: `http://localhost:3000/api` (lokalnie). Swagger UI: `http://localhost:3000/docs` (pokazuje parametry i body z `schemas.ts`; schematy odpowiedzi nie są jeszcze opisane).
 
 API nie ma uwierzytelniania – każdy, kto zna adres, może czytać i modyfikować dane.
+
+## Walidacja
+
+Każda trasa ma schemat JSON (`apps/backend/src/schemas.ts`):
+
+- parametry `:id` / `:raceId` muszą być 24-znakowym ObjectId → inaczej `400`,
+- body jest sprawdzane pod kątem typów i zakresów (np. `raceLength` 0–24, `fuel` 0–100, `notes` ≤ 200, godziny `HH:MM` lub `HH:MM:SS`) → inaczej `400`,
+- nieznane pola w body są po cichu usuwane (nie da się nadpisać `_id` ani dopisać własnych pól).
+
+Odpowiedź błędu walidacji: `{ "statusCode": 400, "error": "Bad Request", "message": "body/fuel must be <= 100" }`.
 
 ## Wyścigi
 
@@ -12,7 +22,7 @@ API nie ma uwierzytelniania – każdy, kto zna adres, może czytać i modyfikow
 | `POST` | `/races` | Tworzy wyścig. Body: `{ name, startDate }`. `400` gdy osiągnięto limit 100 |
 | `GET` | `/races/:id` | Pojedynczy wyścig. `404` gdy brak |
 | `PATCH` | `/races/:id` | Częściowa aktualizacja. `400` gdy `notes` > 200 znaków. Emituje `race:updated` |
-| `DELETE` | `/races/:id` | Usuwa wyścig (bez kaskady – patrz [REKOMENDACJE.md](REKOMENDACJE.md)) |
+| `DELETE` | `/races/:id` | Usuwa wyścig razem z harmonogramem, stintami, treningiem i kwalifikacjami |
 
 **Efekt uboczny `PATCH /races/:id`:** jeśli zmienia się `avgStintTime`, wszystkie stinty, których `duration` było równe **staremu** `avgStintTime`, dostają nową wartość; emitowane jest `stint:refresh`.
 
@@ -68,20 +78,11 @@ Body stintu:
 
 | Zdarzenie | Payload | Źródło |
 |---|---|---|
-| `race:updated` | pełny `Race` | `PATCH /races/:id`, socket `race:update` |
+| `race:updated` | pełny `Race` | `PATCH /races/:id` |
 | `stint:refresh` | `{ raceId }` | wszystkie operacje na stintach, zmiana `avgStintTime` |
 | `training:updated` | pełny `Training` | `PATCH /training/:raceId` |
-| `qualification:updated` | pełny `Qualification` **lub** `{ raceId, startTime }` | `PATCH /qualification/:raceId`, `PATCH /training/:raceId` |
-| `stint:locked` / `stint:unlocked` / `stint:updated` / `stint:lock:denied` | stint / id | handlery blokad w `socket.ts` |
-| `presence:update` | – | rozłączenie klienta |
+| `qualification:updated` | pełny `Qualification` | `PATCH /qualification/:raceId`, `PATCH /training/:raceId` |
 
-### Klient → serwer (zaimplementowane na serwerze, nieużywane przez frontend)
+### Klient → serwer
 
-| Zdarzenie | Payload | Działanie |
-|---|---|---|
-| `stint:lock` | `stintId` | Blokuje stint dla danego socketu |
-| `stint:update` | `{ stintId, patch }` | Aktualizuje zablokowany stint |
-| `stint:unlock` | `stintId` | Zdejmuje blokadę |
-| `race:update` | `{ raceId, patch }` | Aktualizuje wyścig bez walidacji |
-
-Przy rozłączeniu serwer zdejmuje wszystkie blokady danego socketu.
+Brak. Socket.IO służy wyłącznie do rozgłaszania zmian; wszystkie zapisy idą przez REST.

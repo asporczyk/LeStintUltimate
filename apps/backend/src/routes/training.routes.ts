@@ -3,9 +3,10 @@ import {Training} from "../models/Training.js";
 import {Qualification} from "../models/Qualification.js";
 import {Race} from "../models/Race.js";
 import {getIO} from "../socket.js";
+import {raceIdParams, trainingBody} from "../schemas.js";
 
 export default async function trainingRoutes(app: FastifyInstance) {
-    app.get("/training/:raceId", async (req, reply) => {
+    app.get("/training/:raceId", { schema: { params: raceIdParams } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const training = await Training.findOne({ raceId });
         if (!training) {
@@ -14,7 +15,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
         return training;
     });
 
-    app.post("/training/:raceId", async (req, reply) => {
+    app.post("/training/:raceId", { schema: { params: raceIdParams, body: trainingBody } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const body = req.body as { startTime?: string; duration?: number; };
         const existing = await Training.findOne({ raceId });
@@ -32,7 +33,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
         return training;
     });
 
-    app.patch("/training/:raceId", async (req, reply) => {
+    app.patch("/training/:raceId", { schema: { params: raceIdParams, body: trainingBody } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const patch = req.body as { startTime?: string; duration?: number; };
         
@@ -75,7 +76,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
         return training;
     });
 
-    app.delete("/training/:raceId", async (req) => {
+    app.delete("/training/:raceId", { schema: { params: raceIdParams } }, async (req) => {
         const { raceId } = req.params as any;
         await Training.findOneAndDelete({ raceId });
         return { success: true };

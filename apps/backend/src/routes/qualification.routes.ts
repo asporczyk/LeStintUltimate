@@ -2,9 +2,10 @@ import {FastifyInstance} from "fastify";
 import {Qualification} from "../models/Qualification.js";
 import {Race} from "../models/Race.js";
 import {getIO} from "../socket.js";
+import {qualificationBody, raceIdParams} from "../schemas.js";
 
 export default async function qualificationRoutes(app: FastifyInstance) {
-    app.get("/qualification/:raceId", async (req, reply) => {
+    app.get("/qualification/:raceId", { schema: { params: raceIdParams } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const qualification = await Qualification.findOne({ raceId });
         if (!qualification) {
@@ -13,7 +14,7 @@ export default async function qualificationRoutes(app: FastifyInstance) {
         return qualification;
     });
 
-    app.post("/qualification/:raceId", async (req, reply) => {
+    app.post("/qualification/:raceId", { schema: { params: raceIdParams, body: qualificationBody } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const body = req.body as { startTime?: string; duration?: number; laps?: number; driver?: string; spotter?: string; fuel?: number; tireFL?: string; tireFR?: string; tireRL?: string; tireRR?: string; };
         const existing = await Qualification.findOne({ raceId });
@@ -38,7 +39,7 @@ export default async function qualificationRoutes(app: FastifyInstance) {
         return qualification;
     });
 
-    app.patch("/qualification/:raceId", async (req, reply) => {
+    app.patch("/qualification/:raceId", { schema: { params: raceIdParams, body: qualificationBody } }, async (req, reply) => {
         const { raceId } = req.params as any;
         const patch = req.body as { startTime?: string; duration?: number; laps?: number; driver?: string; spotter?: string; fuel?: number; tireFL?: string; tireFR?: string; tireRL?: string; tireRR?: string; };
         
@@ -60,7 +61,7 @@ export default async function qualificationRoutes(app: FastifyInstance) {
         return qualification;
     });
 
-    app.delete("/qualification/:raceId", async (req) => {
+    app.delete("/qualification/:raceId", { schema: { params: raceIdParams } }, async (req) => {
         const { raceId } = req.params as any;
         await Qualification.findOneAndDelete({ raceId });
         return { success: true };
