@@ -200,7 +200,9 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
         avgStintTime={avgStintTime}
         startLap={startLapBefore(addAfterStint)}
         maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity)}
-        finishFuel={addAfterStint === stints.length ? finishFuel(timeline, avgLapTime, avgFuelPerLap) : null}
+        finishFuel={addAfterStint === stints.length && !timeline.coversRace
+          ? finishFuel(timeline, timeline.totalDriving, avgLapTime, avgFuelPerLap)
+          : null}
         onStintAdded={() => setAddModalOpen(false)}
         onCancel={() => setAddModalOpen(false)}
       />
@@ -213,6 +215,10 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
           avgStintTime={avgStintTime}
           startLap={startLapBefore(editingIndex)}
           maxDuration={maxStintDuration(timeline, editingIndex, editingStint.duration)}
+          finishFuel={timeline.stints[editingIndex].status !== 'after'
+            && (editingIndex === timeline.finishingIndex || editingIndex === stints.length - 1)
+            ? finishFuel(timeline, timeline.stints[editingIndex].drivingBefore, avgLapTime, avgFuelPerLap)
+            : null}
           onConfirm={async (updatedStint) => {
             try {
               const updated = await StintsApi.update(editingStint._id, updatedStint)

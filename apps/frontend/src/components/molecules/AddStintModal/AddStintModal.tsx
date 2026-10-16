@@ -14,18 +14,15 @@ import {
   Form,
   FormGroup,
   Label,
-  SliderContainer,
-  Slider,
-  SliderValue,
   CheckboxGroup,
   InputWithUnit,
   InputUnit,
   InputWithUnitStyle,
   ErrorText,
-  FieldHint,
-  AutoBadge
+  FieldHint
 } from './AddStintModal.styles'
-import { FUEL_RESERVE_LAPS, type FinishFuel } from 'utils/raceTimeline'
+import { type FinishFuel } from 'utils/raceTimeline'
+import { FuelField } from 'components/molecules/FuelField/FuelField'
 import { useToast } from '@/hooks/useToast'
 
 interface AddStintModalProps {
@@ -76,8 +73,8 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
   // A stint that runs to the flag needs only the fuel for the laps left (plus a reserve),
   // so the fuel is capped there; a shorter duration lifts the cap again.
   const runsToFlag = !!finishFuel && durationLimit !== undefined && formData.duration >= durationLimit
-  const fuelLimit = runsToFlag && finishFuel ? finishFuel.fuel : 100
-  const fuel = Math.min(formData.fuel, fuelLimit)
+  const activeFinishFuel = runsToFlag ? finishFuel ?? null : null
+  const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
@@ -213,35 +210,11 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
             {errors.spotter && <ErrorText>{t(errors.spotter)}</ErrorText>}
           </FormGroup>
 
-          <FormGroup>
-            <Label>{t('fuel')}</Label>
-            <SliderContainer>
-              <Slider
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={fuel}
-                $limit={fuelLimit}
-                aria-valuemax={fuelLimit}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  // Up to the limit means "as much as allowed": stays automatic, so a full
-                  // tank comes back if the stint no longer runs to the flag.
-                  const value = Number(e.target.value)
-                  setFormData(prev => ({ ...prev, fuel: value >= fuelLimit ? 100 : value }))
-                }}
-              />
-              <SliderValue>{fuel}%</SliderValue>
-            </SliderContainer>
-            {runsToFlag && finishFuel && (
-              <AutoBadge role="status">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
-                </svg>
-                {t('fuelToFinish', { laps: finishFuel.laps, reserve: FUEL_RESERVE_LAPS, fuel: finishFuel.fuel })}
-              </AutoBadge>
-            )}
-          </FormGroup>
+          <FuelField
+            value={formData.fuel}
+            onChange={(value) => setFormData(prev => ({ ...prev, fuel: value }))}
+            finishFuel={activeFinishFuel}
+          />
 
           <FormGroup>
             <Label>{t('tiresToChange')}</Label>

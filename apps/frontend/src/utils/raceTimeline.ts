@@ -157,12 +157,12 @@ export interface FinishFuel {
   fuel: number
 }
 
-// Fuel for a new stint added at the end of the plan that drives on to the flag.
-// It starts after all planned driving and runs to the end of the flag lap.
-export function finishFuel(timeline: RaceTimeline, avgLapTime: number, avgFuelPerLap: number): FinishFuel | null {
-  if (avgFuelPerLap <= 0 || timeline.coversRace) return null
+// Fuel for the stint that drives on to the flag, starting after `drivingBefore` minutes
+// of driving: a new stint at the end of the plan (all planned driving) or the finishing one.
+export function finishFuel(timeline: RaceTimeline, drivingBefore: number, avgLapTime: number, avgFuelPerLap: number): FinishFuel | null {
+  if (avgFuelPerLap <= 0) return null
   const lapSeconds = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME
-  const lapsDone = (timeline.totalDriving * 60) / lapSeconds
+  const lapsDone = (drivingBefore * 60) / lapSeconds
   const laps = Math.max(1, Math.ceil(timeline.finish.totalLaps - lapsDone - 1e-9))
   return { laps, fuel: Math.min(100, Math.ceil((laps + FUEL_RESERVE_LAPS) * avgFuelPerLap - 1e-9)) }
 }
