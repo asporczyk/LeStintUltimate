@@ -54,7 +54,6 @@ LeStintUltimate/
 │       └── src/{index,server,socket,db}.ts, models/, routes/
 ├── docs/              # Dokumentacja
 ├── netlify.toml
-├── render.yaml
 └── pnpm-workspace.yaml
 ```
 

@@ -78,14 +78,25 @@ GitHub Actions (`.github/workflows/ci.yml`) na każdym PR i push do `main`: Mong
 
 ### Backend – Render
 
-Produkcyjny frontend (`le-stint-ultimate.netlify.app`) łączy się z backendem `https://lestintultimate.onrender.com`. Ta usługa ma inną nazwę niż w `render.yaml` (`stint-backend`), więc najpewniej jest skonfigurowana ręcznie w panelu Render, a `render.yaml` jej nie steruje.
+Usługa `lestintultimate` (`https://lestintultimate.onrender.com`) jest skonfigurowana **ręcznie w panelu Render**. W repo nie ma `render.yaml` (Blueprint). Ustawienia (stan na 16.10.2026):
 
+| Ustawienie | Wartość |
+|---|---|
+| Root Directory | *(puste – root repo)* |
+| Build Command | `cd apps/backend && npm install && npm run build` |
+| Start Command | `cd apps/backend && npm run start` |
+| Health Check Path | `/health` |
+| Zmienne środowiskowe | `MONGO_URI` (wymagana), opcjonalnie te z tabeli wyżej |
 
-`render.yaml` (Blueprint) definiuje usługę `stint-backend`: region Frankfurt, `rootDir: apps/backend`, build `pnpm install --prod=false && pnpm run build` (`tsc` → `dist/`), start `node dist/index.js`, `PORT=10000`, `MONGO_URI` ustawiany w panelu.
+Deploy uruchamia się automatycznie po pushu do `main` i trwa kilka minut. Render stoi za Cloudflare, co ma znaczenie dla limitów zapytań (patrz [API.md](API.md#limity-zapytań)).
 
-`--prod=false` jest potrzebne, bo przy `NODE_ENV=production` pnpm pominąłby `typescript` (devDependency).
-
-Plik zawiera też statyczną usługę `stint-frontend` (alternatywa dla Netlify) z `VITE_API_URL=https://stint-backend.onrender.com/api`.
+> **Uwaga: Render instaluje zależności przez npm, nie pnpm.** W `apps/backend` nie ma `package-lock.json`, a `pnpm-lock.yaml` jest dla npm niewidoczny. Każdy deploy instaluje więc najnowsze wersje dozwolone przez zakresy `^` w `package.json`, które mogą być inne niż wersje sprawdzane przez CI i testy. Żeby produkcja używała dokładnie wersji z lockfile, w panelu można zmienić Build Command na:
+>
+> ```
+> corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter stint-planner-backend run build
+> ```
+>
+> i Start Command na `cd apps/backend && node dist/index.js`. `--prod=false` instaluje też `typescript`, potrzebny do builda. Po zmianie sprawdź pierwszy deploy w logach Render.
 
 ### Health check na Render
 
