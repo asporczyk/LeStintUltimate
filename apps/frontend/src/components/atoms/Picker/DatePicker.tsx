@@ -127,7 +127,7 @@ export function DatePicker({ value, onChange, min, ariaLabel }: DatePickerProps)
         <CalendarIcon />
         <TriggerValue $placeholder={!selected}>
           {selected
-            ? selected.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+            ? selected.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
             : t('pickDate')}
         </TriggerValue>
         <ChevronIcon />

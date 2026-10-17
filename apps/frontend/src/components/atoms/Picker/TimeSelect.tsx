@@ -28,28 +28,10 @@ interface TimeSelectProps {
   align?: 'left' | 'right'
 }
 
-const COLUMNS = 4
-
-const minuteOf = (option: TimeSelectOption) => Number(option.label.split(':')[1] ?? 0)
-
-// Options split into rows of one hour each (labels are "HH:MM").
-function hourRows(options: TimeSelectOption[]): TimeSelectOption[][] {
-  const rows: TimeSelectOption[][] = []
-  options.forEach(option => {
-    const last = rows[rows.length - 1]
-    if (last && last[0].label.slice(0, 2) === option.label.slice(0, 2)) last.push(option)
-    else rows.push([option])
-  })
-  return rows
-}
-
-// Quarter-hour times keep their column (:00, :15, :30, :45), so a row that starts at :30
-// lines up with the full rows; a row with other minutes simply flows.
-function quarterColumn(row: TimeSelectOption[], option: TimeSelectOption): number | undefined {
-  return row.every(o => minuteOf(o) % 15 === 0) ? minuteOf(option) / 15 + 1 : undefined
-}
-
 const Scroll = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
   max-height: 16rem;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -68,20 +50,23 @@ const GroupLabel = styled.div`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(${COLUMNS}, minmax(0, 1fr));
+const Group = styled.div`
+  display: flex;
+  flex-direction: column;
   gap: 0.125rem;
-  margin-bottom: 0.25rem;
 `
 
-const WideCell = styled(PickerCell)`
+const ListItem = styled(PickerCell)`
   width: 100%;
-  margin: 0.125rem 0;
+  justify-content: flex-start;
+  padding: 0.375rem 0.625rem;
+`
+
+const EmptyItem = styled(ListItem)`
   font-weight: 600;
 `
 
-// A time picked from a fixed list, grouped by day and laid out an hour per row.
+// A time picked from a plain list, one under another, optionally grouped (e.g. by day).
 export function TimeSelect({ value, onChange, groups, emptyOption, prefix, placeholder = '--:--', ariaLabel, align = 'left' }: TimeSelectProps) {
   const { isOpen, setIsOpen, containerRef, onKeyDown } = usePopover()
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -102,32 +87,12 @@ export function TimeSelect({ value, onChange, groups, emptyOption, prefix, place
     setIsOpen(false)
   }
 
-  // Arrows move through the grid: left/right by a time, up/down to the nearest time in the
-  // row above or below.
-  const handleGridKeys = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
+  // Up and down arrows move through the list.
+  const handleListKeys = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
     const cells = [...(popoverRef.current?.querySelectorAll<HTMLButtonElement>('[data-cell]') ?? [])]
-    const current = document.activeElement as HTMLButtonElement
-    const index = cells.indexOf(current)
-    let next: HTMLButtonElement | undefined
-    if (index < 0) {
-      next = cells[0]
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      next = cells[index + (e.key === 'ArrowLeft' ? -1 : 1)]
-    } else {
-      const from = current.getBoundingClientRect()
-      const down = e.key === 'ArrowDown'
-      const candidates = cells.filter(cell => {
-        const top = cell.getBoundingClientRect().top
-        return down ? top > from.top + 1 : top < from.top - 1
-      })
-      const rowTop = down
-        ? Math.min(...candidates.map(cell => cell.getBoundingClientRect().top))
-        : Math.max(...candidates.map(cell => cell.getBoundingClientRect().top))
-      next = candidates
-        .filter(cell => Math.abs(cell.getBoundingClientRect().top - rowTop) < 1)
-        .sort((a, b) => Math.abs(a.getBoundingClientRect().left - from.left) - Math.abs(b.getBoundingClientRect().left - from.left))[0]
-    }
+    const index = cells.indexOf(document.activeElement as HTMLButtonElement)
+    const next = cells[index < 0 ? 0 : index + (e.key === 'ArrowUp' ? -1 : 1)]
     if (next) {
       e.preventDefault()
       next.focus()
@@ -136,7 +101,7 @@ export function TimeSelect({ value, onChange, groups, emptyOption, prefix, place
   }
 
   const empty = emptyOption && (
-    <WideCell
+    <EmptyItem
       type="button"
       data-cell
       role="option"
@@ -145,7 +110,7 @@ export function TimeSelect({ value, onChange, groups, emptyOption, prefix, place
       onClick={() => choose('')}
     >
       {emptyOption.label}
-    </WideCell>
+    </EmptyItem>
   )
 
   return (
@@ -170,31 +135,26 @@ export function TimeSelect({ value, onChange, groups, emptyOption, prefix, place
         <ChevronIcon />
       </PickerTrigger>
       {isOpen && (
-        <Popover ref={popoverRef} $align={align} $width="16rem" role="listbox" aria-label={ariaLabel} onKeyDown={handleGridKeys}>
+        <Popover ref={popoverRef} $align={align} $width="max(100%, 9rem)" role="listbox" aria-label={ariaLabel} onKeyDown={handleListKeys}>
           <Scroll>
             {emptyOption?.position === 'start' && empty}
             {groups.map(group => (
-              <div key={group.label}>
-                <GroupLabel>{group.label}</GroupLabel>
-                {hourRows(group.options).map(row => (
-                  <Grid key={row[0].value}>
-                    {row.map(option => (
-                      <PickerCell
-                        key={option.value}
-                        type="button"
-                        data-cell
-                        role="option"
-                        aria-selected={option.value === value}
-                        $selected={option.value === value}
-                        style={{ gridColumn: quarterColumn(row, option) }}
-                        onClick={() => choose(option.value)}
-                      >
-                        {option.label}
-                      </PickerCell>
-                    ))}
-                  </Grid>
+              <Group key={group.label || 'times'}>
+                {group.label && <GroupLabel>{group.label}</GroupLabel>}
+                {group.options.map(option => (
+                  <ListItem
+                    key={option.value}
+                    type="button"
+                    data-cell
+                    role="option"
+                    aria-selected={option.value === value}
+                    $selected={option.value === value}
+                    onClick={() => choose(option.value)}
+                  >
+                    {option.label}
+                  </ListItem>
                 ))}
-              </div>
+              </Group>
             ))}
             {emptyOption?.position === 'end' && empty}
           </Scroll>

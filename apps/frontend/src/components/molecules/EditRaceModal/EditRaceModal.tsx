@@ -21,7 +21,7 @@ import { DriverChips } from './DriverChips'
 import { DriverAvailabilityFields } from './DriverAvailabilityFields'
 import { addMinutesToClock, formatLapTime, parseLapTime } from 'utils/time'
 import { DatePicker } from 'components/atoms/Picker/DatePicker'
-import { TimePicker } from 'components/atoms/Picker/TimePicker'
+import { TimeSelect } from 'components/atoms/Picker/TimeSelect'
 
 interface EditRaceModalProps {
   isOpen: boolean
@@ -49,6 +49,14 @@ interface FormErrors {
 const todayValue = () => {
   const today = new Date()
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+}
+
+// Start times every 15 minutes, plus a saved time off that grid.
+function startTimeOptions(current: string) {
+  const times = Array.from({ length: 96 }, (_, i) =>
+    `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`)
+  if (current && !times.includes(current)) times.push(current)
+  return times.sort().map(time => ({ value: time, label: time }))
 }
 
 function getInitialFormData(race: Race) {
@@ -248,9 +256,10 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
 
             <FormGroup>
               <Label>{t('startTime')}</Label>
-              <TimePicker
+              <TimeSelect
                 value={formData.startTime}
                 onChange={value => setField('startTime', value)}
+                groups={[{ label: '', options: startTimeOptions(formData.startTime) }]}
                 ariaLabel={t('startTime')}
               />
             </FormGroup>
