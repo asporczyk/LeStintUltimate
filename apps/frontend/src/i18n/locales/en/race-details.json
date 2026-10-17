@@ -72,6 +72,12 @@
   "wheel": {"tireFL": "Front left", "tireFR": "Front right", "tireRL": "Rear left", "tireRR": "Rear right"},
   "tireChangeOption": {"-": "No change", "N": "New", "U": "Used", "W": "Wet"},
   "tireCompound": {"-": "no change", "N": "new", "U": "used", "W": "wet"},
+  "repairs": "Repairs",
+  "suspension": "Suspension",
+  "repairPart": {"bodywork": "Bodywork", "frontWing": "Front wing", "rearWing": "Rear wing", "suspFL": "Front left", "suspFR": "Front right", "suspRL": "Rear left", "suspRR": "Rear right"},
+  "repairTime": "Repairs add about {{seconds}} s to the pit stop (after the tire change, alongside refuelling)",
+  "repairNote": "+{{seconds}} s",
+  "noRepairs": "No repairs",
   "deleteStint": "Delete stint",
   "confirmDeleteStint": "Are you sure you want to delete this stint?",
   "validation": {

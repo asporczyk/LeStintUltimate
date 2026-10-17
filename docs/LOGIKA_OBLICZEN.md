@@ -50,8 +50,11 @@ Zmiana `avgStintTime` wyścigu aktualizuje czas **tylko** stintów z `durationAu
 | Tankowanie | `((fuel − 1) / 100 * capacity) / 3.0 L/s + 2.0 + 1.2 + 0.7` s |
 | Opony | 1–2 opony: `15 + 7` s, 3–4 opony: `32 + 7` s, 0 opon: 0 |
 | Zmiana kierowcy | `40 + 6` s, gdy `driver` różni się od poprzedniego stintu |
+| Naprawy (`repairs`) | suma części: nadwozie 30 s, przednie skrzydło `8.5 + 1.5` s, tylne skrzydło `33 + 7` s, zawieszenie 40 s na każdy narożnik |
 
-Tankowanie i opony są **równoległe** (`max`), zmiana kierowcy również równoległa z resztą (`max`). Pierwszy stint nie ma pit stopu.
+`pit = max(tankowanie, opony + naprawy, zmiana kierowcy)`: mechanicy najpierw zmieniają opony, potem naprawiają (LMU naprawia uszkodzenia na końcu), a tankowanie i zmiana kierowcy idą równolegle. Pierwszy stint nie ma pit stopu (i nie ma w modalu wyboru napraw).
+
+Czasy napraw (`utils/repairs.ts`): LMU ich nie publikuje. Skrzydła to domyślne wartości z sekcji `PitstopDelays` plików RFM rFactora (z niej pochodzą też czasy tankowania), nadwozie i zawieszenie to szacunki z czasów widocznych w menu pit stopu LMU.
 
 Założenie: `fuel` to procent zbiornika dolewany w pit stopie, przy prawie pustym baku (−1 %).
 

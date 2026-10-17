@@ -94,6 +94,24 @@ export const ClockChangeNote = styled.span`
   color: ${({ theme }) => theme.colors.warning};
 `
 
+// Damage repaired at the pit stop before the stint, next to the duration.
+export const RepairNote = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  color: ${({ theme }) => theme.colors.warning};
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex-shrink: 0;
+  }
+`
+
 export const CardActions = styled.div`
   grid-area: actions;
   display: flex;

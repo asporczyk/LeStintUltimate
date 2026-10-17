@@ -72,6 +72,12 @@
   "wheel": {"tireFL": "Lewe przednie", "tireFR": "Prawe przednie", "tireRL": "Lewe tylne", "tireRR": "Prawe tylne"},
   "tireChangeOption": {"-": "Brak zmiany", "N": "Nowe", "U": "Używane", "W": "Deszczowe"},
   "tireCompound": {"-": "bez zmiany", "N": "nowa", "U": "używana", "W": "deszczowa"},
+  "repairs": "Naprawy",
+  "suspension": "Zawieszenie",
+  "repairPart": {"bodywork": "Nadwozie", "frontWing": "Przednie skrzydło", "rearWing": "Tylne skrzydło", "suspFL": "Lewe przednie", "suspFR": "Prawe przednie", "suspRL": "Lewe tylne", "suspRR": "Prawe tylne"},
+  "repairTime": "Naprawy wydłużą pit stop o ok. {{seconds}} s (po wymianie opon, równolegle z tankowaniem)",
+  "repairNote": "+{{seconds}} s",
+  "noRepairs": "Bez napraw",
   "deleteStint": "Usuń stint",
   "confirmDeleteStint": "Czy na pewno chcesz usunąć ten stint?",
   "validation": {

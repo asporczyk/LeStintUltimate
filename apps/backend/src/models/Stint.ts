@@ -14,7 +14,9 @@ const StintSchema = new Schema(
         tireFL: String,
         tireFR: String,
         tireRL: String,
-        tireRR: String
+        tireRR: String,
+        // Parts repaired at the pit stop before the stint
+        repairs: { type: [String], default: undefined }
     },
     { timestamps: true }
 );

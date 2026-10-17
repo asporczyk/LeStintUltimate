@@ -69,7 +69,13 @@ const stintFields = {
     tireFL: tire,
     tireFR: tire,
     tireRL: tire,
-    tireRR: tire
+    tireRR: tire,
+    repairs: {
+        type: "array",
+        maxItems: 7,
+        uniqueItems: true,
+        items: { type: "string", enum: ["bodywork", "frontWing", "rearWing", "suspFL", "suspFR", "suspRL", "suspRR"] }
+    }
 } as const;
 
 export const createStintBody = {

@@ -10,6 +10,7 @@ import {
   TimeRange,
   Duration,
   ClockChangeNote,
+  RepairNote,
   CardActions,
   People,
   DriverName,
@@ -30,6 +31,8 @@ interface ScheduleCardProps {
   duration: ReactNode
   // Shown under the duration when the clocks change during the stint (or the pit stop after it).
   clockChange?: string
+  // Repairs at the pit stop before the stint: the time they add, and the parts for its tooltip.
+  repair?: { label: string; details: string }
   isActive?: boolean
   driver?: string
   // Shown under the driver, e.g. when they are not available at this time.
@@ -40,7 +43,7 @@ interface ScheduleCardProps {
 }
 
 // Phone version of one table row: time range first, then who drives, then the numbers.
-export function ScheduleCard({ badge, start, end, duration, clockChange, isActive = false, driver, driverWarning, spotter, stats, actions }: ScheduleCardProps) {
+export function ScheduleCard({ badge, start, end, duration, clockChange, repair, isActive = false, driver, driverWarning, spotter, stats, actions }: ScheduleCardProps) {
   const { t } = useTranslation('raceDetails')
 
   return (
@@ -48,7 +51,17 @@ export function ScheduleCard({ badge, start, end, duration, clockChange, isActiv
       {badge !== undefined && <CardBadge>{badge}</CardBadge>}
       <CardTime>
         <TimeRange>{start} – {end}</TimeRange>
-        <Duration>{duration}</Duration>
+        <Duration>
+          {duration}
+          {repair && (
+            <RepairNote role="note" title={repair.details} aria-label={`${t('repairs')} ${repair.label}: ${repair.details}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+              </svg>
+              {repair.label}
+            </RepairNote>
+          )}
+        </Duration>
         {clockChange && <ClockChangeNote role="note">{clockChange}</ClockChangeNote>}
       </CardTime>
       {driver !== undefined && (
