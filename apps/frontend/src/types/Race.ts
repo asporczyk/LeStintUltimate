@@ -1,3 +1,11 @@
+// A block of real clock hours ("HH:MM") a driver can drive; empty = from the start / to the end.
+// A driver can have several blocks, one entry each.
+export interface DriverAvailability {
+  driver: string
+  from: string
+  to: string
+}
+
 export interface Race {
   _id: string
   name: string
@@ -6,6 +14,7 @@ export interface Race {
   startTime: string
   raceLength: number
   drivers: string[]
+  driverAvailability?: DriverAvailability[]
   tireSets: number
   fuelTankCapacity: number
   avgLapTime: number

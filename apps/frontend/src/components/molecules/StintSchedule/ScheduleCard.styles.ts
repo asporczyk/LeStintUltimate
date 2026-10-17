@@ -121,6 +121,14 @@ export const Spotter = styled.span`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
+// Driver can't drive at this time.
+export const DriverWarning = styled.span`
+  flex-basis: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.warning};
+`
+
 export const Stats = styled.dl`
   grid-area: stats;
   display: grid;

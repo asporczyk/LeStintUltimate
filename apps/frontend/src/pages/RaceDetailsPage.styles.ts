@@ -116,6 +116,13 @@ export const DriverTag = styled.span`
   border: 1px solid ${({ theme }) => theme.colors.border};
 `
 
+export const DriverHours = styled.span`
+  margin-left: 0.375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`
+
 export const ErrorState = styled.div`
   display: flex;
   flex-direction: column;

@@ -17,5 +17,8 @@
   "theme": "Theme",
   "theme-system": "System theme",
   "theme-light": "Light theme",
-  "theme-dark": "Dark theme"
+  "theme-dark": "Dark theme",
+  "pickDate": "Pick a date",
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month"
 }

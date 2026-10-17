@@ -14,6 +14,7 @@ import {
   StatValue,
   DriverList,
   DriverTag,
+  DriverHours,
   ErrorState
 } from './RaceDetailsPage.styles'
 import { Loader } from 'components/atoms/Loader/Loader'
@@ -29,6 +30,7 @@ import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
 import { formatLapTime } from 'utils/time'
+import { availabilityLabel, driverBlocks, raceOffset } from 'utils/availability'
 import { useToast } from '@/hooks/useToast'
 
 export function RaceDetailsPage() {
@@ -146,7 +148,15 @@ export function RaceDetailsPage() {
           <StatLabel>{t('drivers')}</StatLabel>
           <DriverList>
             {race.drivers?.length
-              ? race.drivers.map(driver => <DriverTag key={driver}>{driver}</DriverTag>)
+              ? race.drivers.map(driver => {
+                const hours = availabilityLabel(driverBlocks(race.driverAvailability, driver), race.startTime || '19:30', t)
+                return (
+                  <DriverTag key={driver}>
+                    {driver}
+                    {hours && <DriverHours>{hours}</DriverHours>}
+                  </DriverTag>
+                )
+              })
               : '-'}
           </DriverList>
         </Stat>
@@ -167,6 +177,7 @@ export function RaceDetailsPage() {
       />}
       {race && <StintSchedule 
         drivers={race.drivers || []} 
+        driverAvailability={race.driverAvailability}
         avgStintTime={race.avgStintTime} 
         avgLapTime={race.avgLapTime} 
         avgFuelPerLap={race.avgFuelPerLap || 0}
@@ -184,6 +195,7 @@ export function RaceDetailsPage() {
           key={isEditModalOpen ? 'open' : 'closed'}
           isOpen={isEditModalOpen}
           race={race}
+          raceStartOffset={raceOffset(race.startTime || '19:30', calculatedRaceStartTime || race.startTime || '19:30')}
           onConfirm={handleSaveRace}
           onCancel={() => setIsEditModalOpen(false)}
         />

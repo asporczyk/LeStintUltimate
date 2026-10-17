@@ -82,6 +82,21 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect(body.evil).toBeUndefined();
         });
 
+        it("stores driver availability and rejects malformed hours", async () => {
+            const raceId = await createRace();
+            const driverAvailability = [
+                { driver: "Adam", from: "18:00", to: "22:00" },
+                { driver: "Adam", from: "08:00", to: "12:00" },
+                { driver: "Ola", from: "", to: "18:30" },
+                { driver: "Ola", from: "14:00+1", to: "" }
+            ];
+            const { body } = await api("PATCH", `/races/${raceId}`, { drivers: ["Adam", "Ola"], driverAvailability });
+            expect(body.driverAvailability).toEqual(driverAvailability);
+            expect((await api("PATCH", `/races/${raceId}`, { driverAvailability: [{ driver: "Adam", from: "24:00" }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverAvailability: [{ driver: "Adam", to: "6:00" }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverAvailability: [{ driver: "Adam", to: "06:00+2" }] })).status).toBe(400);
+        });
+
         it("requires raceId (not the old scheduleId) when adding a stint", async () => {
             const raceId = await createRace();
             expect((await api("POST", "/stints", { scheduleId: raceId, order: 1, duration: 50 })).status).toBe(400);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useTranslation } from 'react-i18next'
-import { type Race } from 'types/Race'
+import { type Race, type DriverAvailability } from 'types/Race'
 import {
   Overlay,
   ModalContent,
@@ -12,16 +12,22 @@ import {
   Label,
   ModalButtons,
   ErrorText,
+  FieldHint,
   InputWithUnit,
   InputUnit,
   InputWithUnitStyle
 } from './EditRaceModal.styles'
 import { DriverChips } from './DriverChips'
-import { formatLapTime, parseLapTime } from 'utils/time'
+import { DriverAvailabilityFields } from './DriverAvailabilityFields'
+import { addMinutesToClock, formatLapTime, parseLapTime } from 'utils/time'
+import { DatePicker } from 'components/atoms/Picker/DatePicker'
+import { TimeSelect } from 'components/atoms/Picker/TimeSelect'
 
 interface EditRaceModalProps {
   isOpen: boolean
   race: Race
+  // Minutes from the event start (training) to the race start, after qualification.
+  raceStartOffset?: number
   onConfirm: (updatedRace: Partial<Race>) => void
   onCancel: () => void
 }
@@ -39,6 +45,20 @@ interface FormErrors {
   drivers?: string
 }
 
+// Today as "YYYY-MM-DD" in local time.
+const todayValue = () => {
+  const today = new Date()
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+}
+
+// Start times every 15 minutes, plus a saved time off that grid.
+function startTimeOptions(current: string) {
+  const times = Array.from({ length: 96 }, (_, i) =>
+    `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`)
+  if (current && !times.includes(current)) times.push(current)
+  return times.sort().map(time => ({ value: time, label: time }))
+}
+
 function getInitialFormData(race: Race) {
   return {
     name: race.name || '',
@@ -50,7 +70,8 @@ function getInitialFormData(race: Race) {
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
     avgFuelPerLap: race.avgFuelPerLap?.toString() || '',
     avgStintTime: race.avgStintTime?.toString() || '',
-    drivers: race.drivers || []
+    drivers: race.drivers || [],
+    driverAvailability: (race.driverAvailability || []) as DriverAvailability[]
   }
 }
 
@@ -125,7 +146,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceModalProps) {
+export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, onCancel }: EditRaceModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -169,7 +190,11 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       avgLapTime: lapTime ?? undefined,
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
-      drivers: formData.drivers
+      drivers: formData.drivers,
+      // Only drivers still in the race, and only those with hours set.
+      driverAvailability: formData.driverAvailability
+        .filter(entry => formData.drivers.includes(entry.driver) && (entry.from || entry.to))
+        .map(({ driver, from, to }) => ({ driver, from: from || '', to: to || '' }))
     })
   }
 
@@ -180,11 +205,20 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
     }
   }
 
+  const setField = (field: 'startDate' | 'startTime', value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
+  }
+
   const handleDriversChange = (drivers: string[]) => {
     setFormData(prev => ({ ...prev, drivers }))
     if (errors.drivers) {
       setErrors(prev => ({ ...prev, drivers: undefined }))
     }
+  }
+
+  const handleAvailabilityChange = (driverAvailability: DriverAvailability[]) => {
+    setFormData(prev => ({ ...prev, driverAvailability }))
   }
 
   if (!isOpen) return null
@@ -211,25 +245,23 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
           <FormRow>
             <FormGroup>
               <Label>{t('startDate')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="date"
-                  value={formData.startDate}
-                  onChange={handleChange('startDate')}
-                />
-              </InputWithUnit>
+              <DatePicker
+                value={formData.startDate}
+                onChange={value => setField('startDate', value)}
+                min={todayValue()}
+                ariaLabel={t('startDate')}
+              />
               {errors.startDate && <ErrorText>{t(errors.startDate)}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
               <Label>{t('startTime')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="time"
-                  value={formData.startTime}
-                  onChange={handleChange('startTime')}
-                />
-              </InputWithUnit>
+              <TimeSelect
+                value={formData.startTime}
+                onChange={value => setField('startTime', value)}
+                groups={[{ label: '', options: startTimeOptions(formData.startTime) }]}
+                ariaLabel={t('startTime')}
+              />
             </FormGroup>
 
             <FormGroup>
@@ -340,6 +372,22 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
             />
             {errors.drivers && <ErrorText>{t(errors.drivers)}</ErrorText>}
           </FormGroup>
+
+          {formData.drivers.length > 0 && (
+            <FormGroup>
+              <Label as="span">{t('driverAvailability')}</Label>
+              <FieldHint>{t('driverAvailabilityHint')}</FieldHint>
+              <DriverAvailabilityFields
+                drivers={formData.drivers}
+                availability={formData.driverAvailability}
+                onChange={handleAvailabilityChange}
+                eventDate={formData.startDate}
+                eventStartClock={formData.startTime}
+                raceStartClock={addMinutesToClock(formData.startTime, raceStartOffset).slice(0, 5)}
+                raceLength={Number(formData.raceLength) || 0}
+              />
+            </FormGroup>
+          )}
 
           <ModalButtons>
             <TextButton type="button" $variant="secondary" ref={cancelRef} onClick={onCancel}>
