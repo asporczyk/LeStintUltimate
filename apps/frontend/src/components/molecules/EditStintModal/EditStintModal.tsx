@@ -173,7 +173,7 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
                 type="number"
                 min="0"
                 max="120"
-                value={formData.duration}
+                value={formData.duration || ''}
                 onChange={handleDurationChange}
               />
               <InputUnit>min</InputUnit>
