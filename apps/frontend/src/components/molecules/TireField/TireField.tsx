@@ -116,30 +116,37 @@ const CarWheel = styled.rect<{ $tire: TireCompound }>`
 // They stick out past the body so the compound's color shows.
 const CAR_WHEELS = [{ x: 4, y: 14 }, { x: 49, y: 14 }, { x: 2, y: 88 }, { x: 51, y: 88 }]
 
-// GT3 car from above, nose up: round headlights and hood vents, cabin glass,
-// wide rear haunches and the rear wing. Its wheels show what goes on each corner.
+// BMW M4 GT3 from above, nose up: kidney grilles and slim headlights, a long hood with
+// vents over the front wheels, the cabin set back, a fastback and the rear wing.
+// Its wheels show what goes on each corner.
 function CarOutline({ tires }: { tires: TireCompound[] }) {
   return (
     <CarView viewBox="0 0 60 120" aria-hidden="true">
       {CAR_WHEELS.map(({ x, y }, index) => (
         <CarWheel key={index} x={x} y={y} width="7" height="18" rx="2" $tire={tires[index]} />
       ))}
-      {/* Mirrors */}
-      <CarDetail d="M12 45 L7 43 C6 43 5.5 44 5.5 45 L6 47 C6 48 7 48.5 8 48.5 L12 48 Z" />
-      <CarDetail d="M48 45 L53 43 C54 43 54.5 44 54.5 45 L54 47 C54 48 53 48.5 52 48.5 L48 48 Z" />
-      <CarBody d="M13 9 C15 4 22 3 30 3 C38 3 45 4 47 9 L50 15 C51.5 21 51.5 29 50 35 L48 42 L48 76 C51 80 52.5 86 52.5 94 L52.5 104 C52.5 109 50 112 46 112.5 L14 112.5 C10 112 7.5 109 7.5 104 L7.5 94 C7.5 86 9 80 12 76 L12 42 L10 35 C8.5 29 8.5 21 10 15 Z" />
-      {/* Headlights */}
-      <CarDetail d="M12.5 11 a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0 Z M40.5 11 a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0 Z" />
-      {/* Hood vents */}
-      <CarDetail d="M22 11 L27 10.5 L27 22 L23.5 20 Z M38 11 L33 10.5 L33 22 L36.5 20 Z" />
-      {/* Windscreen, roof and rear window */}
-      <CarDetail d="M15.5 38 C21 34.5 39 34.5 44.5 38 L41 50 C34 48.5 26 48.5 19 50 Z" />
-      <CarLine d="M19 50 L20.5 78 M41 50 L39.5 78 M27 49.5 L27 77 M33 49.5 L33 77" />
-      <CarDetail d="M20.5 78 C26 77 34 77 39.5 78 L40 94 C34 95 26 95 20 94 Z" />
+      {/* Mirrors: a short stalk and a rounded housing angled back, glass edge in front */}
+      <CarBody d="M11 44 L9.4 46.4 L4.4 48.7 C3 49.4 2.8 51 3.9 51.7 C4.8 52.3 6 52 7 51.4 L9 50 C10 49.3 10.2 48.3 9.8 47.6 L11 46.2 Z" />
+      <CarBody d="M49 44 L50.6 46.4 L55.6 48.7 C57 49.4 57.2 51 56.1 51.7 C55.2 52.3 54 52 53 51.4 L51 50 C50 49.3 49.8 48.3 50.2 47.6 L49 46.2 Z" />
+      <CarLine d="M8.8 47.8 L4.8 49.7 M51.2 47.8 L55.2 49.7" />
+      <CarBody d="M12 6 C14 3 20 2 30 2 C40 2 46 3 48 6 L50.5 12 C52 20 52 30 50.5 36 L49 42 L49 78 C51.5 82 52.5 88 52.5 94 L52.5 106 C52.5 110 50 112.5 46 113 L14 113 C10 112.5 7.5 110 7.5 106 L7.5 94 C7.5 88 8.5 82 11 78 L11 42 L9.5 36 C8 30 8 20 9.5 12 Z" />
+      {/* Kidney grilles and headlights */}
+      <CarDetail d="M23.5 3 L29 2.6 L29 7 L24 7.3 Z M36.5 3 L31 2.6 L31 7 L36 7.3 Z" />
+      <CarDetail d="M11.5 8 L20 5.2 L19 8.5 L12 11 Z M48.5 8 L40 5.2 L41 8.5 L48 11 Z" />
+      {/* Hood: power domes, centre vent and the louvres over the front wheels */}
+      <CarLine d="M22.5 11 L21.5 41 M37.5 11 L38.5 41" />
+      <CarDetail d="M26 14 L34 14 L33.5 25 L26.5 25 Z" />
+      <CarLine d="M13 17 L18 17 M13 20.5 L18 20.5 M13 24 L18 24 M13 27.5 L18 27.5 M42 17 L47 17 M42 20.5 L47 20.5 M42 24 L47 24 M42 27.5 L47 27.5" />
+      {/* Door windows, from the A-pillar back to the fastback */}
+      <CarDetail d="M14.3 45 L17.4 55.5 L19.4 80 C16.9 77.5 15 73 14.2 67 L13.2 52 Z M45.7 45 L42.6 55.5 L40.6 80 C43.1 77.5 45 73 45.8 67 L46.8 52 Z" />
+      {/* Windscreen, roof edges and fastback */}
+      <CarDetail d="M14.5 44 C20.5 40.5 39.5 40.5 45.5 44 L42.5 55 C35 53.8 25 53.8 17.5 55 Z" />
+      <CarLine d="M17.5 55 L19.5 80 M42.5 55 L40.5 80" />
+      <CarDetail d="M19.5 80 C26 79 34 79 40.5 80 L40 92 C34 93 26 93 20 92 Z" />
       {/* Rear wing on its swan-neck mounts */}
-      <CarLine d="M23 96 L23 106 M37 96 L37 106" />
-      <CarDetail d="M5 106 L55 106 L55 111 L5 111 Z" />
-      <CarLine d="M5 104 L5 113 M55 104 L55 113" />
+      <CarLine d="M23 93 L23 106 M37 93 L37 106" />
+      <CarDetail d="M4 106 L56 106 L56 111.5 L4 111.5 Z" />
+      <CarLine d="M4 103 L4 114 M56 103 L56 114" />
     </CarView>
   )
 }
