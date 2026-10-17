@@ -29,8 +29,9 @@ interface EditStintModalProps {
   stint: Stint
   drivers: string[]
   driverAvailability?: DriverAvailability[]
-  // Race start clock and the stint's start and the checkered flag in race minutes, to
+  // Event and race start clocks, and the stint's start and the checkered flag in race minutes, to
   // offer only the drivers available at the stint's time.
+  eventStartClock: string
   raceStartClock: string
   stintStart: number
   flagAt: number
@@ -83,7 +84,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>, crew: Sti
   return errors
 }
 
-export function EditStintModal({ isOpen, stint, drivers, driverAvailability, raceStartClock, stintStart, flagAt, avgStintTime, startLap, maxDuration = null, finishFuel = null, onConfirm, onCancel }: EditStintModalProps) {
+export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eventStartClock, raceStartClock, stintStart, flagAt, avgStintTime, startLap, maxDuration = null, finishFuel = null, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const durationLimit = maxDuration !== null && maxDuration < 120 ? maxDuration : null
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -96,6 +97,7 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, rac
   const crew = stintCrew({
     drivers,
     availability: driverAvailability,
+    eventStartClock,
     raceStartClock,
     start: stintStart,
     end: Math.min(stintStart + Math.max(0, formData.duration || 0), flagAt),

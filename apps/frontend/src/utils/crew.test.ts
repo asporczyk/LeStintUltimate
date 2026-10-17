@@ -8,6 +8,7 @@ const base = {
     { driver: 'Adam', from: '', to: '18:00' },
     { driver: 'Ola', from: '17:00', to: '22:00' },
   ],
+  eventStartClock: '14:00',
   raceStartClock: '14:00',
   driver: '',
   spotter: '',

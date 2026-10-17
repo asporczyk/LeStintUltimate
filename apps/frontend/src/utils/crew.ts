@@ -28,6 +28,8 @@ export interface StintCrew {
 interface StintCrewInput {
   drivers: string[]
   availability: DriverAvailability[] | undefined
+  // Event start (training) and race start clocks: hours of availability count from the event start.
+  eventStartClock: string
   raceStartClock: string
   // The stint in race minutes.
   start: number
@@ -39,8 +41,8 @@ interface StintCrewInput {
 
 // Who can drive and spot a stint, by the drivers' hours, and the choice the form shows:
 // a choice no longer available is dropped, a single option is picked automatically.
-export function stintCrew({ drivers, availability, raceStartClock, start, end, driver, spotter }: StintCrewInput): StintCrew {
-  const windowsOf = (name: string) => availabilityWindows(driverBlocks(availability, name), raceStartClock)
+export function stintCrew({ drivers, availability, eventStartClock, raceStartClock, start, end, driver, spotter }: StintCrewInput): StintCrew {
+  const windowsOf = (name: string) => availabilityWindows(driverBlocks(availability, name), eventStartClock, raceStartClock)
 
   const driverOptions = drivers.filter(name => isAvailable(windowsOf(name), start, end))
   const resolvedDriver = driverOptions.includes(driver) ? driver : driverOptions.length === 1 ? driverOptions[0] : ''

@@ -5,8 +5,8 @@ const objectId = { type: "string", pattern: "^[0-9a-fA-F]{24}$" } as const;
 const clockTime = { type: "string", pattern: "^\\d{2}:\\d{2}(:\\d{2})?$" } as const;
 const tire = { type: "string", maxLength: 3 } as const;
 const person = { type: "string", maxLength: 50 } as const;
-// "HH:MM", or empty for no limit.
-const optionalClockTime = { type: "string", pattern: "^(([01]\\d|2[0-3]):[0-5]\\d)?$" } as const;
+// "HH:MM" ("HH:MM+1" for its second time in a session over 24 h), or empty for no limit.
+const availabilityHour = { type: "string", pattern: "^(([01]\\d|2[0-3]):[0-5]\\d(\\+1)?)?$" } as const;
 
 export const idParams = {
     type: "object",
@@ -47,7 +47,7 @@ export const patchRaceBody = {
                 type: "object",
                 required: ["driver"],
                 additionalProperties: false,
-                properties: { driver: person, from: optionalClockTime, to: optionalClockTime }
+                properties: { driver: person, from: availabilityHour, to: availabilityHour }
             }
         },
         tireSets: { type: "integer", minimum: 0, maximum: 100 },

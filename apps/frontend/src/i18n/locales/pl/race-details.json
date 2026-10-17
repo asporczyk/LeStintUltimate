@@ -117,7 +117,7 @@
   "stintsN_other": "stinty {{list}}",
   "fuelToFinish": "Dostosowano do mety: {{laps}} okr. + {{reserve}} zapasu",
   "driverAvailability": "Dostępność kierowców",
-  "driverAvailabilityHint": "Godziny realne. Puste „od” = od startu wyścigu, puste „do” = do mety. Kierowca może mieć kilka bloków. Bez godzin jest dostępny cały czas.",
+  "driverAvailabilityHint": "Godziny realne co 15 minut, od startu sesji do końca wyścigu. „Od startu” i „Do mety” to brak ograniczenia. Kierowca może mieć kilka bloków. Bez godzin jest dostępny cały czas.",
   "availableFrom": "od",
   "availableTo": "do",
   "availabilityRange": "{{from}}–{{to}}",
@@ -132,5 +132,8 @@
   "onlyAvailableDriver": "Jedyny kierowca dostępny przez cały stint",
   "onlyAvailableSpotter": "Jedyny dostępny spotter",
   "noSpotterAvailable": "Żaden inny kierowca nie jest dostępny w czasie stintu",
-  "spotterPartlyAvailable": "{{name}} jest dostępny tylko przez część stintu"
+  "spotterPartlyAvailable": "{{name}} jest dostępny tylko przez część stintu",
+  "fromStart": "Od startu",
+  "toFinish": "Do mety",
+  "dayN": "Dzień {{day}}"
 }

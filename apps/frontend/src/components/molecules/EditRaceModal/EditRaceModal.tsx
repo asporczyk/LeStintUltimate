@@ -19,11 +19,15 @@ import {
 } from './EditRaceModal.styles'
 import { DriverChips } from './DriverChips'
 import { DriverAvailabilityFields } from './DriverAvailabilityFields'
-import { formatLapTime, parseLapTime } from 'utils/time'
+import { addMinutesToClock, formatLapTime, parseLapTime } from 'utils/time'
+import { DatePicker } from 'components/atoms/Picker/DatePicker'
+import { TimePicker } from 'components/atoms/Picker/TimePicker'
 
 interface EditRaceModalProps {
   isOpen: boolean
   race: Race
+  // Minutes from the event start (training) to the race start, after qualification.
+  raceStartOffset?: number
   onConfirm: (updatedRace: Partial<Race>) => void
   onCancel: () => void
 }
@@ -39,6 +43,12 @@ interface FormErrors {
   avgFuelPerLap?: string
   avgStintTime?: string
   drivers?: string
+}
+
+// Today as "YYYY-MM-DD" in local time.
+const todayValue = () => {
+  const today = new Date()
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 }
 
 function getInitialFormData(race: Race) {
@@ -128,7 +138,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceModalProps) {
+export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, onCancel }: EditRaceModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -187,6 +197,11 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
     }
   }
 
+  const setField = (field: 'startDate' | 'startTime', value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
+  }
+
   const handleDriversChange = (drivers: string[]) => {
     setFormData(prev => ({ ...prev, drivers }))
     if (errors.drivers) {
@@ -222,25 +237,22 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
           <FormRow>
             <FormGroup>
               <Label>{t('startDate')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="date"
-                  value={formData.startDate}
-                  onChange={handleChange('startDate')}
-                />
-              </InputWithUnit>
+              <DatePicker
+                value={formData.startDate}
+                onChange={value => setField('startDate', value)}
+                min={todayValue()}
+                ariaLabel={t('startDate')}
+              />
               {errors.startDate && <ErrorText>{t(errors.startDate)}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
               <Label>{t('startTime')}</Label>
-              <InputWithUnit>
-                <InputWithUnitStyle
-                  type="time"
-                  value={formData.startTime}
-                  onChange={handleChange('startTime')}
-                />
-              </InputWithUnit>
+              <TimePicker
+                value={formData.startTime}
+                onChange={value => setField('startTime', value)}
+                ariaLabel={t('startTime')}
+              />
             </FormGroup>
 
             <FormGroup>
@@ -360,6 +372,10 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
                 drivers={formData.drivers}
                 availability={formData.driverAvailability}
                 onChange={handleAvailabilityChange}
+                eventDate={formData.startDate}
+                eventStartClock={formData.startTime}
+                raceStartClock={addMinutesToClock(formData.startTime, raceStartOffset).slice(0, 5)}
+                raceLength={Number(formData.raceLength) || 0}
               />
             </FormGroup>
           )}

@@ -102,7 +102,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
     const toFlag = timelineStint.status === 'finish'
     const availability = driverBlocks(driverAvailability, stint.driver)
     const unavailable = stint.driver && timelineStint.status !== 'after'
-      && !isAvailable(availabilityWindows(availability, startTime), start, end)
+      && !isAvailable(availabilityWindows(availability, eventStartTime, startTime), start, end)
     return {
       stint,
       index,
@@ -114,7 +114,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
       isActive: currentRaceTime >= start && currentRaceTime < end,
       remainingTires: remainingTiresAt(stints, index, tireSets),
       driverWarning: unavailable
-        ? t('driverUnavailable', { window: availabilityLabel(availability, startTime, t) ?? '' })
+        ? t('driverUnavailable', { window: availabilityLabel(availability, eventStartTime, t) ?? '' })
         : undefined,
     }
   })
@@ -218,6 +218,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
         raceId={raceId}
         drivers={drivers}
         driverAvailability={driverAvailability}
+        eventStartClock={eventStartTime}
         raceStartClock={startTime}
         stintStart={newStintStart(addAfterStint)}
         flagAt={timeline.finish.flagAt}
@@ -243,6 +244,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
           stint={editingStint}
           drivers={drivers}
           driverAvailability={driverAvailability}
+          eventStartClock={eventStartTime}
           raceStartClock={startTime}
           stintStart={timeline.stints[editingIndex].start}
           flagAt={timeline.finish.flagAt}

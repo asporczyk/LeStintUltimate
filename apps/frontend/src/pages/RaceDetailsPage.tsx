@@ -30,7 +30,7 @@ import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
 import { formatLapTime } from 'utils/time'
-import { availabilityLabel, driverBlocks } from 'utils/availability'
+import { availabilityLabel, driverBlocks, raceOffset } from 'utils/availability'
 import { useToast } from '@/hooks/useToast'
 
 export function RaceDetailsPage() {
@@ -195,6 +195,7 @@ export function RaceDetailsPage() {
           key={isEditModalOpen ? 'open' : 'closed'}
           isOpen={isEditModalOpen}
           race={race}
+          raceStartOffset={raceOffset(race.startTime || '19:30', calculatedRaceStartTime || race.startTime || '19:30')}
           onConfirm={handleSaveRace}
           onCancel={() => setIsEditModalOpen(false)}
         />

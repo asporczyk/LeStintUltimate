@@ -39,32 +39,13 @@ export const AvailabilityBlocks = styled.div`
 
 export const AvailabilityRow = styled.div`
   display: grid;
-  grid-template-columns: 8.5rem 8.5rem 2rem;
+  grid-template-columns: 9.5rem 9.5rem 2rem;
   align-items: center;
   gap: 0.5rem;
 
   @media (max-width: 500px) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2rem;
   }
-`
-
-export const AvailabilityField = styled.label`
-  position: relative;
-  display: flex;
-  align-items: center;
-
-  input {
-    padding-left: 2.5rem;
-  }
-`
-
-export const AvailabilityFieldLabel = styled.span`
-  position: absolute;
-  left: 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.textMuted};
-  pointer-events: none;
 `
 
 export const RemoveBlockButton = styled.button`

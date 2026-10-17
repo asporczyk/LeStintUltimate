@@ -113,7 +113,7 @@
   "stintsN_other": "stints {{list}}",
   "fuelToFinish": "Matched to the finish: {{laps}} laps + {{reserve}} in reserve",
   "driverAvailability": "Driver availability",
-  "driverAvailabilityHint": "Real clock time. Empty “from” = from the race start, empty “to” = to the finish. A driver can have several blocks. Without hours they are available the whole race.",
+  "driverAvailabilityHint": "Real clock time in 15-minute steps, from the session start to the end of the race. “From start” and “To finish” mean no limit. A driver can have several blocks. Without hours they are available the whole race.",
   "availableFrom": "from",
   "availableTo": "to",
   "availabilityRange": "{{from}}–{{to}}",
@@ -128,5 +128,8 @@
   "onlyAvailableDriver": "The only driver available for the whole stint",
   "onlyAvailableSpotter": "The only spotter available",
   "noSpotterAvailable": "No other driver is available during the stint",
-  "spotterPartlyAvailable": "{{name}} is available for part of the stint only"
+  "spotterPartlyAvailable": "{{name}} is available for part of the stint only",
+  "fromStart": "From start",
+  "toFinish": "To finish",
+  "dayN": "Day {{day}}"
 }
