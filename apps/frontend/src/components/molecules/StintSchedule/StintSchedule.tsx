@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
+import { type DriverAvailability } from 'types/Race'
+import { availabilityLabel, availabilityWindows, driverBlocks, isAvailable } from 'utils/availability'
 import { addMinutesToClock } from 'utils/time'
 import { remainingTiresAt } from 'utils/tires'
 import { stintStartLap } from 'utils/laps'
 import { raceTimeline, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
 import { minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
+import { calculatePitstopTime } from 'utils/pitstop'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
 import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
@@ -31,6 +34,7 @@ import { useToast } from '@/hooks/useToast'
 
 interface StintScheduleProps {
   drivers: string[]
+  driverAvailability?: DriverAvailability[]
   avgStintTime: number
   avgLapTime: number
   avgFuelPerLap: number
@@ -44,7 +48,7 @@ interface StintScheduleProps {
   notes?: string
 }
 
-export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, raceLength, notes }: StintScheduleProps) {
+export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLapTime, avgFuelPerLap, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, raceLength, notes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const { onStintRefresh } = useSocket()
@@ -96,6 +100,9 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
     const timelineStint = timeline.stints[index]
     const { start, end } = timelineStint
     const toFlag = timelineStint.status === 'finish'
+    const availability = driverBlocks(driverAvailability, stint.driver)
+    const unavailable = stint.driver && timelineStint.status !== 'after'
+      && !isAvailable(availabilityWindows(availability, startTime), start, end)
     return {
       stint,
       index,
@@ -106,6 +113,9 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
       duration: toFlag ? `${Math.round(end - start)} min · ${t('toFlag')}` : `${stint.duration} min`,
       isActive: currentRaceTime >= start && currentRaceTime < end,
       remainingTires: remainingTiresAt(stints, index, tireSets),
+      driverWarning: unavailable
+        ? t('driverUnavailable', { window: availabilityLabel(availability, startTime, t) ?? '' })
+        : undefined,
     }
   })
   const lastOrder = rows.length ? rows[rows.length - 1].order : 0
@@ -119,6 +129,15 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
   const drivenEnd = Math.max(0, ...rows.filter(row => row.timelineStint.status !== 'after').map(row => row.timelineStint.end))
   const scrollToStint = (id: string) =>
     document.getElementById(`stint-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+  // Where a stint added after `afterOrder` would start (race minutes), after a pit stop
+  // with a driver change and a full tank.
+  const newStintStart = (afterOrder: number) => {
+    const previous = stints[afterOrder - 1]
+    if (!previous) return 0
+    const pitSeconds = calculatePitstopTime(previous, { ...previous, driver: `${previous.driver}-next`, fuel: 100 }, fuelTankCapacity)
+    return timeline.stints[afterOrder - 1].start + previous.duration + pitSeconds / 60
+  }
 
   const startLapBefore = (index: number) => stintStartLap(stints.slice(0, index).map(s => s.duration), avgLapTime)
 
@@ -150,6 +169,7 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
                 duration={row.duration}
                 isActive={row.isActive}
                 driver={row.stint.driver}
+                driverWarning={row.driverWarning}
                 spotter={row.stint.spotter}
                 stats={[
                   { label: t('startLapShort'), value: row.stint.fuelLaps },
@@ -197,6 +217,10 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
         totalStints={stints.length}
         raceId={raceId}
         drivers={drivers}
+        driverAvailability={driverAvailability}
+        raceStartClock={startTime}
+        stintStart={newStintStart(addAfterStint)}
+        flagAt={timeline.finish.flagAt}
         avgStintTime={avgStintTime}
         startLap={startLapBefore(addAfterStint)}
         maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity)}
@@ -218,6 +242,10 @@ export function StintSchedule({ drivers, avgStintTime, avgLapTime, avgFuelPerLap
           isOpen
           stint={editingStint}
           drivers={drivers}
+          driverAvailability={driverAvailability}
+          raceStartClock={startTime}
+          stintStart={timeline.stints[editingIndex].start}
+          flagAt={timeline.finish.flagAt}
           avgStintTime={avgStintTime}
           startLap={startLapBefore(editingIndex)}
           maxDuration={maxStintDuration(timeline, editingIndex, editingStint.duration)}

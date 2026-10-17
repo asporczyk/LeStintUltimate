@@ -155,6 +155,12 @@ export const FieldHint = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `
 
+// A gentle heads-up next to a field, not an error.
+export const FieldWarning = styled.span`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.warning};
+`
+
 export const InputWithUnit = styled.div`
   position: relative;
   display: flex;

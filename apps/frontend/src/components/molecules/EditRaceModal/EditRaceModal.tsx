@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useTranslation } from 'react-i18next'
-import { type Race } from 'types/Race'
+import { type Race, type DriverAvailability } from 'types/Race'
 import {
   Overlay,
   ModalContent,
@@ -12,11 +12,13 @@ import {
   Label,
   ModalButtons,
   ErrorText,
+  FieldHint,
   InputWithUnit,
   InputUnit,
   InputWithUnitStyle
 } from './EditRaceModal.styles'
 import { DriverChips } from './DriverChips'
+import { DriverAvailabilityFields } from './DriverAvailabilityFields'
 import { formatLapTime, parseLapTime } from 'utils/time'
 
 interface EditRaceModalProps {
@@ -50,7 +52,8 @@ function getInitialFormData(race: Race) {
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
     avgFuelPerLap: race.avgFuelPerLap?.toString() || '',
     avgStintTime: race.avgStintTime?.toString() || '',
-    drivers: race.drivers || []
+    drivers: race.drivers || [],
+    driverAvailability: (race.driverAvailability || []) as DriverAvailability[]
   }
 }
 
@@ -169,7 +172,11 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       avgLapTime: lapTime ?? undefined,
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
-      drivers: formData.drivers
+      drivers: formData.drivers,
+      // Only drivers still in the race, and only those with hours set.
+      driverAvailability: formData.driverAvailability
+        .filter(entry => formData.drivers.includes(entry.driver) && (entry.from || entry.to))
+        .map(({ driver, from, to }) => ({ driver, from: from || '', to: to || '' }))
     })
   }
 
@@ -185,6 +192,10 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
     if (errors.drivers) {
       setErrors(prev => ({ ...prev, drivers: undefined }))
     }
+  }
+
+  const handleAvailabilityChange = (driverAvailability: DriverAvailability[]) => {
+    setFormData(prev => ({ ...prev, driverAvailability }))
   }
 
   if (!isOpen) return null
@@ -340,6 +351,18 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
             />
             {errors.drivers && <ErrorText>{t(errors.drivers)}</ErrorText>}
           </FormGroup>
+
+          {formData.drivers.length > 0 && (
+            <FormGroup>
+              <Label as="span">{t('driverAvailability')}</Label>
+              <FieldHint>{t('driverAvailabilityHint')}</FieldHint>
+              <DriverAvailabilityFields
+                drivers={formData.drivers}
+                availability={formData.driverAvailability}
+                onChange={handleAvailabilityChange}
+              />
+            </FormGroup>
+          )}
 
           <ModalButtons>
             <TextButton type="button" $variant="secondary" ref={cancelRef} onClick={onCancel}>

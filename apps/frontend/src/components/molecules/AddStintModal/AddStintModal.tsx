@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
-import { CustomSelect } from 'components/atoms/CustomSelect/CustomSelect'
 import { CustomCheckbox } from 'components/atoms/CustomCheckbox/CustomCheckbox'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
+import { type DriverAvailability } from 'types/Race'
+import { stintCrew } from 'utils/crew'
+import { StintCrewFields } from 'components/molecules/StintCrewFields/StintCrewFields'
 import { StintsApi } from 'api/StintsApi'
 import {
   Overlay,
@@ -31,6 +33,12 @@ interface AddStintModalProps {
   totalStints: number
   raceId: string
   drivers: string[]
+  driverAvailability?: DriverAvailability[]
+  // Race start clock and the stint's start and the checkered flag in race minutes, to
+  // offer only the drivers available at the stint's time.
+  raceStartClock: string
+  stintStart: number
+  flagAt: number
   avgStintTime: number
   startLap: number
   // Longest stint that still ends by the checkered flag (minutes).
@@ -60,7 +68,7 @@ interface FormErrors {
   spotter?: string
 }
 
-export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, avgStintTime, startLap, maxDuration, finishFuel, onStintAdded, onCancel }: AddStintModalProps) {
+export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, driverAvailability, raceStartClock, stintStart, flagAt, avgStintTime, startLap, maxDuration, finishFuel, onStintAdded, onCancel }: AddStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -75,6 +83,15 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
   const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
   const activeFinishFuel = runsToFlag ? finishFuel ?? null : null
   const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
+  const crew = stintCrew({
+    drivers,
+    availability: driverAvailability,
+    raceStartClock,
+    start: stintStart,
+    end: Math.min(stintStart + Math.max(0, formData.duration || 0), flagAt),
+    driver: formData.driver,
+    spotter: formData.spotter,
+  })
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
@@ -99,10 +116,10 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     } else if (durationLimit !== undefined && formData.duration > durationLimit) {
       newErrors.duration = 'validation.beyondRaceEnd'
     }
-    if (!formData.driver.trim()) {
+    if (!crew.driver) {
       newErrors.driver = 'validation.required'
     }
-    if (!formData.spotter.trim()) {
+    if (!crew.spotter) {
       newErrors.spotter = 'validation.required'
     }
     setErrors(newErrors)
@@ -121,8 +138,8 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
         duration: formData.duration,
         // Follows the race's average stint time while it is left at the prefilled value.
         durationAuto: formData.duration === avgStintTime,
-        driver: formData.driver,
-        spotter: formData.spotter,
+        driver: crew.driver,
+        spotter: crew.spotter,
         fuelLaps: startLap,
         fuel,
         tireFL: formData.tireFL,
@@ -184,31 +201,18 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
             </InputWithUnit>
           </FormGroup>
 
-          <FormGroup>
-            <Label>{t('driver')}</Label>
-            <CustomSelect
-              value={formData.driver}
-              onChange={(value) => {
-                setFormData(prev => ({ ...prev, driver: value }))
-                if (errors.driver) setErrors(prev => ({ ...prev, driver: undefined }))
-              }}
-              options={drivers.map(d => ({ value: d, label: d }))}
-            />
-            {errors.driver && <ErrorText>{t(errors.driver)}</ErrorText>}
-          </FormGroup>
-
-          <FormGroup>
-            <Label>{t('spotter')}</Label>
-            <CustomSelect
-              value={formData.spotter}
-              onChange={(value) => {
-                setFormData(prev => ({ ...prev, spotter: value }))
-                if (errors.spotter) setErrors(prev => ({ ...prev, spotter: undefined }))
-              }}
-              options={drivers.filter(d => d !== formData.driver).map(d => ({ value: d, label: d }))}
-            />
-            {errors.spotter && <ErrorText>{t(errors.spotter)}</ErrorText>}
-          </FormGroup>
+          <StintCrewFields
+            crew={crew}
+            errors={errors}
+            onDriverChange={(value) => {
+              setFormData(prev => ({ ...prev, driver: value }))
+              if (errors.driver) setErrors(prev => ({ ...prev, driver: undefined }))
+            }}
+            onSpotterChange={(value) => {
+              setFormData(prev => ({ ...prev, spotter: value }))
+              if (errors.spotter) setErrors(prev => ({ ...prev, spotter: undefined }))
+            }}
+          />
 
           <FuelField
             value={formData.fuel}

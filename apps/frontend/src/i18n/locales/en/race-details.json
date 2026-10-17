@@ -111,5 +111,22 @@
   "afterFinishWarning_other": "Stints {{list}} start after the finish. Delete them or shorten earlier ones.",
   "stintsN_one": "stint {{list}}",
   "stintsN_other": "stints {{list}}",
-  "fuelToFinish": "Matched to the finish: {{laps}} laps + {{reserve}} in reserve"
+  "fuelToFinish": "Matched to the finish: {{laps}} laps + {{reserve}} in reserve",
+  "driverAvailability": "Driver availability",
+  "driverAvailabilityHint": "Real clock time. Empty “from” = from the race start, empty “to” = to the finish. A driver can have several blocks. Without hours they are available the whole race.",
+  "availableFrom": "from",
+  "availableTo": "to",
+  "availabilityRange": "{{from}}–{{to}}",
+  "availabilityFrom": "from {{from}}",
+  "availabilityTo": "until {{to}}",
+  "driverUnavailable": "Driver not available at this time (available {{window}})",
+  "removeAvailabilityBlock": "Remove block of hours",
+  "addAvailabilityBlock": "Add block",
+  "noSpotter": "None",
+  "partlyAvailable": "part of the stint",
+  "noDriverAvailable": "No driver is available for the whole stint. Change the duration or the drivers' availability.",
+  "onlyAvailableDriver": "The only driver available for the whole stint",
+  "onlyAvailableSpotter": "The only spotter available",
+  "noSpotterAvailable": "No other driver is available during the stint",
+  "spotterPartlyAvailable": "{{name}} is available for part of the stint only"
 }
