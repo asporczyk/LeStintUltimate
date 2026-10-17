@@ -339,7 +339,7 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
                   placeholder="4.5"
                   min="0"
                   max="100"
-                  step="0.1"
+                  step="0.01"
                 />
                 <InputUnit>%</InputUnit>
               </InputWithUnit>

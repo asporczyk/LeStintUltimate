@@ -187,7 +187,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
                 type="number"
                 min="0"
                 max="120"
-                value={formData.duration}
+                value={formData.duration || ''}
                 onChange={handleDurationChange}
               />
               <InputUnit>min</InputUnit>
