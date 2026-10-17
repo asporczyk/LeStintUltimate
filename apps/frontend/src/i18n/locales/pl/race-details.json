@@ -67,8 +67,11 @@
   "driversPlaceholder": "Wpisz imiona kierowców oddzielone przecinkami",
   "cancel": "Anuluj",
   "save": "Zapisz",
-  "tiresToChange": "Opony do zmiany",
-  "selectAll": "Zaznacz wszystkie",
+  "tiresToChange": "Zmiana opon",
+  "allWheels": "Wszystkie koła",
+  "wheel": {"tireFL": "Lewe przednie", "tireFR": "Prawe przednie", "tireRL": "Lewe tylne", "tireRR": "Prawe tylne"},
+  "tireChangeOption": {"-": "Brak zmiany", "N": "Nowe", "U": "Używane", "W": "Deszczowe"},
+  "tireCompound": {"-": "bez zmiany", "N": "nowa", "U": "używana", "W": "deszczowa"},
   "deleteStint": "Usuń stint",
   "confirmDeleteStint": "Czy na pewno chcesz usunąć ten stint?",
   "validation": {

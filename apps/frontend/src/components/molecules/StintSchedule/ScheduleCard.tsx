@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NO_SPOTTER } from 'utils/crew'
+import { compoundOf } from 'utils/tires'
 import { ActiveIndicator, MutedValue } from './StintSchedule.styles'
 import {
   Card,
@@ -72,24 +73,26 @@ export function ScheduleCard({ badge, start, end, duration, isActive = false, dr
 }
 
 interface TireMapProps {
-  fl: boolean
-  fr: boolean
-  rl: boolean
-  rr: boolean
+  // Each wheel's field: '-' when it stays on, otherwise the compound fitted.
+  fl: string
+  fr: string
+  rl: string
+  rr: string
 }
 
 export function TireMap({ fl, fr, rl, rr }: TireMapProps) {
+  const { t } = useTranslation('raceDetails')
   const changed = ([['FL', fl], ['FR', fr], ['RL', rl], ['RR', rr]] as const)
-    .filter(([, isChanged]) => isChanged)
-    .map(([name]) => name)
+    .filter(([, tire]) => tire !== '-')
+    .map(([name, tire]) => `${name} ${t(`tireCompound.${compoundOf(tire)}`)}`)
   const label = changed.length ? changed.join(', ') : '–'
 
   return (
     <TireGrid role="img" aria-label={label} title={label}>
-      <Tire $changed={fl} />
-      <Tire $changed={fr} />
-      <Tire $changed={rl} />
-      <Tire $changed={rr} />
+      <Tire $tire={fl} />
+      <Tire $tire={fr} />
+      <Tire $tire={rl} />
+      <Tire $tire={rr} />
     </TireGrid>
   )
 }

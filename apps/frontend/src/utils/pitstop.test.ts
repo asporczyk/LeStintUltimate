@@ -28,6 +28,11 @@ describe('calculatePitstopTime', () => {
     expect(calculatePitstopTime(stint(), stint({ fuel: 50, tireFL: 'N', tireFR: 'N', tireRL: 'N', tireRR: 'N' }))).toBeCloseTo(39)
   })
 
+  it('takes as long to fit used or wet tires as new ones', () => {
+    expect(calculatePitstopTime(stint(), stint({ fuel: 50, tireFL: 'U', tireFR: 'U', tireRL: 'U', tireRR: 'U' }))).toBeCloseTo(39)
+    expect(calculatePitstopTime(stint(), stint({ fuel: 50, tireFL: 'W', tireFR: 'W', tireRL: 'W', tireRR: 'W' }))).toBeCloseTo(39)
+  })
+
   it('takes the longer of fuel and tires (2 tires = 22 s < fuel)', () => {
     expect(calculatePitstopTime(stint(), stint({ tireFL: 'N', tireFR: 'N' }))).toBeCloseTo(36.9)
   })

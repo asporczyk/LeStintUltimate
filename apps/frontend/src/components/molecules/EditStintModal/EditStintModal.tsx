@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
-import { CustomCheckbox } from 'components/atoms/CustomCheckbox/CustomCheckbox'
 import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { type DriverAvailability } from 'types/Race'
@@ -14,7 +13,6 @@ import {
   FormGroup,
   Label,
   ModalButtons,
-  CheckboxGroup,
   InputWithUnit,
   InputUnit,
   InputWithUnitStyle,
@@ -23,6 +21,7 @@ import {
 } from './EditStintModal.styles'
 import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
+import { TireField } from 'components/molecules/TireField/TireField'
 
 interface EditStintModalProps {
   isOpen: boolean
@@ -208,42 +207,10 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
             finishFuel={activeFinishFuel}
           />
 
-          <FormGroup>
-            <Label>{t('tiresToChange')}</Label>
-            <CustomCheckbox
-              checked={formData.tireFL !== '-' && formData.tireFR !== '-' && formData.tireRL !== '-' && formData.tireRR !== '-'}
-              onChange={(checked) => setFormData(prev => ({ 
-                ...prev, 
-                tireFL: checked ? 'N' : '-',
-                tireFR: checked ? 'N' : '-',
-                tireRL: checked ? 'N' : '-',
-                tireRR: checked ? 'N' : '-'
-              }))}
-              label={t('selectAll')}
-            />
-            <CheckboxGroup>
-              <CustomCheckbox
-                checked={formData.tireFL !== '-'}
-                onChange={(checked) => setFormData(prev => ({ ...prev, tireFL: checked ? 'N' : '-' }))}
-                label="FL"
-              />
-              <CustomCheckbox
-                checked={formData.tireFR !== '-'}
-                onChange={(checked) => setFormData(prev => ({ ...prev, tireFR: checked ? 'N' : '-' }))}
-                label="FR"
-              />
-              <CustomCheckbox
-                checked={formData.tireRL !== '-'}
-                onChange={(checked) => setFormData(prev => ({ ...prev, tireRL: checked ? 'N' : '-' }))}
-                label="RL"
-              />
-              <CustomCheckbox
-                checked={formData.tireRR !== '-'}
-                onChange={(checked) => setFormData(prev => ({ ...prev, tireRR: checked ? 'N' : '-' }))}
-                label="RR"
-              />
-            </CheckboxGroup>
-          </FormGroup>
+          <TireField
+            value={formData}
+            onChange={(tires) => setFormData(prev => ({ ...prev, ...tires }))}
+          />
 
           <ModalButtons>
             <TextButton type="button" $variant="secondary" ref={cancelRef} onClick={onCancel}>
