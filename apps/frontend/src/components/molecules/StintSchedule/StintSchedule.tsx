@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { type Stint } from 'types/Schedule'
 import { type DriverAvailability } from 'types/Race'
 import { availabilityLabel, availabilityWindows, driverBlocks, isAvailable } from 'utils/availability'
-import { addMinutesToClock } from 'utils/time'
 import { remainingTiresAt } from 'utils/tires'
 import { stintStartLap } from 'utils/laps'
-import { raceTimeline, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
-import { minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
+import { raceTimeline, formatRaceTime, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
+import { clockAt, clockChanges, minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { calculatePitstopTime } from 'utils/pitstop'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
@@ -87,8 +86,11 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
     return () => clearInterval(interval)
   }, [])
 
-  const currentRaceTime = minutesSinceRaceStart(raceStartDateTime(raceDate, eventStartTime, startTime), now)
+  const raceStart = raceStartDateTime(raceDate, eventStartTime, startTime)
+  const currentRaceTime = minutesSinceRaceStart(raceStart, now)
   const timeline = raceTimeline(stints, raceLength, avgLapTime, fuelTankCapacity)
+  // Summer/winter time changes before the flag; race minutes stay real time, clocks jump.
+  const changes = clockChanges(raceStart, timeline.finish.flagAt)
   const editingStint = editingIndex !== null ? stints[editingIndex] : null
 
   const openAddModal = (afterOrder: number) => {
@@ -102,14 +104,20 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
     const toFlag = timelineStint.status === 'finish'
     const availability = driverBlocks(driverAvailability, stint.driver)
     const unavailable = stint.driver && timelineStint.status !== 'after'
-      && !isAvailable(availabilityWindows(availability, eventStartTime, startTime), start, end)
+      && !isAvailable(availabilityWindows(availability, raceDate, eventStartTime, startTime), start, end)
+    // A change in the pit stop after the stint shows on the stint, like the hour marks.
+    const nextStart = index + 1 < stints.length ? timeline.stints[index + 1].start : end
+    const change = timelineStint.status !== 'after'
+      ? changes.find(({ minute }) => minute >= start && minute < Math.max(end, nextStart))
+      : undefined
     return {
       stint,
       index,
       timelineStint,
       order: stint.order ?? index + 1,
-      startClock: addMinutesToClock(startTime, start),
-      endClock: addMinutesToClock(startTime, end),
+      startClock: clockAt(raceStart, start),
+      endClock: clockAt(raceStart, end),
+      clockChange: change && t('clockChange', { from: change.from, to: change.to, time: formatRaceTime(change.minute) }),
       duration: toFlag ? `${Math.round(end - start)} min · ${t('toFlag')}` : `${stint.duration} min`,
       isActive: currentRaceTime >= start && currentRaceTime < end,
       remainingTires: remainingTiresAt(stints, index, tireSets),
@@ -158,7 +166,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
             <div key={row.stint._id} id={`stint-${row.stint._id}`}>
               <TimelineItem
                 timelineStint={row.timelineStint}
-                raceStartClock={startTime}
+                raceStart={raceStart}
                 isActive={row.isActive}
                 isFirst={i === 0}
                 card={
@@ -167,6 +175,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
                 start={row.startClock}
                 end={row.endClock}
                 duration={row.duration}
+                clockChange={row.clockChange}
                 isActive={row.isActive}
                 driver={row.stint.driver}
                 driverWarning={row.driverWarning}
@@ -203,7 +212,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
           ))}
           <FinishItem
             timeline={timeline}
-            raceStartClock={startTime}
+            raceStart={raceStart}
             afterFinishOrders={afterFinishOrders}
             onAddStint={() => openAddModal(lastOrder)}
           />
@@ -218,6 +227,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
         raceId={raceId}
         drivers={drivers}
         driverAvailability={driverAvailability}
+        eventDate={raceDate}
         eventStartClock={eventStartTime}
         raceStartClock={startTime}
         stintStart={newStintStart(addAfterStint)}
@@ -244,6 +254,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
           stint={editingStint}
           drivers={drivers}
           driverAvailability={driverAvailability}
+          eventDate={raceDate}
           eventStartClock={eventStartTime}
           raceStartClock={startTime}
           stintStart={timeline.stints[editingIndex].start}

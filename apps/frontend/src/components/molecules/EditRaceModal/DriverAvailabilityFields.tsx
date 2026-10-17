@@ -30,7 +30,7 @@ export function DriverAvailabilityFields({ drivers, availability, onChange, even
   const { t, i18n } = useTranslation('raceDetails')
   const locale = i18n.resolvedLanguage ?? i18n.language
   const saved = availability.flatMap(({ from, to }) => [from, to])
-  const options = hourOptions(eventStartClock, raceStartClock, raceLength, saved)
+  const options = hourOptions(eventDate, eventStartClock, raceStartClock, raceLength, saved)
 
   // Times grouped by calendar day, e.g. "Sat, 20 Dec".
   const dayLabel = (day: number) => {

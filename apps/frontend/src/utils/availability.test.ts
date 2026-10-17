@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { availabilityLabel, availabilityWindows, hourOptions, isAvailable } from 'utils/availability'
 
-const windows = (from: string, to: string, raceStart: string) => availabilityWindows([{ from, to }], raceStart, raceStart)
+// A day without a clock change.
+const DATE = '2026-06-10T00:00:00.000Z'
+
+const windows = (from: string, to: string, raceStart: string) => availabilityWindows([{ from, to }], DATE, raceStart, raceStart)
 
 describe('availabilityWindows', () => {
   it('covers the whole race without hours', () => {
-    expect(availabilityWindows([], '14:00', '14:00')).toEqual([{ start: 0, end: Infinity }])
+    expect(availabilityWindows([], DATE, '14:00', '14:00')).toEqual([{ start: 0, end: Infinity }])
     expect(windows('', '', '14:00')).toEqual([{ start: 0, end: Infinity }])
   })
 
@@ -54,7 +57,7 @@ describe('availabilityWindows with several blocks', () => {
       { from: '08:00', to: '12:00' },
       { from: '18:00', to: '22:00' },
       { from: '15:00', to: '17:00' },
-    ], '14:00', '14:00')).toEqual([{ start: 60, end: 180 }, { start: 240, end: 480 }, { start: 1080, end: 1320 }])
+    ], DATE, '14:00', '14:00')).toEqual([{ start: 60, end: 180 }, { start: 240, end: 480 }, { start: 1080, end: 1320 }])
   })
 
   it('joins back-to-back and overlapping blocks', () => {
@@ -62,23 +65,23 @@ describe('availabilityWindows with several blocks', () => {
       { from: '15:00', to: '18:00' },
       { from: '18:00', to: '22:00' },
       { from: '21:00', to: '23:00' },
-    ], '14:00', '14:00')).toEqual([{ start: 60, end: 540 }])
+    ], DATE, '14:00', '14:00')).toEqual([{ start: 60, end: 540 }])
   })
 
   it('mixes open-ended blocks with ranges', () => {
-    expect(availabilityWindows([{ from: '', to: '16:00' }, { from: '10:00', to: '' }], '14:00', '14:00'))
+    expect(availabilityWindows([{ from: '', to: '16:00' }, { from: '10:00', to: '' }], DATE, '14:00', '14:00'))
       .toEqual([{ start: 0, end: 120 }, { start: 1200, end: Infinity }])
   })
 })
 
 describe('isAvailable', () => {
   it('lets a stint run across back-to-back blocks', () => {
-    const joined = availabilityWindows([{ from: '15:00', to: '18:00' }, { from: '18:00', to: '22:00' }], '14:00', '14:00')
+    const joined = availabilityWindows([{ from: '15:00', to: '18:00' }, { from: '18:00', to: '22:00' }], DATE, '14:00', '14:00')
     expect(isAvailable(joined, 150, 300)).toBe(true)
   })
 
   it('rejects a stint running across a break between blocks', () => {
-    const split = availabilityWindows([{ from: '15:00', to: '17:00' }, { from: '18:00', to: '22:00' }], '14:00', '14:00')
+    const split = availabilityWindows([{ from: '15:00', to: '17:00' }, { from: '18:00', to: '22:00' }], DATE, '14:00', '14:00')
     expect(isAvailable(split, 150, 300)).toBe(false)
     expect(isAvailable(split, 240, 400)).toBe(true)
   })
@@ -116,7 +119,7 @@ describe('availabilityLabel', () => {
 
 describe('hours counted from the event start', () => {
   // Training at 18:00, race after qualification at 18:40.
-  const session = (from: string, to: string) => availabilityWindows([{ from, to }], '18:00', '18:40')
+  const session = (from: string, to: string) => availabilityWindows([{ from, to }], DATE, '18:00', '18:40')
 
   it('puts hours during training and qualification before the race', () => {
     expect(session('18:00', '20:00')).toEqual([{ start: -40, end: 80 }])
@@ -127,16 +130,16 @@ describe('hours counted from the event start', () => {
 
   it('reads "+1" as the second time of an hour in a session over 24 h', () => {
     // Training 14:00, race 15:00 → 15:00 the next day.
-    expect(availabilityWindows([{ from: '14:00+1', to: '' }], '14:00', '15:00')).toEqual([{ start: 1380, end: Infinity }])
-    expect(availabilityWindows([{ from: '', to: '14:30+1' }], '14:00', '15:00')).toEqual([{ start: -60, end: 1410 }])
-    expect(availabilityWindows([{ from: '14:00', to: '14:30' }], '14:00', '15:00')).toEqual([{ start: -60, end: -30 }])
+    expect(availabilityWindows([{ from: '14:00+1', to: '' }], DATE, '14:00', '15:00')).toEqual([{ start: 1380, end: Infinity }])
+    expect(availabilityWindows([{ from: '', to: '14:30+1' }], DATE, '14:00', '15:00')).toEqual([{ start: -60, end: 1410 }])
+    expect(availabilityWindows([{ from: '14:00', to: '14:30' }], DATE, '14:00', '15:00')).toEqual([{ start: -60, end: -30 }])
   })
 })
 
 describe('hourOptions', () => {
   it('runs every 15 minutes from the event start to past the finish', () => {
     // 18:00 start, race 18:40 for 6 h → ends 00:40, options until 01:00.
-    const options = hourOptions('18:00', '18:40', 6)
+    const options = hourOptions(DATE, '18:00', '18:40', 6)
     expect(options[0]).toMatchObject({ value: '18:00', minute: 0, day: 0 })
     expect(options[1].value).toBe('18:15')
     expect(options[options.length - 1]).toMatchObject({ value: '01:00', minute: 420, day: 1 })
@@ -144,16 +147,16 @@ describe('hourOptions', () => {
   })
 
   it('starts at an event start off the grid, then follows the grid', () => {
-    expect(hourOptions('19:32', '19:32', 1).slice(0, 3).map(option => option.value)).toEqual(['19:32', '19:45', '20:00'])
+    expect(hourOptions(DATE, '19:32', '19:32', 1).slice(0, 3).map(option => option.value)).toEqual(['19:32', '19:45', '20:00'])
   })
 
   it('marks the second time of an hour in a 24 h session', () => {
-    const options = hourOptions('14:00', '15:00', 24)
+    const options = hourOptions(DATE, '14:00', '15:00', 24)
     expect(options.filter(option => option.clock === '14:00').map(option => option.value)).toEqual(['14:00', '14:00+1'])
     expect(options[options.length - 1].value).toBe('15:15+1')
   })
 
   it('keeps saved hours off the grid', () => {
-    expect(hourOptions('18:00', '18:00', 1, ['18:07']).map(option => option.value).slice(0, 3)).toEqual(['18:00', '18:07', '18:15'])
+    expect(hourOptions(DATE, '18:00', '18:00', 1, ['18:07']).map(option => option.value).slice(0, 3)).toEqual(['18:00', '18:07', '18:15'])
   })
 })

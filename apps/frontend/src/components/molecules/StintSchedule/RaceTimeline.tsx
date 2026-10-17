@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type RaceTimeline as Timeline, type TimelineStint, formatRaceTime } from 'utils/raceTimeline'
-import { addMinutesToClock, formatHoursMinutes } from 'utils/time'
+import { formatHoursMinutes } from 'utils/time'
+import { clockAt } from 'utils/raceClock'
 import { driverColor } from 'utils/drivers'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { StatItem, StatLabel } from './ScheduleCard.styles'
@@ -38,7 +39,8 @@ const FlagIcon = () => (
 
 interface TimelineItemProps {
   timelineStint: TimelineStint
-  raceStartClock: string
+  // Moment of the race start: clocks are read at real moments (summer/winter time).
+  raceStart: Date
   isActive: boolean
   isFirst: boolean
   card: ReactNode
@@ -46,7 +48,7 @@ interface TimelineItemProps {
 }
 
 // One stint on the race rail: race time and lap at its start, hour marks along the card.
-export function TimelineItem({ timelineStint, raceStartClock, isActive, isFirst, card, divider }: TimelineItemProps) {
+export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, card, divider }: TimelineItemProps) {
   const { t } = useTranslation('raceDetails')
   const { start, startLap, hourMarks, status } = timelineStint
   const after = status === 'after'
@@ -69,7 +71,7 @@ export function TimelineItem({ timelineStint, raceStartClock, isActive, isFirst,
               style={{ top: `max(${mark.offset * 100}%, 3.5rem)` }}
               title={t('hourMarkTitle', {
                 hour: mark.hour,
-                clock: addMinutesToClock(raceStartClock, mark.hour * 60),
+                clock: clockAt(raceStart, mark.hour * 60),
                 lap: mark.lap,
               })}
             >
@@ -85,13 +87,13 @@ export function TimelineItem({ timelineStint, raceStartClock, isActive, isFirst,
 
 interface FinishItemProps {
   timeline: Timeline
-  raceStartClock: string
+  raceStart: Date
   afterFinishOrders: number[]
   onAddStint: () => void
 }
 
 // Checkered flag under the last stint: when the time runs out and when the race ends.
-export function FinishItem({ timeline, raceStartClock, afterFinishOrders, onAddStint }: FinishItemProps) {
+export function FinishItem({ timeline, raceStart, afterFinishOrders, onAddStint }: FinishItemProps) {
   const { t } = useTranslation('raceDetails')
   const { finish, gap, coversRace } = timeline
 
@@ -112,14 +114,14 @@ export function FinishItem({ timeline, raceStartClock, afterFinishOrders, onAddS
           <StatItem>
             <StatLabel>{t('timeUp')}</StatLabel>
             <FinishValue>
-              {addMinutesToClock(raceStartClock, finish.timeUpAt)}
+              {clockAt(raceStart, finish.timeUpAt)}
               <span>{t('lapInProgress', { lap: finish.timeUpLap })}</span>
             </FinishValue>
           </StatItem>
           <StatItem>
             <StatLabel>{t('checkeredFlag')}</StatLabel>
             <FinishValue>
-              {addMinutesToClock(raceStartClock, finish.flagAt)}
+              {clockAt(raceStart, finish.flagAt)}
               <span>{t('totalLaps', { lap: finish.totalLaps })}</span>
             </FinishValue>
           </StatItem>
