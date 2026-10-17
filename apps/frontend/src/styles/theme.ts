@@ -26,6 +26,8 @@ const dark: Palette = {
   warning: '#FFB347',
   warningSoft: 'rgba(255, 179, 71, 0.12)',
   danger: '#FF4D5E',
+  tireUsed: '#F7CF5C',
+  tireWet: '#4DA3FF',
   overlay: 'rgba(0, 3, 20, 0.72)',
   shadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
 }
@@ -52,6 +54,8 @@ const light: Palette = {
   warning: '#9A5800',
   warningSoft: 'rgba(230, 140, 20, 0.12)',
   danger: '#C8102E',
+  tireUsed: '#E3AE12',
+  tireWet: '#1F6FD1',
   overlay: 'rgba(11, 18, 56, 0.45)',
   shadow: '0 8px 24px rgba(11, 18, 56, 0.08)',
 }
@@ -83,6 +87,9 @@ export interface Theme {
     warning: string
     warningSoft: string
     danger: string
+    // Tire compounds on the schedule: new ones use success.
+    tireUsed: string
+    tireWet: string
     overlay: string
     shadow: string
   }

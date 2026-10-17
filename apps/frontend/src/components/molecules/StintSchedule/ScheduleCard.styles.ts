@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { type DefaultTheme } from 'styled-components'
 import { MOBILE_QUERY } from 'styles/theme'
 
 // Wide enough for a stint to fit on one line.
@@ -168,6 +168,10 @@ export const StatValue = styled.dd`
   color: ${({ theme }) => theme.colors.text};
 `
 
+// Color of a fitted tire: green for new, yellow for used, blue for wets.
+export const tireColor = (tire: string, theme: DefaultTheme) =>
+  tire === 'U' ? theme.colors.tireUsed : tire === 'W' ? theme.colors.tireWet : theme.colors.success
+
 // Four wheels seen from above: front pair on top, filled when the tire is changed.
 export const TireGrid = styled.span`
   display: inline-grid;
@@ -177,8 +181,9 @@ export const TireGrid = styled.span`
   row-gap: 0.25rem;
 `
 
-export const Tire = styled.span<{ $changed: boolean }>`
+// `$tire` is the wheel's field: '-' when it stays on, otherwise the compound fitted.
+export const Tire = styled.span<{ $tire: string }>`
   border-radius: 3px;
-  border: 1.5px solid ${({ $changed, theme }) => $changed ? theme.colors.success : theme.colors.borderStrong};
-  background: ${({ $changed, theme }) => $changed ? theme.colors.success : 'transparent'};
+  border: 1.5px solid ${({ $tire, theme }) => $tire !== '-' ? tireColor($tire, theme) : theme.colors.borderStrong};
+  background: ${({ $tire, theme }) => $tire !== '-' ? tireColor($tire, theme) : 'transparent'};
 `

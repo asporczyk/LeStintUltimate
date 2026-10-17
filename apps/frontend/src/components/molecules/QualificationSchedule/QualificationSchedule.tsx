@@ -155,7 +155,7 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
           stats={[
             { label: t('laps'), value: calculatedLaps },
             { label: t('fuel'), value: `${calculatedFuel}%` },
-            { label: t('tireChange'), value: <TireMap fl fr rl rr /> },
+            { label: t('tireChange'), value: <TireMap fl="N" fr="N" rl="N" rr="N" /> },
             { label: t('tiresLeft'), value: availableTires },
           ]}
           actions={<IconButton onClick={() => setEditModalOpen(true)} title={t('edit')} icon={EditIcon} size="sm" />}

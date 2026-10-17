@@ -178,10 +178,10 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
                     label: t('tireChange'),
                     value: (
                       <TireMap
-                        fl={row.stint.tireFL !== '-'}
-                        fr={row.stint.tireFR !== '-'}
-                        rl={row.stint.tireRL !== '-'}
-                        rr={row.stint.tireRR !== '-'}
+                        fl={row.stint.tireFL}
+                        fr={row.stint.tireFR}
+                        rl={row.stint.tireRL}
+                        rr={row.stint.tireRR}
                       />
                     ),
                   },

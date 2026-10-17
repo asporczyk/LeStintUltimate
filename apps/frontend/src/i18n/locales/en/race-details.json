@@ -67,8 +67,11 @@
   "driversPlaceholder": "Enter driver names separated by commas",
   "cancel": "Cancel",
   "save": "Save",
-  "tiresToChange": "Tires to change",
-  "selectAll": "Select all",
+  "tiresToChange": "Tire change",
+  "allWheels": "All wheels",
+  "wheel": {"tireFL": "Front left", "tireFR": "Front right", "tireRL": "Rear left", "tireRR": "Rear right"},
+  "tireChangeOption": {"-": "No change", "N": "New", "U": "Used", "W": "Wet"},
+  "tireCompound": {"-": "no change", "N": "new", "U": "used", "W": "wet"},
   "deleteStint": "Delete stint",
   "confirmDeleteStint": "Are you sure you want to delete this stint?",
   "validation": {
