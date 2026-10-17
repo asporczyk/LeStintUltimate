@@ -1,4 +1,5 @@
 import { type DriverAvailability } from 'types/Race'
+import { eventClockDateTime, raceStartDateTime } from 'utils/raceClock'
 
 type Block = Pick<DriverAvailability, 'from' | 'to'>
 
@@ -50,20 +51,31 @@ export function hourMinute(value: string, eventStartClock: string, isEnd = false
 // before the race (negative) instead of on the next day. An end before the start (blocks
 // saved before hours were picked from the session) covers the start until B and again A
 // to the end.
-function blockWindows({ from, to }: Block, eventStartClock: string, offset: number): AvailabilityWindow[] {
-  const start = from ? hourMinute(from, eventStartClock) - offset : 0 - offset
-  const end = to ? hourMinute(to, eventStartClock, true) - offset : Infinity
+// - `raceMinute`: race minutes at a clock time given in minutes from the event start
+function blockWindows({ from, to }: Block, eventStartClock: string, raceMinute: (clockMinute: number) => number): AvailabilityWindow[] {
+  const start = raceMinute(from ? hourMinute(from, eventStartClock) : 0)
+  const end = to ? raceMinute(hourMinute(to, eventStartClock, true)) : Infinity
   if (!from || !to || start < end) return [{ start, end }]
-  return [{ start: 0 - offset, end }, { start, end: Infinity }]
+  return [{ start: raceMinute(0), end }, { start, end: Infinity }]
 }
 
 // When a driver can drive, in race minutes, from their blocks of real clock hours: sorted,
-// with overlapping and back-to-back blocks joined. No blocks: the whole race.
-export function availabilityWindows(blocks: Block[], eventStartClock: string, raceStartClock: string): AvailabilityWindow[] {
+// with overlapping and back-to-back blocks joined. No blocks: the whole race. Hours after
+// a clock change during the race (summer/winter time) land on the real moment, e.g. 08:00
+// the next morning is an hour later in the race when the clocks go back overnight.
+// - eventDate: race.startDate
+export function availabilityWindows(
+  blocks: Block[],
+  eventDate: string | Date,
+  eventStartClock: string,
+  raceStartClock: string,
+): AvailabilityWindow[] {
   if (blocks.length === 0) return [{ start: 0, end: Infinity }]
-  const offset = raceOffset(eventStartClock, raceStartClock)
+  const raceStart = raceStartDateTime(eventDate, eventStartClock, raceStartClock).getTime()
+  const raceMinute = (clockMinute: number) =>
+    (eventClockDateTime(eventDate, eventStartClock, clockMinute).getTime() - raceStart) / 60000
   const windows = blocks
-    .flatMap(block => blockWindows(block, eventStartClock, offset))
+    .flatMap(block => blockWindows(block, eventStartClock, raceMinute))
     .sort((a, b) => a.start - b.start)
   const merged: AvailabilityWindow[] = []
   for (const window of windows) {
@@ -101,10 +113,25 @@ export interface HourOption {
 
 // Hours a driver can be available from or to: the event start, then every 15 minutes
 // until the race (after training and qualification) is over, with a margin for the last
-// lap. `extra` keeps hours saved off that grid.
-export function hourOptions(eventStartClock: string, raceStartClock: string, raceLengthHours: number, extra: string[] = []): HourOption[] {
+// lap. `extra` keeps hours saved off that grid. When the clocks change during the race the
+// race ends an hour earlier (clocks back) or later (forward) by the clock.
+// - eventDate: race.startDate ('' while not picked: no clock change)
+export function hourOptions(
+  eventDate: string | Date,
+  eventStartClock: string,
+  raceStartClock: string,
+  raceLengthHours: number,
+  extra: string[] = [],
+): HourOption[] {
   const startClock = clockMinutes(eventStartClock)
-  const raceEnd = startClock + raceOffset(eventStartClock, raceStartClock) + Math.max(0, raceLengthHours) * 60
+  const raceLength = Math.max(0, raceLengthHours) * 60
+  const raceStart = eventDate ? raceStartDateTime(eventDate, eventStartClock, raceStartClock) : null
+  // Minutes the clocks go back (positive) or forward (negative) during the race; NaN for an
+  // invalid date counts as none.
+  const clockShift = raceStart
+    ? new Date(raceStart.getTime() + raceLength * 60000).getTimezoneOffset() - raceStart.getTimezoneOffset()
+    : 0
+  const raceEnd = startClock + raceOffset(eventStartClock, raceStartClock) + raceLength - (clockShift || 0)
   const lastClock = Math.ceil(raceEnd / AVAILABILITY_STEP) * AVAILABILITY_STEP + AVAILABILITY_STEP
   const minutes = new Set<number>([0])
   for (let clock = Math.ceil(startClock / AVAILABILITY_STEP) * AVAILABILITY_STEP; clock <= lastClock; clock += AVAILABILITY_STEP) {

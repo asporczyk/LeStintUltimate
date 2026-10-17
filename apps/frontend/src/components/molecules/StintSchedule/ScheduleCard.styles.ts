@@ -87,6 +87,13 @@ export const Duration = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `
 
+export const ClockChangeNote = styled.span`
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: ${({ theme }) => theme.colors.warning};
+`
+
 export const CardActions = styled.div`
   grid-area: actions;
   display: flex;

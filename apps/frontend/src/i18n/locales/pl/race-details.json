@@ -98,6 +98,7 @@
   "afterFinish": "po mecie",
   "lapN": "okr. {{lap}}",
   "hourMarkTitle": "{{hour}} h wyścigu · {{clock}} · okr. {{lap}}",
+  "clockChange": "Zmiana czasu o T+{{time}}: {{from}} → {{to}}",
   "finish": "Meta",
   "timeUp": "Czas mija",
   "checkeredFlag": "Flaga w szachownicę",

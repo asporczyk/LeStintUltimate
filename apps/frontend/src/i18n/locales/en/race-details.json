@@ -98,6 +98,7 @@
   "afterFinish": "after finish",
   "lapN": "lap {{lap}}",
   "hourMarkTitle": "Race hour {{hour}} · {{clock}} · lap {{lap}}",
+  "clockChange": "Clocks change at T+{{time}}: {{from}} → {{to}}",
   "finish": "Finish",
   "timeUp": "Time runs out",
   "checkeredFlag": "Checkered flag",

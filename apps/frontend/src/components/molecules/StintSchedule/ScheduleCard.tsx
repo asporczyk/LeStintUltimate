@@ -9,6 +9,7 @@ import {
   CardTime,
   TimeRange,
   Duration,
+  ClockChangeNote,
   CardActions,
   People,
   DriverName,
@@ -27,6 +28,8 @@ interface ScheduleCardProps {
   start: string
   end: string
   duration: ReactNode
+  // Shown under the duration when the clocks change during the stint (or the pit stop after it).
+  clockChange?: string
   isActive?: boolean
   driver?: string
   // Shown under the driver, e.g. when they are not available at this time.
@@ -37,7 +40,7 @@ interface ScheduleCardProps {
 }
 
 // Phone version of one table row: time range first, then who drives, then the numbers.
-export function ScheduleCard({ badge, start, end, duration, isActive = false, driver, driverWarning, spotter, stats, actions }: ScheduleCardProps) {
+export function ScheduleCard({ badge, start, end, duration, clockChange, isActive = false, driver, driverWarning, spotter, stats, actions }: ScheduleCardProps) {
   const { t } = useTranslation('raceDetails')
 
   return (
@@ -46,6 +49,7 @@ export function ScheduleCard({ badge, start, end, duration, isActive = false, dr
       <CardTime>
         <TimeRange>{start} – {end}</TimeRange>
         <Duration>{duration}</Duration>
+        {clockChange && <ClockChangeNote role="note">{clockChange}</ClockChangeNote>}
       </CardTime>
       {driver !== undefined && (
         <People>

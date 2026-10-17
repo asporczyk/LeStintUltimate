@@ -1,6 +1,6 @@
 # Logika obliczeń
 
-Opis reguł domenowych, które aplikacja stosuje przy planowaniu wyścigu. Wszystkie czasy są „zegarowe” (`HH:MM` / `HH:MM:SS`) i zawijają się po północy (`% 24`); data wyścigu (`startDate`) nie bierze udziału w obliczeniach.
+Opis reguł domenowych, które aplikacja stosuje przy planowaniu wyścigu. Godziny treningu i kwalifikacji są „zegarowe” (`HH:MM` / `HH:MM:SS`) i zawijają się po północy (`% 24`). Czas wyścigu liczony jest w minutach realnego czasu od startu, a godziny zegarowe stintów, mety i dostępności kierowców przeliczane są przez datę wyścigu w lokalnej strefie czasowej, więc zmiana czasu w trakcie wyścigu jest uwzględniona (sekcja 6).
 
 ## 1. Trening → Kwalifikacje → Wyścig
 
@@ -80,6 +80,12 @@ startWyścigu = startDnia + ((godzinaStartuWyścigu − race.startTime) mod 24 h
 Co minutę `StintSchedule` liczy minuty od startu wyścigu. Stint jest aktywny, gdy `start_i ≤ teraz < koniec_i`. Przed startem (i w inne dni) żaden stint nie jest aktywny.
 
 Data jest przechowywana jako północ UTC wybranego dnia, więc dzień odczytywany jest w UTC.
+
+### Zmiana czasu (letni/zimowy)
+
+Minuty wyścigu (`T+`) to realny czas, a godziny na kartach to zegar w lokalnej strefie przeglądarki (`clockAt` w `utils/raceClock.ts`): moment startu + minuty, odczytany zegarem. Przykład: 24 h od soboty 24.10.2026 14:00 – o T+13:00 zegar cofa się z 03:00 na 02:00, więc metę pokazuje o 13:00 (a nie 14:00), a stint 02:55–03:45 trwa 110 min. Karta stintu, w którym (lub w pit stopie po którym) zmienia się czas, ma notkę „Zmiana czasu o T+…: 03:00 → 02:00” (`clockChanges`).
+
+Godziny dostępności kierowców to godziny zegarowe, zamieniane na minuty wyścigu przez realny moment (`eventClockDateTime`): niedzielne 08:00 to T+19:00 (bez zmiany czasu byłoby T+18:00). Godzina występująca dwa razy (02:00–02:59 przy cofnięciu zegara) oznacza pierwsze wystąpienie. Lista godzin do wyboru kończy się na mecie według zegara, czyli godzinę wcześniej (cofnięcie) lub później (przestawienie do przodu).
 
 ## 7. Pozostałe opony
 
