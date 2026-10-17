@@ -12,6 +12,8 @@ export interface Stint {
   tireFR: string
   tireRL: string
   tireRR: string
+  // Parts repaired at the pit stop before the stint (utils/repairs).
+  repairs?: string[]
 }
 
 export interface Schedule {

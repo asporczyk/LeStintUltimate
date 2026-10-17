@@ -24,6 +24,7 @@ import {
 import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
 import { TireField } from 'components/molecules/TireField/TireField'
+import { RepairField } from 'components/molecules/RepairField/RepairField'
 import { useToast } from '@/hooks/useToast'
 
 interface AddStintModalProps {
@@ -59,7 +60,8 @@ function getInitialFormData(avgStintTime: number) {
     tireFL: '-',
     tireFR: '-',
     tireRL: '-',
-    tireRR: '-'
+    tireRR: '-',
+    repairs: [] as string[]
   }
 }
 
@@ -148,7 +150,8 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
         tireFL: formData.tireFL,
         tireFR: formData.tireFR,
         tireRL: formData.tireRL,
-        tireRR: formData.tireRR
+        tireRR: formData.tireRR,
+        repairs: formData.repairs
       })
       onStintAdded(newStint)
       onCancel()
@@ -227,6 +230,14 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
             value={formData}
             onChange={(tires) => setFormData(prev => ({ ...prev, ...tires }))}
           />
+
+          {/* The first stint starts from the grid: there is no pit stop to repair at. */}
+          {insertAfterStint > 0 && (
+            <RepairField
+              value={formData.repairs}
+              onChange={(repairs) => setFormData(prev => ({ ...prev, repairs }))}
+            />
+          )}
 
           <ModalButtons>
             <TextButton type="button" $variant="secondary" ref={cancelRef} onClick={onCancel}>

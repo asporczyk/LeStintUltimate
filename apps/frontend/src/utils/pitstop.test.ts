@@ -40,4 +40,17 @@ describe('calculatePitstopTime', () => {
   it('driver change (46 s) runs in parallel with the rest', () => {
     expect(calculatePitstopTime(stint(), stint({ driver: 'Ola', fuel: 10 }))).toBeCloseTo(46)
   })
+
+  it('repairs follow the tire change, in parallel with refuelling', () => {
+    // 4 tires (39 s) + rear wing (40 s) = 79 s > fuel 36.9 s
+    expect(calculatePitstopTime(stint(), stint({ tireFL: 'N', tireFR: 'N', tireRL: 'N', tireRR: 'N', repairs: ['rearWing'] }))).toBeCloseTo(79)
+  })
+
+  it('adds up repairs of several parts', () => {
+    expect(calculatePitstopTime(stint(), stint({ fuel: 10, repairs: ['frontWing', 'suspFL', 'suspFR'] }))).toBeCloseTo(90)
+  })
+
+  it('a short repair hides behind refuelling', () => {
+    expect(calculatePitstopTime(stint(), stint({ repairs: ['frontWing'] }))).toBeCloseTo(36.9)
+  })
 })

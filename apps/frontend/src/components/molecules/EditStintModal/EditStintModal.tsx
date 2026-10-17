@@ -22,6 +22,7 @@ import {
 import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
 import { TireField } from 'components/molecules/TireField/TireField'
+import { RepairField } from 'components/molecules/RepairField/RepairField'
 
 interface EditStintModalProps {
   isOpen: boolean
@@ -60,7 +61,8 @@ function getInitialFormData(stint: Stint, avgStintTime: number) {
     tireFL: stint.tireFL || '-',
     tireFR: stint.tireFR || '-',
     tireRL: stint.tireRL || '-',
-    tireRR: stint.tireRR || '-'
+    tireRR: stint.tireRR || '-',
+    repairs: stint.repairs ?? []
   }
 }
 
@@ -152,7 +154,8 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
       tireFL: formData.tireFL,
       tireFR: formData.tireFR,
       tireRL: formData.tireRL,
-      tireRR: formData.tireRR
+      tireRR: formData.tireRR,
+      repairs: formData.repairs
     })
   }
 
@@ -213,6 +216,14 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
             value={formData}
             onChange={(tires) => setFormData(prev => ({ ...prev, ...tires }))}
           />
+
+          {/* The first stint starts from the grid: there is no pit stop to repair at. */}
+          {stint.order > 1 && (
+            <RepairField
+              value={formData.repairs}
+              onChange={(repairs) => setFormData(prev => ({ ...prev, repairs }))}
+            />
+          )}
 
           <ModalButtons>
             <TextButton type="button" $variant="secondary" ref={cancelRef} onClick={onCancel}>

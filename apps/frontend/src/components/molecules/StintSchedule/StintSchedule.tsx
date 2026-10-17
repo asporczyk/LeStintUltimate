@@ -8,6 +8,7 @@ import { stintStartLap } from 'utils/laps'
 import { raceTimeline, formatRaceTime, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
 import { clockAt, clockChanges, minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { calculatePitstopTime } from 'utils/pitstop'
+import { REPAIR_PARTS, SUSPENSION_PARTS, calculateRepairTime } from 'utils/repairs'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
 import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
@@ -110,9 +111,20 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
     const change = timelineStint.status !== 'after'
       ? changes.find(({ minute }) => minute >= start && minute < Math.max(end, nextStart))
       : undefined
+    // The first stint starts from the grid, so it has no pit stop to repair at.
+    const repairs = index > 0 ? REPAIR_PARTS.filter(part => stint.repairs?.includes(part)) : []
+    const repair = repairs.length > 0
+      ? {
+        label: t('repairNote', { seconds: Math.round(calculateRepairTime(repairs)) }),
+        details: repairs.map(part => (SUSPENSION_PARTS as readonly string[]).includes(part)
+          ? `${t('suspension')} – ${t(`repairPart.${part}`).toLowerCase()}`
+          : t(`repairPart.${part}`)).join(', '),
+      }
+      : undefined
     return {
       stint,
       index,
+      repair,
       timelineStint,
       order: stint.order ?? index + 1,
       startClock: clockAt(raceStart, start),
@@ -143,7 +155,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
   const newStintStart = (afterOrder: number) => {
     const previous = stints[afterOrder - 1]
     if (!previous) return 0
-    const pitSeconds = calculatePitstopTime(previous, { ...previous, driver: `${previous.driver}-next`, fuel: 100 }, fuelTankCapacity)
+    const pitSeconds = calculatePitstopTime(previous, { ...previous, driver: `${previous.driver}-next`, fuel: 100, repairs: [] }, fuelTankCapacity)
     return timeline.stints[afterOrder - 1].start + previous.duration + pitSeconds / 60
   }
 
@@ -176,6 +188,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
                 end={row.endClock}
                 duration={row.duration}
                 clockChange={row.clockChange}
+                repair={row.repair}
                 isActive={row.isActive}
                 driver={row.stint.driver}
                 driverWarning={row.driverWarning}

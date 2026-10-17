@@ -1,7 +1,7 @@
 import { calculatePitstopTime } from 'utils/pitstop'
 import { type Stint } from 'types/Schedule'
 
-type ScheduleStint = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR'>
+type ScheduleStint = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR' | 'repairs'>
 
 // Minutes from the race start at which each stint starts: earlier stints plus
 // the pit stop before every stint after the first.

@@ -3,7 +3,7 @@ import { stintStartTimes } from 'utils/schedule'
 import { DEFAULT_LAP_TIME } from 'utils/laps'
 import { type Stint } from 'types/Schedule'
 
-type TimelineInput = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR'>
+type TimelineInput = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR' | 'repairs'>
 
 // Stint durations are planned in whole minutes.
 const PLAN_PRECISION = 1
@@ -141,7 +141,7 @@ export function raceTimeline(
 // pit stop before it (driver change, full tank).
 export function newStintMinutesToFlag(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number): number {
   const pitMinutes = lastStint
-    ? calculatePitstopTime(lastStint, { ...lastStint, driver: `${lastStint.driver}-next`, fuel: 100 }, fuelTankCapacity) / 60
+    ? calculatePitstopTime(lastStint, { ...lastStint, driver: `${lastStint.driver}-next`, fuel: 100, repairs: [] }, fuelTankCapacity) / 60
     : 0
   return timeline.finish.flagAt - timeline.plannedEnd - pitMinutes
 }
