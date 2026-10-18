@@ -27,13 +27,19 @@ export function formatLapTime(seconds: number): string {
   return `${mins}:${pad(secs)}:${pad(totalMs % 1000, 3)}`
 }
 
-// Inverse of formatLapTime. Returns null for invalid input.
+// Lap times a car can do, in seconds. Anything else is a typo (or worse: a lap of days
+// moves the checkered flag so far that the race page hangs).
+export const LAP_TIME_MIN = 10
+export const LAP_TIME_MAX = 600
+
+// Inverse of formatLapTime. Returns null for invalid input or a lap time out of range.
 export function parseLapTime(value: string): number | null {
-  const match = value.match(/^(\d+):(\d{1,2}):(\d{1,3})$/)
+  const match = value.match(/^(\d{1,2}):(\d{1,2}):(\d{1,3})$/)
   if (!match) return null
   const mins = parseInt(match[1], 10)
   const secs = parseInt(match[2], 10)
   const ms = parseInt(match[3].padEnd(3, '0'), 10)
   if (secs >= 60) return null
-  return mins * 60 + secs + ms / 1000
+  const seconds = mins * 60 + secs + ms / 1000
+  return seconds >= LAP_TIME_MIN && seconds <= LAP_TIME_MAX ? seconds : null
 }

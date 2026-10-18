@@ -4,7 +4,11 @@
 const objectId = { type: "string", pattern: "^[0-9a-fA-F]{24}$" } as const;
 const clockTime = { type: "string", pattern: "^\\d{2}:\\d{2}(:\\d{2})?$" } as const;
 const tire = { type: "string", maxLength: 3 } as const;
-const person = { type: "string", maxLength: 50 } as const;
+// A driver or spotter: one or two words, as the frontend allows; "-" is no spotter, "" not set.
+const person = { type: "string", maxLength: 20, pattern: "^(-|[\\p{L}\\p{N}][\\p{L}\\p{N}_.'-]*( [\\p{L}\\p{N}_.'-]+)?)?$" } as const;
+// Seconds; 0 = not set. Anything longer is a typo, and a lap of days hangs the race page.
+const lapTime = { type: "number", minimum: 0, maximum: 600 } as const;
+const lap = { type: "integer", minimum: 0, maximum: 10000 } as const;
 const electronicsLevel = { type: "integer", minimum: 1, maximum: 9 } as const;
 // "HH:MM" ("HH:MM+1" for its second time in a session over 24 h), or empty for no limit.
 const availabilityHour = { type: "string", pattern: "^(([01]\\d|2[0-3]):[0-5]\\d(\\+1)?)?$" } as const;
@@ -27,7 +31,7 @@ export const createRaceBody = {
     additionalProperties: false,
     properties: {
         name: { type: "string", minLength: 1, maxLength: 100 },
-        startDate: { type: "string", minLength: 1 }
+        startDate: { type: "string", minLength: 1, maxLength: 40 }
     }
 } as const;
 
@@ -36,7 +40,7 @@ export const patchRaceBody = {
     additionalProperties: false,
     properties: {
         name: { type: "string", minLength: 1, maxLength: 100 },
-        startDate: { type: "string", minLength: 1 },
+        startDate: { type: "string", minLength: 1, maxLength: 40 },
         startTime: clockTime,
         raceLength: { type: "number", minimum: 0, maximum: 24 },
         drivers: { type: "array", maxItems: 20, items: person },
@@ -61,7 +65,7 @@ export const patchRaceBody = {
                 additionalProperties: false,
                 properties: {
                     driver: person,
-                    avgLapTime: { type: "number", minimum: 0 },
+                    avgLapTime: lapTime,
                     avgFuelPerLap: { type: "number", minimum: 0, maximum: 100 }
                 }
             }
@@ -86,9 +90,9 @@ export const patchRaceBody = {
             }
         },
         tireSets: { type: "integer", minimum: 0, maximum: 100 },
-        fuelTankCapacity: { type: "number", minimum: 0 },
+        fuelTankCapacity: { type: "number", minimum: 0, maximum: 1000 },
         pitLaneTime: { type: "number", minimum: 0, maximum: 300 },
-        avgLapTime: { type: "number", minimum: 0 },
+        avgLapTime: lapTime,
         avgFuelPerLap: { type: "number", minimum: 0, maximum: 100 },
         avgStintTime: { type: "number", minimum: 0, maximum: 120 },
         notes: { type: "string", maxLength: 200 }
@@ -100,10 +104,10 @@ const stintFields = {
     durationAuto: { type: "boolean" },
     driver: person,
     spotter: person,
-    fuelLaps: { type: "integer", minimum: 0 },
+    fuelLaps: lap,
     fuel: { type: "number", minimum: 0, maximum: 100 },
     // null falls back to the driver's (then the race's) pace
-    avgLapTime: { type: ["number", "null"], minimum: 0 },
+    avgLapTime: { ...lapTime, type: ["number", "null"] },
     avgFuelPerLap: { type: ["number", "null"], minimum: 0, maximum: 100 },
     tireFL: tire,
     tireFR: tire,
@@ -122,7 +126,7 @@ const stintFields = {
         additionalProperties: false,
         properties: {
             type: { type: "string", enum: ["weatherChange", "damage", "totalDamage"] },
-            lap: { type: "integer", minimum: 0 }
+            lap
         }
     },
     // Drive throughs and stop and gos served during the stint; [] removes them all.
@@ -135,7 +139,7 @@ const stintFields = {
             additionalProperties: false,
             properties: {
                 type: { type: "string", enum: ["driveThrough", "stopAndGo"] },
-                lap: { type: "integer", minimum: 0 },
+                lap,
                 stopSeconds: { type: "number", minimum: 0, maximum: 300 }
             }
         }
@@ -174,7 +178,7 @@ export const qualificationBody = {
     properties: {
         startTime: clockTime,
         duration: { type: "number", minimum: 0, maximum: 600 },
-        laps: { type: "integer", minimum: 0 },
+        laps: lap,
         driver: person,
         spotter: person,
         fuel: { type: "number", minimum: 0, maximum: 100 },

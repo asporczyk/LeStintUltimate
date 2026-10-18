@@ -50,10 +50,13 @@ export interface ClockChange {
   to: string
 }
 
+const MAX_CLOCK_CHANGE_MINUTES = 48 * 60
+
 // Clock changes (summer/winter time) in the first `minutes` of the race, in local time.
 export function clockChanges(raceStart: Date, minutes: number): ClockChange[] {
   const begin = raceStart.getTime()
-  const end = begin + Math.max(0, minutes) * 60000
+  // Capped at two days: races last up to 24 h, and the loop below runs once per hour.
+  const end = begin + Math.min(Math.max(0, minutes), MAX_CLOCK_CHANGE_MINUTES) * 60000
   const offsetAt = (time: number) => new Date(time).getTimezoneOffset()
   const changes: ClockChange[] = []
   // Changes are hours or more apart, so an hour can hold at most one.
