@@ -111,6 +111,26 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", brakeBias: 75 }] })).status).toBe(400);
         });
 
+        it("accepts driver names of one or two words and rejects the rest", async () => {
+            const raceId = await createRace();
+            const { body } = await api("PATCH", `/races/${raceId}`, { drivers: ["Adam", "Jan Kowalski", "Łukasz Żółć-Nowak"] });
+            expect(body.drivers).toEqual(["Adam", "Jan Kowalski", "Łukasz Żółć-Nowak"]);
+            for (const name of ["Litwo! Ojczyzno moja!", "Jan Maria Kowalski", "Jan  Kowalski", " Adam", "x".repeat(21)]) {
+                expect((await api("PATCH", `/races/${raceId}`, { drivers: [name] })).status).toBe(400);
+            }
+            expect((await addStint(raceId, 1, 50, { driver: "Ty jesteś jak zdrowie" })).status).toBe(400);
+            expect((await addStint(raceId, 1, 50, { spotter: "-" })).status).toBe(200);
+        });
+
+        it("rejects lap times and laps out of range", async () => {
+            const raceId = await createRace();
+            expect((await api("PATCH", `/races/${raceId}`, { avgLapTime: 601 })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverPace: [{ driver: "Adam", avgLapTime: 1e12 }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { fuelTankCapacity: 1e9 })).status).toBe(400);
+            expect((await addStint(raceId, 1, 50, { avgLapTime: 1e12 })).status).toBe(400);
+            expect((await addStint(raceId, 1, 50, { incident: { type: "damage", lap: 1e9 } })).status).toBe(400);
+        });
+
         it("requires raceId (not the old scheduleId) when adding a stint", async () => {
             const raceId = await createRace();
             expect((await api("POST", "/stints", { scheduleId: raceId, order: 1, duration: 50 })).status).toBe(400);

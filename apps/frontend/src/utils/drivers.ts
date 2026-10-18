@@ -9,6 +9,27 @@ const MINIMUM_PERCENTAGES: Record<number, number> = {
   6: 8.3,
 }
 
+export const DRIVER_NAME_MAX_LENGTH = 20
+export const MAX_DRIVERS = 20
+// One or two words of letters, digits and - _ . ' (same rule as the backend's).
+const DRIVER_NAME = /^[\p{L}\p{N}][\p{L}\p{N}_.'-]*( [\p{L}\p{N}_.'-]+)?$/u
+
+export const isValidDriverName = (name: string) =>
+  name.length <= DRIVER_NAME_MAX_LENGTH && DRIVER_NAME.test(name)
+
+// A driver name as it is typed: other characters dropped, single spaces, at most two words
+// and DRIVER_NAME_MAX_LENGTH characters. A trailing space stays so the second word can follow.
+export function sanitizeDriverNameInput(value: string): string {
+  return value
+    .replace(/[^\p{L}\p{N}_.' -]/gu, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^ /, '')
+    .split(' ')
+    .slice(0, 2)
+    .join(' ')
+    .slice(0, DRIVER_NAME_MAX_LENGTH)
+}
+
 export function minimumDriverPercentage(driverCount: number): number {
   return MINIMUM_PERCENTAGES[driverCount] || 100 / driverCount
 }

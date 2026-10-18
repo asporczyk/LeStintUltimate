@@ -19,6 +19,7 @@ import {
 } from './EditRaceModal.styles'
 import { DriverChips } from './DriverChips'
 import { formatLapTime, parseLapTime } from 'utils/time'
+import { isValidDriverName } from 'utils/drivers'
 import { DEFAULT_PIT_LANE_TIME } from 'utils/pitstop'
 import { DatePicker } from 'components/atoms/Picker/DatePicker'
 import { TimeSelect } from 'components/atoms/Picker/TimeSelect'
@@ -96,7 +97,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.raceLength.trim()) {
     errors.raceLength = 'validation.required'
-  } else if (Number(formData.raceLength) <= 0) {
+  } else if (!(Number(formData.raceLength) > 0)) {
     errors.raceLength = 'validation.positiveNumber'
   } else if (Number(formData.raceLength) > 24) {
     errors.raceLength = 'validation.raceLengthRange'
@@ -104,7 +105,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.tireSets.trim()) {
     errors.tireSets = 'validation.required'
-  } else if (Number(formData.tireSets) < 0) {
+  } else if (!(Number(formData.tireSets) >= 0)) {
     errors.tireSets = 'validation.nonNegativeNumber'
   } else if (Number(formData.tireSets) > 100) {
     errors.tireSets = 'validation.tireSetsRange'
@@ -112,13 +113,15 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.fuelTankCapacity.trim()) {
     errors.fuelTankCapacity = 'validation.required'
-  } else if (Number(formData.fuelTankCapacity) <= 0) {
+  } else if (!(Number(formData.fuelTankCapacity) > 0)) {
     errors.fuelTankCapacity = 'validation.positiveNumber'
+  } else if (Number(formData.fuelTankCapacity) > 1000) {
+    errors.fuelTankCapacity = 'validation.fuelTankRange'
   }
 
   if (!formData.pitLaneTime.trim()) {
     errors.pitLaneTime = 'validation.required'
-  } else if (Number(formData.pitLaneTime) < 0 || Number(formData.pitLaneTime) > 300) {
+  } else if (!(Number(formData.pitLaneTime) >= 0 && Number(formData.pitLaneTime) <= 300)) {
     errors.pitLaneTime = 'validation.pitLaneTimeRange'
   }
 
@@ -130,13 +133,13 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.avgFuelPerLap.trim()) {
     errors.avgFuelPerLap = 'validation.required'
-  } else if (Number(formData.avgFuelPerLap) < 0 || Number(formData.avgFuelPerLap) > 100) {
+  } else if (!(Number(formData.avgFuelPerLap) >= 0 && Number(formData.avgFuelPerLap) <= 100)) {
     errors.avgFuelPerLap = 'validation.fuelPercentRange'
   }
 
   if (!formData.avgStintTime.trim()) {
     errors.avgStintTime = 'validation.required'
-  } else if (Number(formData.avgStintTime) < 0) {
+  } else if (!(Number(formData.avgStintTime) >= 0)) {
     errors.avgStintTime = 'validation.nonNegativeNumber'
   } else if (Number(formData.avgStintTime) > 120) {
     errors.avgStintTime = 'validation.stintTimeRange'
@@ -144,8 +147,8 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
 
   if (!formData.drivers || formData.drivers.length === 0) {
     errors.drivers = 'validation.required'
-  } else if (formData.drivers.some(d => d.length > 50)) {
-    errors.drivers = 'validation.driverNameTooLong'
+  } else if (!formData.drivers.every(isValidDriverName)) {
+    errors.drivers = 'validation.driverNameInvalid'
   }
 
   return errors

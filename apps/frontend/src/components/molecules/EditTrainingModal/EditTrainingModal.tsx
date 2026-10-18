@@ -12,7 +12,8 @@ import {
   ModalButtons,
   InputWithUnit,
   InputUnit,
-  InputWithUnitStyle
+  InputWithUnitStyle,
+  ErrorText
 } from '../EditRaceModal/EditRaceModal.styles'
 
 interface EditTrainingModalProps {
@@ -36,16 +37,24 @@ export function EditTrainingModal({
     duration: training?.duration?.toString() || '30'
   })
 
+  const [durationError, setDurationError] = useState(false)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const duration = Number(formData.duration)
+    if (!(duration >= 1 && duration <= 120)) {
+      setDurationError(true)
+      return
+    }
     onConfirm({
       startTime: raceStartTime,
-      duration: Number(formData.duration)
+      duration
     })
   }
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
+    if (field === 'duration') setDurationError(false)
   }
 
   useEffect(() => {
@@ -76,6 +85,7 @@ export function EditTrainingModal({
               />
               <InputUnit>min</InputUnit>
             </InputWithUnit>
+            {durationError && <ErrorText>{t('validation.durationRange')}</ErrorText>}
           </FormGroup>
 
           <ModalButtons>

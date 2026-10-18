@@ -60,6 +60,14 @@ describe('lap time', () => {
     expect(parseLapTime('abc')).toBeNull()
   })
 
+  it('rejects lap times out of range, however many digits', () => {
+    expect(parseLapTime('0:09:999')).toBeNull()
+    expect(parseLapTime('10:00:001')).toBeNull()
+    expect(parseLapTime('99999999:00:000')).toBeNull()
+    expect(parseLapTime('0:10:000')).toBe(10)
+    expect(parseLapTime('10:00:000')).toBe(600)
+  })
+
   it('round-trips', () => {
     expect(parseLapTime(formatLapTime(225.123))).toBe(225.123)
   })

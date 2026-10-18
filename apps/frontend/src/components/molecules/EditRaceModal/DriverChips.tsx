@@ -6,6 +6,7 @@ import {
   RemoveChipButton,
   DriverInput
 } from './DriverChips.styles'
+import { DRIVER_NAME_MAX_LENGTH, MAX_DRIVERS, isValidDriverName, sanitizeDriverNameInput } from 'utils/drivers'
 
 interface DriverChipsProps {
   drivers: string[]
@@ -20,7 +21,7 @@ export function DriverChips({ drivers, onChange, placeholder }: DriverChipsProps
 
   const addDriver = (name: string) => {
     const trimmedName = name.trim()
-    if (trimmedName && trimmedName.length <= 50 && !drivers.includes(trimmedName)) {
+    if (isValidDriverName(trimmedName) && drivers.length < MAX_DRIVERS && !drivers.includes(trimmedName)) {
       onChange([...drivers, trimmedName])
     }
     setInputValue('')
@@ -63,11 +64,12 @@ export function DriverChips({ drivers, onChange, placeholder }: DriverChipsProps
         ref={inputRef}
         type="text"
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={(e) => setInputValue(sanitizeDriverNameInput(e.target.value))}
         onKeyDown={handleKeyDown}
         onBlur={() => inputValue.trim() && addDriver(inputValue)}
         placeholder={drivers.length === 0 ? (placeholder || t('driversPlaceholder')) : ''}
-        maxLength={50}
+        maxLength={DRIVER_NAME_MAX_LENGTH}
+        disabled={drivers.length >= MAX_DRIVERS}
       />
     </DriverChipsContainer>
   )

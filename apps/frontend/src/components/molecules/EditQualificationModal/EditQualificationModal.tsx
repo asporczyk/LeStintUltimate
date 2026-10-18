@@ -14,7 +14,8 @@ import {
   ModalButtons,
   InputWithUnit,
   InputUnit,
-  InputWithUnitStyle
+  InputWithUnitStyle,
+  ErrorText
 } from '../EditRaceModal/EditRaceModal.styles'
 
 interface EditQualificationModalProps {
@@ -62,17 +63,24 @@ export function EditQualificationModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onCancel])
 
+  const [durationError, setDurationError] = useState(false)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const duration = Number(formData.duration)
+    if (!(duration >= 1 && duration <= 120)) {
+      setDurationError(true)
+      return
+    }
     const { avgLapTime, avgFuelPerLap } = driverPace(racePace, formData.driver)
-    const totalSeconds = Number(formData.duration) * 60
+    const totalSeconds = duration * 60
     const fullLaps = Math.floor(totalSeconds / avgLapTime)
     const remainingSeconds = totalSeconds % avgLapTime
     const laps = avgLapTime > 0 ? fullLaps + (remainingSeconds > 0 ? 1 : 0) : 0
     const fuel = avgFuelPerLap > 0 ? Math.ceil(laps * avgFuelPerLap) : 0
     onConfirm({
       startTime: raceStartTime,
-      duration: Number(formData.duration),
+      duration,
       laps,
       driver: formData.driver,
       spotter: formData.spotter,
@@ -86,6 +94,7 @@ export function EditQualificationModal({
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
+    if (field === 'duration') setDurationError(false)
   }
 
   if (!isOpen) return null
@@ -107,6 +116,7 @@ export function EditQualificationModal({
               />
               <InputUnit>min</InputUnit>
             </InputWithUnit>
+            {durationError && <ErrorText>{t('validation.durationRange')}</ErrorText>}
           </FormGroup>
 
           <FormGroup>
