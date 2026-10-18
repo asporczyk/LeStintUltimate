@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { Title } from 'components/atoms/Typography/Typography.styles'
 
 export const Landing = styled.div`
   min-height: 100vh;
@@ -38,4 +39,23 @@ export const Stripe = styled.span`
   background: ${({ theme }) => theme.colors.primary};
   transform: skewX(-24deg);
   margin-bottom: 0.25rem;
+`
+
+// Title with the version tag pinned to its bottom-right corner.
+export const HeroTitle = styled(Title)`
+  position: relative;
+`
+
+export const Version = styled.span`
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.12em 0.4em;
+  font-size: 0.32em;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: ${({ theme }) => theme.colors.onPrimary};
+  background: ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  transform: translate(50%, 95%) skewX(-12deg);
 `
