@@ -56,9 +56,10 @@ export function ElectronicsFields({ value, errors, onChange }: ElectronicsFields
       </LevelsGrid>
       <FormGroup>
         <Label htmlFor="driver-brake-bias">{t('electronics.brakeBias')}</Label>
+        {/* Front on the left, rear on the right, like the "front:rear" value between them. */}
         <BiasRow>
-          <BiasStep type="button" onClick={() => step(-1)} disabled={inRange && front <= BRAKE_BIAS_MIN} title={t('brakeBiasRearward')}>
-            ◀ {t('brakeBiasRear')}
+          <BiasStep type="button" onClick={() => step(1)} disabled={inRange && front >= BRAKE_BIAS_MAX} title={t('brakeBiasForward')}>
+            ◀ {t('brakeBiasFront')}
           </BiasStep>
           <InputWithUnit>
             <InputWithUnitStyle
@@ -74,8 +75,8 @@ export function ElectronicsFields({ value, errors, onChange }: ElectronicsFields
             />
             <InputUnit>:{(100 - (inRange ? front : BRAKE_BIAS_DEFAULT)).toFixed(1)}</InputUnit>
           </InputWithUnit>
-          <BiasStep type="button" onClick={() => step(1)} disabled={inRange && front >= BRAKE_BIAS_MAX} title={t('brakeBiasForward')}>
-            {t('brakeBiasFront')} ▶
+          <BiasStep type="button" onClick={() => step(-1)} disabled={inRange && front <= BRAKE_BIAS_MIN} title={t('brakeBiasRearward')}>
+            {t('brakeBiasRear')} ▶
           </BiasStep>
         </BiasRow>
         {errors.brakeBias && <ErrorText>{t(errors.brakeBias, { min: BRAKE_BIAS_MIN, max: BRAKE_BIAS_MAX })}</ErrorText>}
