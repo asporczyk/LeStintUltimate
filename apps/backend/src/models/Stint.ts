@@ -22,6 +22,9 @@ const StintSchema = new Schema(
         spotter: String,
         fuelLaps: Number,
         fuel: Number,
+        // Pace of this stint; unset (null) falls back to the driver's, then the race's.
+        avgLapTime: Number,
+        avgFuelPerLap: Number,
         tireFL: String,
         tireFR: String,
         tireRL: String,

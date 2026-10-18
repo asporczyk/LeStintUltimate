@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type Incident, type Stint } from 'types/Schedule'
-import { type DriverAvailability } from 'types/Race'
+import { type DriverAvailability, type DriverPace } from 'types/Race'
 import { availabilityLabel, availabilityWindows, driverBlocks, isAvailable } from 'utils/availability'
 import { remainingTiresAt } from 'utils/tires'
 import { stintStartLap } from 'utils/laps'
+import { stintPace, type Pace } from 'utils/pace'
+import { formatLapTime } from 'utils/time'
 import { raceTimeline, formatRaceTime, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
 import { clockAt, clockChanges, minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { calculatePitstopTime } from 'utils/pitstop'
@@ -37,6 +39,7 @@ import { useToast } from '@/hooks/useToast'
 interface StintScheduleProps {
   drivers: string[]
   driverAvailability?: DriverAvailability[]
+  driverPace?: DriverPace[]
   avgStintTime: number
   avgLapTime: number
   avgFuelPerLap: number
@@ -51,7 +54,7 @@ interface StintScheduleProps {
   notes?: string
 }
 
-export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLapTime, avgFuelPerLap, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, pitLaneTime, raceLength, notes }: StintScheduleProps) {
+export function StintSchedule({ drivers, driverAvailability, driverPace, avgStintTime, avgLapTime, avgFuelPerLap, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, pitLaneTime, raceLength, notes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const { onStintRefresh } = useSocket()
@@ -94,7 +97,10 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
 
   const raceStart = raceStartDateTime(raceDate, eventStartTime, startTime)
   const currentRaceTime = minutesSinceRaceStart(raceStart, now)
-  const timeline = raceTimeline(stints, raceLength, avgLapTime, fuelTankCapacity, pitLaneTime)
+  // Each stint at its own pace: the stint's, else its driver's, else the race's.
+  const racePace = { avgLapTime, avgFuelPerLap, driverPace }
+  const pacedStints = stints.map(stint => ({ ...stint, ...stintPace(racePace, stint) }))
+  const timeline = raceTimeline(pacedStints, raceLength, avgLapTime, fuelTankCapacity, pitLaneTime)
   // Summer/winter time changes before the flag; race minutes stay real time, clocks jump.
   const changes = clockChanges(raceStart, timeline.finish.flagAt)
   const editingStint = editingIndex !== null ? stints[editingIndex] : null
@@ -130,8 +136,14 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
           : t(`repairPart.${part}`)).join(', '),
       }
       : undefined
+    // Shown when the stint is not driven at the race's pace.
+    const pace = pacedStints[index]
+    const paceNote = pace.avgLapTime !== (avgLapTime || 0) || pace.avgFuelPerLap !== (avgFuelPerLap || 0)
+      ? t('paceNote', { lap: pace.avgLapTime ? formatLapTime(pace.avgLapTime) : '–', fuel: pace.avgFuelPerLap || '–' })
+      : undefined
     return {
       stint,
+      paceNote,
       index,
       repair,
       timelineStint,
@@ -178,7 +190,36 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
     return timeline.stints[afterOrder - 1].start + previous.duration + pitSeconds / 60
   }
 
-  const startLapBefore = (index: number) => stintStartLap(stints.slice(0, index).map(s => s.duration), avgLapTime)
+  const startLapBefore = (index: number) =>
+    stintStartLap(pacedStints.slice(0, index).map(s => ({ duration: s.duration, avgLapTime: s.avgLapTime || avgLapTime })))
+
+  // Limits of a new stint added after `addAfterStint`, driven at `pace`: past the plan
+  // the car keeps going at that pace.
+  const addLimitsFor = (pace: Pace) => {
+    const withNew = raceTimeline(pacedStints, raceLength, pace.avgLapTime || avgLapTime, fuelTankCapacity, pitLaneTime)
+    const last = stints[stints.length - 1] ?? null
+    return {
+      maxDuration: maxNewStintDuration(withNew, stints[addAfterStint - 1] ?? null, fuelTankCapacity, pitLaneTime),
+      finishFuel: addAfterStint === stints.length && !withNew.coversRace
+        ? finishFuel(withNew, withNew.plannedLaps, newStintMinutesToFlag(withNew, last, fuelTankCapacity, pitLaneTime), pace.avgFuelPerLap)
+        : null,
+    }
+  }
+
+  // Limits of the stint at `index` driven at `pace` (a new pace moves the flag).
+  const editLimitsFor = (index: number) => (pace: Pace) => {
+    const edited = raceTimeline(
+      pacedStints.map((stint, i) => i === index ? { ...stint, avgLapTime: pace.avgLapTime } : stint),
+      raceLength, avgLapTime, fuelTankCapacity, pitLaneTime,
+    )
+    const stint = edited.stints[index]
+    return {
+      maxDuration: maxStintDuration(edited, index, stints[index].duration),
+      finishFuel: stint.status !== 'after' && (index === edited.finishingIndex || index === stints.length - 1)
+        ? finishFuel(edited, stint.lapsBefore, edited.finish.flagAt - stint.start, pace.avgFuelPerLap)
+        : null,
+    }
+  }
 
   return (
     <ScheduleContainer>
@@ -212,6 +253,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
                 isActive={row.isActive}
                 driver={row.stint.driver}
                 driverWarning={row.driverWarning}
+                pace={row.paceNote}
                 spotter={row.stint.spotter}
                 stats={[
                   { label: t('startLapShort'), value: row.stint.fuelLaps },
@@ -281,16 +323,8 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
         flagAt={timeline.finish.flagAt}
         avgStintTime={avgStintTime}
         startLap={startLapBefore(addAfterStint)}
-        maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity, pitLaneTime)}
-        finishFuel={addAfterStint === stints.length && !timeline.coversRace
-          ? finishFuel(
-            timeline,
-            timeline.totalDriving,
-            newStintMinutesToFlag(timeline, stints[stints.length - 1] ?? null, fuelTankCapacity, pitLaneTime),
-            avgLapTime,
-            avgFuelPerLap,
-          )
-          : null}
+        racePace={racePace}
+        limitsFor={addLimitsFor}
         onStintAdded={() => setAddModalOpen(false)}
         onCancel={() => setAddModalOpen(false)}
       />
@@ -308,17 +342,8 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
           flagAt={timeline.finish.flagAt}
           avgStintTime={avgStintTime}
           startLap={startLapBefore(editingIndex)}
-          maxDuration={maxStintDuration(timeline, editingIndex, editingStint.duration)}
-          finishFuel={timeline.stints[editingIndex].status !== 'after'
-            && (editingIndex === timeline.finishingIndex || editingIndex === stints.length - 1)
-            ? finishFuel(
-              timeline,
-              timeline.stints[editingIndex].drivingBefore,
-              timeline.finish.flagAt - timeline.stints[editingIndex].start,
-              avgLapTime,
-              avgFuelPerLap,
-            )
-            : null}
+          racePace={racePace}
+          limitsFor={editLimitsFor(editingIndex)}
           onConfirm={async (updatedStint) => {
             try {
               const updated = await StintsApi.update(editingStint._id, updatedStint)
@@ -336,15 +361,15 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
         <IncidentModal
           key={`incident-${incidentStint._id}`}
           stintOrder={incidentStint.order}
-          lapRange={incidentLapRange(incidentTimelineStint, avgLapTime)}
-          suggestedLap={incidentLapAt(incidentTimelineStint, currentRaceTime, avgLapTime)}
-          durationForLap={(lap) => durationToLap(incidentTimelineStint.drivingBefore, lap, avgLapTime)}
+          lapRange={incidentLapRange(incidentTimelineStint)}
+          suggestedLap={incidentLapAt(incidentTimelineStint, currentRaceTime)}
+          durationForLap={(lap) => durationToLap(incidentTimelineStint, lap)}
           hasNextStint={incidentIndex < stints.length - 1}
           onConfirm={async (incident: Incident) => {
             try {
               // Cut the stint to the incident's lap; the rest of the plan moves up.
               const updated = await StintsApi.update(incidentStint._id, {
-                duration: durationToLap(incidentTimelineStint.drivingBefore, incident.lap, avgLapTime),
+                duration: durationToLap(incidentTimelineStint, incident.lap),
                 durationAuto: false,
                 incident,
               })

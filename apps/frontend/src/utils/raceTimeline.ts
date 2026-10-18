@@ -1,9 +1,10 @@
 import { calculatePitstopTime } from 'utils/pitstop'
 import { stintStartTimes } from 'utils/schedule'
-import { DEFAULT_LAP_TIME } from 'utils/laps'
+import { fullLaps, lapSecondsOf, lapsAfter, minutesForLaps } from 'utils/laps'
 import { type Stint } from 'types/Schedule'
 
-type TimelineInput = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR' | 'repairs'>
+// avgLapTime: the lap time the stint is driven at (utils/pace); unset = the race's.
+type TimelineInput = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR' | 'repairs' | 'avgLapTime'>
 
 // Stint durations are planned in whole minutes.
 const PLAN_PRECISION = 1
@@ -22,7 +23,11 @@ export interface TimelineStint {
   end: number
   // Minutes of driving (pit stops excluded) before this stint.
   drivingBefore: number
+  // Laps driven before this stint, with the fraction of the lap in progress.
+  lapsBefore: number
   startLap: number
+  // Seconds per lap in this stint.
+  lapSeconds: number
   hourMarks: HourMark[]
   // 'after': starts after the checkered flag, so it is never driven.
   status: 'race' | 'finish' | 'after'
@@ -44,6 +49,8 @@ export interface RaceTimeline {
   plannedEnd: number
   // Minutes of driving in the whole plan (pit stops excluded).
   totalDriving: number
+  // Laps driven in the whole plan, with the fraction of the lap in progress.
+  plannedLaps: number
   // The plan reaches the checkered flag.
   coversRace: boolean
   // Minutes between the end of the plan and the flag (0 when covered).
@@ -54,7 +61,8 @@ export interface RaceTimeline {
 // How the plan lies on the race clock: stint times, laps, hour marks and the finish.
 // A timed race ends when the leader completes the lap during which the time runs out.
 // Laps count driving time only, like the start lap of a stint (pit stops excluded);
-// past the end of a short plan the car is assumed to keep driving.
+// past the end of a short plan the car is assumed to keep driving. Each stint is driven at
+// its own lap time; stints without one, and driving past the plan, at `avgLapTime`.
 export function raceTimeline(
   stints: TimelineInput[],
   raceLengthHours: number,
@@ -62,7 +70,8 @@ export function raceTimeline(
   fuelTankCapacity: number,
   pitLaneTime: number = 0,
 ): RaceTimeline {
-  const lapSeconds = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME
+  const segments = stints.map(stint => ({ duration: stint.duration, avgLapTime: stint.avgLapTime || avgLapTime }))
+  const lapsAt = (driving: number) => lapsAfter(segments, driving, avgLapTime)
   const raceMinutes = Math.max(0, raceLengthHours) * 60
   const starts = stintStartTimes(stints, fuelTankCapacity, pitLaneTime)
   const ends = stints.map((stint, i) => starts[i] + stint.duration)
@@ -89,9 +98,8 @@ export function raceTimeline(
   }
 
   const timeUp = drivingAt(raceMinutes)
-  const lapsAtTimeUp = (timeUp.driving * 60) / lapSeconds
-  const totalLaps = Math.floor(lapsAtTimeUp) + 1
-  const flagAt = timeUp.resumesAt + (totalLaps * lapSeconds - timeUp.driving * 60) / 60
+  const totalLaps = Math.floor(lapsAt(timeUp.driving)) + 1
+  const flagAt = timeUp.resumesAt + minutesForLaps(segments, totalLaps, avgLapTime) - timeUp.driving
 
   let finishingIndex = -1
   starts.forEach((start, i) => {
@@ -113,14 +121,16 @@ export function raceTimeline(
         // Hours that fall into the pit stop after the stint sit at its end.
         if (minute < start || minute >= Math.max(end, nextStart)) continue
         const offset = Math.min(1, (minute - start) / (end - start))
-        hourMarks.push({ hour, offset, lap: Math.floor((drivingAt(minute).driving * 60) / lapSeconds) })
+        hourMarks.push({ hour, offset, lap: Math.floor(lapsAt(drivingAt(minute).driving)) })
       }
     }
     return {
       start,
       end,
       drivingBefore: drivingBefore[i],
-      startLap: Math.floor((drivingBefore[i] * 60) / lapSeconds),
+      lapsBefore: lapsAt(drivingBefore[i]),
+      startLap: fullLaps(lapsAt(drivingBefore[i])),
+      lapSeconds: lapSecondsOf(segments[i].avgLapTime),
       hourMarks,
       status,
     }
@@ -132,6 +142,7 @@ export function raceTimeline(
     finish: { timeUpAt: raceMinutes, timeUpLap: totalLaps, flagAt, totalLaps },
     plannedEnd,
     totalDriving,
+    plannedLaps: lapsAt(totalDriving),
     coversRace,
     gap: coversRace ? 0 : Math.max(0, flagAt - plannedEnd),
     finishingIndex,
@@ -167,19 +178,16 @@ export interface FinishFuel {
   minDuration: number
 }
 
-// Fuel for the stint that drives on to the flag, starting after `drivingBefore` minutes
-// of driving and `minutesToFlag` before the flag: a new stint at the end of the plan or
-// the finishing one.
+// Fuel for the stint that drives on to the flag, starting after `lapsDone` laps (with the
+// fraction of the lap in progress) and `minutesToFlag` before the flag: a new stint at the
+// end of the plan or the finishing one. avgFuelPerLap is the stint's own.
 export function finishFuel(
   timeline: RaceTimeline,
-  drivingBefore: number,
+  lapsDone: number,
   minutesToFlag: number,
-  avgLapTime: number,
   avgFuelPerLap: number,
 ): FinishFuel | null {
   if (avgFuelPerLap <= 0) return null
-  const lapSeconds = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME
-  const lapsDone = (drivingBefore * 60) / lapSeconds
   const laps = Math.max(1, Math.ceil(timeline.finish.totalLaps - lapsDone - 1e-9))
   return {
     laps,

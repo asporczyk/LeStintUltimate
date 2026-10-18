@@ -6,6 +6,13 @@ export interface DriverAvailability {
   to: string
 }
 
+// Pace of a driver; an unset (or 0) field falls back to the race's average.
+export interface DriverPace {
+  driver: string
+  avgLapTime?: number
+  avgFuelPerLap?: number
+}
+
 export interface Race {
   _id: string
   name: string
@@ -15,6 +22,7 @@ export interface Race {
   raceLength: number
   drivers: string[]
   driverAvailability?: DriverAvailability[]
+  driverPace?: DriverPace[]
   tireSets: number
   fuelTankCapacity: number
   // Seconds lost driving through the pit lane; missing on races saved before it existed.

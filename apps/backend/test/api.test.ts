@@ -127,6 +127,24 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect((await schedule(raceId)).map(s => s.fuelLaps)).toEqual([0, 30]);
         });
 
+        it("follow the lap times of drivers and stints", async () => {
+            const raceId = await createRace({ avgLapTime: 120 });
+            await addStint(raceId, 1, 50);
+            await addStint(raceId, 2, 50, { driver: "Ola" });
+            await addStint(raceId, 3, 50);
+            expect((await schedule(raceId)).map(s => s.fuelLaps)).toEqual([0, 25, 50]);
+
+            await api("PATCH", `/races/${raceId}`, { driverPace: [{ driver: "Ola", avgLapTime: 100, avgFuelPerLap: 3 }] });
+            const stints = await schedule(raceId);
+            expect(stints.map(s => s.fuelLaps)).toEqual([0, 25, 55]);
+
+            await api("PUT", `/stints/${stints[0]._id}`, { avgLapTime: 100 });
+            expect((await schedule(raceId)).map(s => s.fuelLaps)).toEqual([0, 30, 60]);
+
+            await api("PUT", `/stints/${stints[0]._id}`, { avgLapTime: null });
+            expect((await schedule(raceId)).map(s => s.fuelLaps)).toEqual([0, 25, 55]);
+        });
+
         it("migrate values saved with the old formula on read", async () => {
             const raceId = await createRace({ avgLapTime: 120 });
             await addStint(raceId, 1, 50);

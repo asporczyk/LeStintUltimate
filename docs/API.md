@@ -55,7 +55,7 @@ Odpowiedź błędu walidacji: `{ "statusCode": 400, "error": "Bad Request", "mes
 | `PATCH` | `/races/:id` | Częściowa aktualizacja. Emituje `race:updated` |
 | `DELETE` | `/races/:id` | Usuwa wyścig razem z harmonogramem, stintami, treningiem i kwalifikacjami |
 
-**Efekty uboczne `PATCH /races/:id`:** zmiana `avgStintTime` ustawia nowy czas stintom z `durationAuto: true` (oraz starym stintom bez flagi, których czas był równy poprzedniej średniej); zmiana `avgStintTime` lub `avgLapTime` przelicza `fuelLaps` i emituje `stint:refresh`.
+**Efekty uboczne `PATCH /races/:id`:** zmiana `avgStintTime` ustawia nowy czas stintom z `durationAuto: true` (oraz starym stintom bez flagi, których czas był równy poprzedniej średniej); zmiana `avgStintTime`, `avgLapTime` lub przesłanie `driverPace` przelicza `fuelLaps` i emituje `stint:refresh`.
 
 ## Harmonogram i stinty
 

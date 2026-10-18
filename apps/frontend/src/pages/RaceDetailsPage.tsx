@@ -12,9 +12,6 @@ import {
   Stat,
   StatLabel,
   StatValue,
-  DriverList,
-  DriverTag,
-  DriverHours,
   ErrorState
 } from './RaceDetailsPage.styles'
 import { Loader } from 'components/atoms/Loader/Loader'
@@ -24,6 +21,8 @@ import { StintSchedule } from 'components/molecules/StintSchedule/StintSchedule'
 import { TrainingSchedule } from 'components/molecules/TrainingSchedule/TrainingSchedule'
 import { QualificationSchedule } from 'components/molecules/QualificationSchedule/QualificationSchedule'
 import { EditRaceModal } from 'components/molecules/EditRaceModal/EditRaceModal'
+import { EditDriverModal } from 'components/molecules/EditDriverModal/EditDriverModal'
+import { DriverDetails } from 'components/molecules/DriverDetails/DriverDetails'
 import { RacesApi } from 'api/RacesApi'
 import { useSocket } from '@/hooks/useSocket'
 import { type Race } from 'types/Race'
@@ -31,7 +30,7 @@ import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
 import { formatLapTime } from 'utils/time'
 import { DEFAULT_PIT_LANE_TIME } from 'utils/pitstop'
-import { availabilityLabel, driverBlocks, raceOffset } from 'utils/availability'
+import { raceOffset } from 'utils/availability'
 import { useToast } from '@/hooks/useToast'
 
 export function RaceDetailsPage() {
@@ -43,6 +42,7 @@ export function RaceDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingDriver, setEditingDriver] = useState<string | null>(null)
   const [calculatedRaceStartTime, setCalculatedRaceStartTime] = useState<string | null>(null)
   const [trainingEndTime, setTrainingEndTime] = useState<string | null>(null)
   const { onRaceUpdated, joinRace } = useSocket()
@@ -86,6 +86,7 @@ export function RaceDetailsPage() {
       const updatedRace = await RacesApi.update(id, updatedData)
       setRace(updatedRace)
       setIsEditModalOpen(false)
+      setEditingDriver(null)
     } catch {
       console.error('Failed to update race')
       showError(t('save-failed', { ns: 'common' }))
@@ -148,19 +149,7 @@ export function RaceDetailsPage() {
         ))}
         <Stat $wide>
           <StatLabel>{t('drivers')}</StatLabel>
-          <DriverList>
-            {race.drivers?.length
-              ? race.drivers.map(driver => {
-                const hours = availabilityLabel(driverBlocks(race.driverAvailability, driver), race.startTime || '19:30', t)
-                return (
-                  <DriverTag key={driver}>
-                    {driver}
-                    {hours && <DriverHours>{hours}</DriverHours>}
-                  </DriverTag>
-                )
-              })
-              : '-'}
-          </DriverList>
+          <DriverDetails race={race} onEdit={setEditingDriver} />
         </Stat>
       </StatsGrid>
       {race && <TrainingSchedule 
@@ -174,12 +163,14 @@ export function RaceDetailsPage() {
         tireSets={race.tireSets || 0}
         avgLapTime={race.avgLapTime || 0}
         avgFuelPerLap={race.avgFuelPerLap || 0}
+        driverPace={race.driverPace}
         drivers={race.drivers || []}
         onCalculatedRaceStart={setCalculatedRaceStartTime}
       />}
       {race && <StintSchedule 
         drivers={race.drivers || []} 
         driverAvailability={race.driverAvailability}
+        driverPace={race.driverPace}
         avgStintTime={race.avgStintTime} 
         avgLapTime={race.avgLapTime} 
         avgFuelPerLap={race.avgFuelPerLap || 0}
@@ -198,9 +189,18 @@ export function RaceDetailsPage() {
           key={isEditModalOpen ? 'open' : 'closed'}
           isOpen={isEditModalOpen}
           race={race}
-          raceStartOffset={raceOffset(race.startTime || '19:30', calculatedRaceStartTime || race.startTime || '19:30')}
           onConfirm={handleSaveRace}
           onCancel={() => setIsEditModalOpen(false)}
+        />
+      )}
+      {race && editingDriver && (
+        <EditDriverModal
+          key={editingDriver}
+          race={race}
+          driver={editingDriver}
+          raceStartOffset={raceOffset(race.startTime || '19:30', calculatedRaceStartTime || race.startTime || '19:30')}
+          onConfirm={handleSaveRace}
+          onCancel={() => setEditingDriver(null)}
         />
       )}
     </RaceDetailsContainer>

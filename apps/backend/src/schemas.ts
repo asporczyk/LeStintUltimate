@@ -50,6 +50,21 @@ export const patchRaceBody = {
                 properties: { driver: person, from: availabilityHour, to: availabilityHour }
             }
         },
+        // Pace per driver; a missing field falls back to the race's average.
+        driverPace: {
+            type: "array",
+            maxItems: 20,
+            items: {
+                type: "object",
+                required: ["driver"],
+                additionalProperties: false,
+                properties: {
+                    driver: person,
+                    avgLapTime: { type: "number", minimum: 0 },
+                    avgFuelPerLap: { type: "number", minimum: 0, maximum: 100 }
+                }
+            }
+        },
         tireSets: { type: "integer", minimum: 0, maximum: 100 },
         fuelTankCapacity: { type: "number", minimum: 0 },
         pitLaneTime: { type: "number", minimum: 0, maximum: 300 },
@@ -67,6 +82,9 @@ const stintFields = {
     spotter: person,
     fuelLaps: { type: "integer", minimum: 0 },
     fuel: { type: "number", minimum: 0, maximum: 100 },
+    // null falls back to the driver's (then the race's) pace
+    avgLapTime: { type: ["number", "null"], minimum: 0 },
+    avgFuelPerLap: { type: ["number", "null"], minimum: 0, maximum: 100 },
     tireFL: tire,
     tireFR: tire,
     tireRL: tire,

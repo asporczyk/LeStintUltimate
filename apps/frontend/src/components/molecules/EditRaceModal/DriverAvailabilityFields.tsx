@@ -21,12 +21,14 @@ interface DriverAvailabilityFieldsProps {
   eventStartClock: string
   raceStartClock: string
   raceLength: number
+  // Off when the form is about one driver only.
+  showNames?: boolean
 }
 
 // Blocks of real clock hours each driver can drive, one entry per block. Empty "from" = from
 // the start, empty "to" = to the end. A driver without blocks shows one empty block. Hours
 // are picked every 15 minutes from the event start until the race is over.
-export function DriverAvailabilityFields({ drivers, availability, onChange, eventDate, eventStartClock, raceStartClock, raceLength }: DriverAvailabilityFieldsProps) {
+export function DriverAvailabilityFields({ drivers, availability, onChange, eventDate, eventStartClock, raceStartClock, raceLength, showNames = true }: DriverAvailabilityFieldsProps) {
   const { t, i18n } = useTranslation('raceDetails')
   const locale = i18n.resolvedLanguage ?? i18n.language
   const saved = availability.flatMap(({ from, to }) => [from, to])
@@ -79,10 +81,8 @@ export function DriverAvailabilityFields({ drivers, availability, onChange, even
             return next
           }))
 
-        return (
-          <AvailabilityDriverGroup key={driver}>
-            <AvailabilityDriver title={driver}>{driver}</AvailabilityDriver>
-            <AvailabilityBlocks>
+        const rows = (
+            <AvailabilityBlocks key={driver}>
               {blocks.map((block, index) => (
                 <AvailabilityRow key={index}>
                   <TimeSelect
@@ -123,6 +123,12 @@ export function DriverAvailabilityFields({ drivers, availability, onChange, even
                 </AddBlockButton>
               )}
             </AvailabilityBlocks>
+        )
+        if (!showNames) return rows
+        return (
+          <AvailabilityDriverGroup key={driver}>
+            <AvailabilityDriver title={driver}>{driver}</AvailabilityDriver>
+            {rows}
           </AvailabilityDriverGroup>
         )
       })}

@@ -37,13 +37,15 @@ interface ScheduleCardProps {
   driver?: string
   // Shown under the driver, e.g. when they are not available at this time.
   driverWarning?: string
+  // The stint's pace when it is not the race's, e.g. "1:35:000 · 4.5%".
+  pace?: string
   spotter?: string
   stats?: { label: string; value: ReactNode }[]
   actions: ReactNode
 }
 
 // Phone version of one table row: time range first, then who drives, then the numbers.
-export function ScheduleCard({ badge, start, end, duration, clockChange, repair, isActive = false, driver, driverWarning, spotter, stats, actions }: ScheduleCardProps) {
+export function ScheduleCard({ badge, start, end, duration, clockChange, repair, isActive = false, driver, driverWarning, pace, spotter, stats, actions }: ScheduleCardProps) {
   const { t } = useTranslation('raceDetails')
 
   return (
@@ -71,6 +73,7 @@ export function ScheduleCard({ badge, start, end, duration, clockChange, repair,
             {isActive && <ActiveIndicator />}
           </DriverName>
           <Spotter>{t('spotter')}: {spotter === NO_SPOTTER ? t('noSpotter') : spotter || '–'}</Spotter>
+          {pace && <Spotter>{pace}</Spotter>}
           {driverWarning && <DriverWarning role="status">{driverWarning}</DriverWarning>}
         </People>
       )}

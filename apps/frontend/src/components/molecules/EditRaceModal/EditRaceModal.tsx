@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useTranslation } from 'react-i18next'
-import { type Race, type DriverAvailability } from 'types/Race'
+import { type Race } from 'types/Race'
 import {
   Overlay,
   ModalContent,
@@ -18,8 +18,7 @@ import {
   InputWithUnitStyle
 } from './EditRaceModal.styles'
 import { DriverChips } from './DriverChips'
-import { DriverAvailabilityFields } from './DriverAvailabilityFields'
-import { addMinutesToClock, formatLapTime, parseLapTime } from 'utils/time'
+import { formatLapTime, parseLapTime } from 'utils/time'
 import { DEFAULT_PIT_LANE_TIME } from 'utils/pitstop'
 import { DatePicker } from 'components/atoms/Picker/DatePicker'
 import { TimeSelect } from 'components/atoms/Picker/TimeSelect'
@@ -27,8 +26,6 @@ import { TimeSelect } from 'components/atoms/Picker/TimeSelect'
 interface EditRaceModalProps {
   isOpen: boolean
   race: Race
-  // Minutes from the event start (training) to the race start, after qualification.
-  raceStartOffset?: number
   onConfirm: (updatedRace: Partial<Race>) => void
   onCancel: () => void
 }
@@ -73,8 +70,7 @@ function getInitialFormData(race: Race) {
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
     avgFuelPerLap: race.avgFuelPerLap?.toString() || '',
     avgStintTime: race.avgStintTime?.toString() || '',
-    drivers: race.drivers || [],
-    driverAvailability: (race.driverAvailability || []) as DriverAvailability[]
+    drivers: race.drivers || []
   }
 }
 
@@ -155,7 +151,7 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
   return errors
 }
 
-export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, onCancel }: EditRaceModalProps) {
+export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -201,10 +197,9 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
       drivers: formData.drivers,
-      // Only drivers still in the race, and only those with hours set.
-      driverAvailability: formData.driverAvailability
-        .filter(entry => formData.drivers.includes(entry.driver) && (entry.from || entry.to))
-        .map(({ driver, from, to }) => ({ driver, from: from || '', to: to || '' }))
+      // Settings of removed drivers go with them (set per driver on the race page).
+      driverAvailability: (race.driverAvailability || []).filter(entry => formData.drivers.includes(entry.driver)),
+      driverPace: (race.driverPace || []).filter(entry => formData.drivers.includes(entry.driver))
     })
   }
 
@@ -227,9 +222,6 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
     }
   }
 
-  const handleAvailabilityChange = (driverAvailability: DriverAvailability[]) => {
-    setFormData(prev => ({ ...prev, driverAvailability }))
-  }
 
   if (!isOpen) return null
 
@@ -400,22 +392,6 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
             />
             {errors.drivers && <ErrorText>{t(errors.drivers)}</ErrorText>}
           </FormGroup>
-
-          {formData.drivers.length > 0 && (
-            <FormGroup>
-              <Label as="span">{t('driverAvailability')}</Label>
-              <FieldHint>{t('driverAvailabilityHint')}</FieldHint>
-              <DriverAvailabilityFields
-                drivers={formData.drivers}
-                availability={formData.driverAvailability}
-                onChange={handleAvailabilityChange}
-                eventDate={formData.startDate}
-                eventStartClock={formData.startTime}
-                raceStartClock={addMinutesToClock(formData.startTime, raceStartOffset).slice(0, 5)}
-                raceLength={Number(formData.raceLength) || 0}
-              />
-            </FormGroup>
-          )}
 
           <ModalButtons>
             <TextButton type="button" $variant="secondary" ref={cancelRef} onClick={onCancel}>

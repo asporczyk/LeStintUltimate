@@ -3,44 +3,49 @@ import { durationToLap, incidentLapAt, incidentLapRange, retiredIndex } from 'ut
 import { stintStartLap } from 'utils/laps'
 
 // Second stint of a plan with 2-minute laps: 50 min driven before, starts on lap 25.
-const stint = { start: 51, end: 101, drivingBefore: 50, startLap: 25 }
+const stint = { start: 51, end: 101, lapsBefore: 25, startLap: 25, lapSeconds: 120 }
 
 describe('incidentLapRange', () => {
   it('runs from the first lap of the stint to the lap it ends on', () => {
-    expect(incidentLapRange(stint, 120)).toEqual({ min: 26, max: 50 })
+    expect(incidentLapRange(stint)).toEqual({ min: 26, max: 50 })
   })
 
   it('stays valid for a stint shorter than a lap', () => {
-    expect(incidentLapRange({ start: 0, end: 1, drivingBefore: 0, startLap: 0 }, 120)).toEqual({ min: 0, max: 0 })
+    expect(incidentLapRange({ start: 0, end: 1, lapsBefore: 0, startLap: 0, lapSeconds: 120 })).toEqual({ min: 0, max: 0 })
   })
 })
 
 describe('incidentLapAt', () => {
   it('is the lap the car is on at that minute', () => {
-    expect(incidentLapAt(stint, 51 + 21, 120)).toBe(35)
+    expect(incidentLapAt(stint, 51 + 21)).toBe(35)
   })
 
   it('falls back to the stint range before and after it', () => {
-    expect(incidentLapAt(stint, -30, 120)).toBe(26)
-    expect(incidentLapAt(stint, 300, 120)).toBe(50)
+    expect(incidentLapAt(stint, -30)).toBe(26)
+    expect(incidentLapAt(stint, 300)).toBe(50)
   })
 })
 
 describe('durationToLap', () => {
   it('makes the next stint start on the incident lap', () => {
-    const duration = durationToLap(50, 35, 120)
+    const duration = durationToLap(stint, 35)
     expect(duration).toBe(20)
-    expect(stintStartLap([50, duration], 120)).toBe(35)
+    expect(stintStartLap([{ duration: 50, avgLapTime: 120 }, { duration, avgLapTime: 120 }])).toBe(35)
   })
 
   it('rounds up to whole minutes with odd lap times', () => {
-    const duration = durationToLap(50, 40, 95)
+    const duration = durationToLap({ lapsBefore: (50 * 60) / 95, lapSeconds: 95 }, 40)
     expect(duration).toBe(14)
-    expect(stintStartLap([50, duration], 95)).toBe(40)
+    expect(stintStartLap([{ duration: 50, avgLapTime: 95 }, { duration, avgLapTime: 95 }])).toBe(40)
+  })
+
+  it('uses the lap time of the stint, not of the earlier ones', () => {
+    // 25 laps before at 120 s, then 90 s laps: lap 35 after 10 laps = 15 min.
+    expect(durationToLap({ lapsBefore: 25, lapSeconds: 90 }, 35)).toBe(15)
   })
 
   it('is at least a minute', () => {
-    expect(durationToLap(50, 25, 120)).toBe(1)
+    expect(durationToLap(stint, 25)).toBe(1)
   })
 })
 
