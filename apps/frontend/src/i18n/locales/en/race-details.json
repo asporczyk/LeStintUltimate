@@ -59,6 +59,8 @@
   "drivers": "Drivers",
   "tireSets": "Number of tires",
   "fuelTankCapacity": "Fuel tank capacity",
+  "pitLaneTime": "Pit lane drive-through",
+  "pitLaneTimeHint": "Time lost driving through the pit lane, stop excluded, over the in-lap and out-lap together: (in-lap + out-lap − stop) − 2 × normal lap. Depends on the track.",
   "avgLapTime": "Avg lap time",
   "avgFuelPerLap": "Avg fuel per lap",
   "avgStintTime": "Avg stint time",
@@ -93,7 +95,8 @@
     "stintTimeRange": "Duration must be between 0 and 120 minutes",
     "nameTooLong": "Name max 100 characters",
     "beyondRaceEnd": "The stint would end after the finish. Up to {{max}} min",
-    "incidentLapRange": "Lap must be between {{min}} and {{max}}"
+    "incidentLapRange": "Lap must be between {{min}} and {{max}}",
+    "pitLaneTimeRange": "Value must be between 0 and 300 s"
   },
   "editTraining": "Edit Training",
   "extraLap": "+1 lap",

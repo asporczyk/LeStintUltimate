@@ -30,6 +30,7 @@ import { type Race } from 'types/Race'
 import ArrowBackIcon from 'assets/svg/arrow-back.svg'
 import EditIcon from 'assets/svg/edit.svg'
 import { formatLapTime } from 'utils/time'
+import { DEFAULT_PIT_LANE_TIME } from 'utils/pitstop'
 import { availabilityLabel, driverBlocks, raceOffset } from 'utils/availability'
 import { useToast } from '@/hooks/useToast'
 
@@ -115,6 +116,7 @@ export function RaceDetailsPage() {
     { label: t('raceLength'), value: `${race.raceLength} h` },
     { label: t('tireSets'), value: race.tireSets },
     { label: t('fuelTankCapacity'), value: `${race.fuelTankCapacity} L` },
+    { label: t('pitLaneTime'), value: `${race.pitLaneTime ?? DEFAULT_PIT_LANE_TIME} s` },
     { label: t('avgLapTime'), value: race.avgLapTime ? formatLapTime(race.avgLapTime) : '-' },
     { label: t('avgFuelPerLap'), value: `${race.avgFuelPerLap}%` },
     { label: t('avgStintTime'), value: `${race.avgStintTime} min` },
@@ -187,6 +189,7 @@ export function RaceDetailsPage() {
         eventStartTime={race.startTime || '19:30'}
         tireSets={Math.max(0, (race.tireSets || 0) - 4)}
         fuelTankCapacity={race.fuelTankCapacity || 100}
+        pitLaneTime={race.pitLaneTime ?? DEFAULT_PIT_LANE_TIME}
         raceLength={race.raceLength || 6}
         notes={race.notes}
       />}

@@ -17,6 +17,8 @@ const RaceSchema = new Schema(
         }],
         tireSets: { type: Number, default: 0 },
         fuelTankCapacity: { type: Number, default: 100 },
+        // Seconds lost driving through the pit lane (stop excluded), per track.
+        pitLaneTime: { type: Number, default: 25 },
         avgLapTime: { type: Number, default: 0 },
         avgFuelPerLap: { type: Number, default: 0 },
         avgStintTime: { type: Number, default: 0 },

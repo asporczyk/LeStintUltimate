@@ -46,11 +46,12 @@ interface StintScheduleProps {
   eventStartTime: string
   tireSets: number
   fuelTankCapacity: number
+  pitLaneTime: number
   raceLength: number
   notes?: string
 }
 
-export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLapTime, avgFuelPerLap, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, raceLength, notes }: StintScheduleProps) {
+export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLapTime, avgFuelPerLap, raceId, startTime, raceDate, eventStartTime, tireSets, fuelTankCapacity, pitLaneTime, raceLength, notes }: StintScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const { onStintRefresh } = useSocket()
@@ -93,7 +94,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
 
   const raceStart = raceStartDateTime(raceDate, eventStartTime, startTime)
   const currentRaceTime = minutesSinceRaceStart(raceStart, now)
-  const timeline = raceTimeline(stints, raceLength, avgLapTime, fuelTankCapacity)
+  const timeline = raceTimeline(stints, raceLength, avgLapTime, fuelTankCapacity, pitLaneTime)
   // Summer/winter time changes before the flag; race minutes stay real time, clocks jump.
   const changes = clockChanges(raceStart, timeline.finish.flagAt)
   const editingStint = editingIndex !== null ? stints[editingIndex] : null
@@ -173,7 +174,7 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
   const newStintStart = (afterOrder: number) => {
     const previous = stints[afterOrder - 1]
     if (!previous) return 0
-    const pitSeconds = calculatePitstopTime(previous, { ...previous, driver: `${previous.driver}-next`, fuel: 100, repairs: [] }, fuelTankCapacity)
+    const pitSeconds = calculatePitstopTime(previous, { ...previous, driver: `${previous.driver}-next`, fuel: 100, repairs: [] }, fuelTankCapacity, pitLaneTime)
     return timeline.stints[afterOrder - 1].start + previous.duration + pitSeconds / 60
   }
 
@@ -280,12 +281,12 @@ export function StintSchedule({ drivers, driverAvailability, avgStintTime, avgLa
         flagAt={timeline.finish.flagAt}
         avgStintTime={avgStintTime}
         startLap={startLapBefore(addAfterStint)}
-        maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity)}
+        maxDuration={maxNewStintDuration(timeline, stints[addAfterStint - 1] ?? null, fuelTankCapacity, pitLaneTime)}
         finishFuel={addAfterStint === stints.length && !timeline.coversRace
           ? finishFuel(
             timeline,
             timeline.totalDriving,
-            newStintMinutesToFlag(timeline, stints[stints.length - 1] ?? null, fuelTankCapacity),
+            newStintMinutesToFlag(timeline, stints[stints.length - 1] ?? null, fuelTankCapacity, pitLaneTime),
             avgLapTime,
             avgFuelPerLap,
           )
