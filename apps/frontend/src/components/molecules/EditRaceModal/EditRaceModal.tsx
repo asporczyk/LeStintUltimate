@@ -199,7 +199,8 @@ export function EditRaceModal({ isOpen, race, onConfirm, onCancel }: EditRaceMod
       drivers: formData.drivers,
       // Settings of removed drivers go with them (set per driver on the race page).
       driverAvailability: (race.driverAvailability || []).filter(entry => formData.drivers.includes(entry.driver)),
-      driverPace: (race.driverPace || []).filter(entry => formData.drivers.includes(entry.driver))
+      driverPace: (race.driverPace || []).filter(entry => formData.drivers.includes(entry.driver)),
+      driverElectronics: (race.driverElectronics || []).filter(entry => formData.drivers.includes(entry.driver))
     })
   }
 

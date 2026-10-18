@@ -13,6 +13,17 @@ export interface DriverPace {
   avgFuelPerLap?: number
 }
 
+// Car electronics a driver uses; an unset field is not noted.
+// Levels 1-9; brakeBias = % of braking force on the front axle (the rear gets the rest).
+export interface DriverElectronics {
+  driver: string
+  abs?: number
+  tc?: number
+  tcSlip?: number
+  tcCut?: number
+  brakeBias?: number
+}
+
 export interface Race {
   _id: string
   name: string
@@ -23,6 +34,7 @@ export interface Race {
   drivers: string[]
   driverAvailability?: DriverAvailability[]
   driverPace?: DriverPace[]
+  driverElectronics?: DriverElectronics[]
   tireSets: number
   fuelTankCapacity: number
   // Seconds lost driving through the pit lane; missing on races saved before it existed.

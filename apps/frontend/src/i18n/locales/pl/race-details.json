@@ -69,6 +69,13 @@
   "availability": "Dostępność",
   "pace": "Tempo",
   "driverPaceHint": "Opcjonalnie. Puste pole = średnia wyścigu.",
+  "electronics": {"title": "Elektronika", "abs": "ABS", "tc": "Kontrola trakcji", "tcSlip": "Slip angle", "tcCut": "Power cut", "brakeBias": "Brake bias"},
+  "electronicsHint": "Opcjonalnie. Poziomy 1–9, puste = nie ustawiono.",
+  "brakeBiasFront": "Przód",
+  "brakeBiasRear": "Tył",
+  "brakeBiasForward": "Przesuń balans na przód o 0,5%",
+  "brakeBiasRearward": "Przesuń balans na tył o 0,5%",
+  "brakeBiasHint": "Procent siły hamowania przód:tył. Wpisz przód (np. 54,5) albo przesuwaj przyciskami. Puste = nie ustawiono.",
   "stintPaceHint": "Opcjonalnie dla tego stintu. Puste pole = wartość kierowcy, a bez niej średnia wyścigu.",
   "paceNote": "Tempo: {{lap}} · {{fuel}}%",
   "avgStintTime": "Śr. czas stintu",
@@ -104,7 +111,8 @@
     "nameTooLong": "Nazwa max 100 znaków",
     "beyondRaceEnd": "Stint skończyłby się po mecie. Maksymalnie {{max}} min",
     "incidentLapRange": "Okrążenie musi być między {{min}} a {{max}}",
-    "pitLaneTimeRange": "Wartość musi być między 0 a 300 s"
+    "pitLaneTimeRange": "Wartość musi być między 0 a 300 s",
+    "brakeBiasRange": "Balans musi być między {{min}} a {{max}}% na przód"
   },
   "editTraining": "Edytuj trening",
   "extraLap": "+1 okr.",

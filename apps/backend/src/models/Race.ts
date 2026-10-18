@@ -22,6 +22,16 @@ const RaceSchema = new Schema(
             avgLapTime: Number,
             avgFuelPerLap: Number
         }],
+        // Per-driver car electronics; unset fields = not noted. Levels 1-9, brakeBias = % to the front.
+        driverElectronics: [{
+            _id: false,
+            driver: { type: String, required: true },
+            abs: Number,
+            tc: Number,
+            tcSlip: Number,
+            tcCut: Number,
+            brakeBias: Number
+        }],
         tireSets: { type: Number, default: 0 },
         fuelTankCapacity: { type: Number, default: 100 },
         // Seconds lost driving through the pit lane (stop excluded), per track.
