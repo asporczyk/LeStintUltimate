@@ -59,6 +59,8 @@
   "drivers": "Kierowcy",
   "tireSets": "Liczba opon",
   "fuelTankCapacity": "Pojemność baku",
+  "pitLaneTime": "Przejazd przez aleję",
+  "pitLaneTimeHint": "Strata na przejeździe alejką bez postoju, łącznie na okrążeniu zjazdowym i wyjazdowym: (in-lap + out-lap − postój) − 2 × zwykłe okrążenie. Zależy od toru.",
   "avgLapTime": "Śr. czas okrążenia",
   "avgFuelPerLap": "Śr. zużycie paliwa",
   "avgStintTime": "Śr. czas stintu",
@@ -93,7 +95,8 @@
     "stintTimeRange": "Czas trwania musi być między 0 a 120 minut",
     "nameTooLong": "Nazwa max 100 znaków",
     "beyondRaceEnd": "Stint skończyłby się po mecie. Maksymalnie {{max}} min",
-    "incidentLapRange": "Okrążenie musi być między {{min}} a {{max}}"
+    "incidentLapRange": "Okrążenie musi być między {{min}} a {{max}}",
+    "pitLaneTimeRange": "Wartość musi być między 0 a 300 s"
   },
   "editTraining": "Edytuj trening",
   "extraLap": "+1 okr.",

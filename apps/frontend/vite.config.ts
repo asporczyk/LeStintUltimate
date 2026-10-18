@@ -26,4 +26,8 @@ export default defineConfig({
     },
   },
   publicDir: 'public',
+  // PORT lets a second dev server run next to one already on 5173.
+  server: {
+    port: Number(process.env.PORT) || 5173,
+  },
 })

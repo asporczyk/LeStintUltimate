@@ -52,6 +52,7 @@ export const patchRaceBody = {
         },
         tireSets: { type: "integer", minimum: 0, maximum: 100 },
         fuelTankCapacity: { type: "number", minimum: 0 },
+        pitLaneTime: { type: "number", minimum: 0, maximum: 300 },
         avgLapTime: { type: "number", minimum: 0 },
         avgFuelPerLap: { type: "number", minimum: 0, maximum: 100 },
         avgStintTime: { type: "number", minimum: 0, maximum: 120 },

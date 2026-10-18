@@ -17,6 +17,8 @@ export interface Race {
   driverAvailability?: DriverAvailability[]
   tireSets: number
   fuelTankCapacity: number
+  // Seconds lost driving through the pit lane; missing on races saved before it existed.
+  pitLaneTime?: number
   avgLapTime: number
   avgFuelPerLap: number
   avgStintTime: number

@@ -53,4 +53,13 @@ describe('calculatePitstopTime', () => {
   it('a short repair hides behind refuelling', () => {
     expect(calculatePitstopTime(stint(), stint({ repairs: ['frontWing'] }))).toBeCloseTo(36.9)
   })
+
+  it('adds the pit lane drive-through on top of the stop', () => {
+    expect(calculatePitstopTime(stint(), stint(), 100, 25)).toBeCloseTo(61.9)
+    expect(calculatePitstopTime(stint(), stint({ driver: 'Ola', fuel: 10 }), 100, 25)).toBeCloseTo(71)
+  })
+
+  it('has no pit lane time before the first stint', () => {
+    expect(calculatePitstopTime(null, stint(), 100, 25)).toBe(0)
+  })
 })

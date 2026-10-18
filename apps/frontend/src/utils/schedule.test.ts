@@ -27,4 +27,8 @@ describe('scheduleLength', () => {
   it('is the end of the last stint', () => {
     expect(scheduleLength([stint(50, 'Adam'), stint(40, 'Ola')], 100)).toBeCloseTo(90 + 46 / 60)
   })
+
+  it('counts the pit lane drive-through in every pit stop', () => {
+    expect(scheduleLength([stint(50, 'Adam'), stint(40, 'Ola')], 100, 30)).toBeCloseTo(90 + 76 / 60)
+  })
 })

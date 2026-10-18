@@ -49,7 +49,7 @@ export default async function raceRoutes(app: FastifyInstance) {
 
     app.patch("/races/:id", { schema: { params: idParams, body: patchRaceBody } }, async (req, reply) => {
         const { id } = req.params as any;
-        const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; driverAvailability?: { driver: string; from?: string; to?: string }[]; tireSets?: number; fuelTankCapacity?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
+        const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; driverAvailability?: { driver: string; from?: string; to?: string }[]; tireSets?: number; fuelTankCapacity?: number; pitLaneTime?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
         
         const oldRace = await Race.findById(id);
         if (!oldRace) {

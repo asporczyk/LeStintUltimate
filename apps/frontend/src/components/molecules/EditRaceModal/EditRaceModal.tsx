@@ -20,6 +20,7 @@ import {
 import { DriverChips } from './DriverChips'
 import { DriverAvailabilityFields } from './DriverAvailabilityFields'
 import { addMinutesToClock, formatLapTime, parseLapTime } from 'utils/time'
+import { DEFAULT_PIT_LANE_TIME } from 'utils/pitstop'
 import { DatePicker } from 'components/atoms/Picker/DatePicker'
 import { TimeSelect } from 'components/atoms/Picker/TimeSelect'
 
@@ -39,6 +40,7 @@ interface FormErrors {
   raceLength?: string
   tireSets?: string
   fuelTankCapacity?: string
+  pitLaneTime?: string
   avgLapTime?: string
   avgFuelPerLap?: string
   avgStintTime?: string
@@ -67,6 +69,7 @@ function getInitialFormData(race: Race) {
     raceLength: race.raceLength?.toString() || '',
     tireSets: race.tireSets?.toString() || '',
     fuelTankCapacity: race.fuelTankCapacity?.toString() || '',
+    pitLaneTime: (race.pitLaneTime ?? DEFAULT_PIT_LANE_TIME).toString(),
     avgLapTime: race.avgLapTime ? formatLapTime(race.avgLapTime) : '',
     avgFuelPerLap: race.avgFuelPerLap?.toString() || '',
     avgStintTime: race.avgStintTime?.toString() || '',
@@ -115,6 +118,12 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>): FormErro
     errors.fuelTankCapacity = 'validation.required'
   } else if (Number(formData.fuelTankCapacity) <= 0) {
     errors.fuelTankCapacity = 'validation.positiveNumber'
+  }
+
+  if (!formData.pitLaneTime.trim()) {
+    errors.pitLaneTime = 'validation.required'
+  } else if (Number(formData.pitLaneTime) < 0 || Number(formData.pitLaneTime) > 300) {
+    errors.pitLaneTime = 'validation.pitLaneTimeRange'
   }
 
   if (!formData.avgLapTime.trim()) {
@@ -187,6 +196,7 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
       raceLength: Number(formData.raceLength),
       tireSets: Number(formData.tireSets),
       fuelTankCapacity: Number(formData.fuelTankCapacity),
+      pitLaneTime: Number(formData.pitLaneTime),
       avgLapTime: lapTime ?? undefined,
       avgFuelPerLap: Number(formData.avgFuelPerLap),
       avgStintTime: Number(formData.avgStintTime),
@@ -360,6 +370,24 @@ export function EditRaceModal({ isOpen, race, raceStartOffset = 0, onConfirm, on
                 <InputUnit>min</InputUnit>
               </InputWithUnit>
               {errors.avgStintTime && <ErrorText>{t(errors.avgStintTime)}</ErrorText>}
+            </FormGroup>
+
+            <FormGroup>
+              <Label>{t('pitLaneTime')}</Label>
+              <InputWithUnit>
+                <InputWithUnitStyle
+                  type="number"
+                  value={formData.pitLaneTime}
+                  onChange={handleChange('pitLaneTime')}
+                  placeholder={String(DEFAULT_PIT_LANE_TIME)}
+                  min="0"
+                  max="300"
+                  step="0.1"
+                />
+                <InputUnit>s</InputUnit>
+              </InputWithUnit>
+              <FieldHint>{t('pitLaneTimeHint')}</FieldHint>
+              {errors.pitLaneTime && <ErrorText>{t(errors.pitLaneTime)}</ErrorText>}
             </FormGroup>
           </FormRow>
 

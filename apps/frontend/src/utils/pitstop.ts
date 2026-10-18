@@ -14,13 +14,25 @@ const TIRE_RANDOM_DELAY = 7.0
 const TIME_DRIVER_CHANGE = 40.0
 const DRIVER_RANDOM_DELAY = 6.0
 
+// Time lost driving through the pit lane at the speed limit instead of along the track
+// (pit entry to pit exit, stop excluded). It depends on the track and LMU publishes no
+// figures, so each race has its own value with this one as the default. The timing line
+// crosses the pit lane, so the loss is split between the in-lap and the out-lap; only the
+// sum matters here. Measure it in game: (in-lap + out-lap - stationary time) - 2 * normal lap.
+export const DEFAULT_PIT_LANE_TIME = 25
+
 interface PitstopStint extends TireChange {
   driver: string
   fuel: number
   repairs?: string[]
 }
 
-export function calculatePitstopTime(previousStint: PitstopStint | null, currentStint: PitstopStint, fuelTankCapacity: number = 100): number {
+export function calculatePitstopTime(
+  previousStint: PitstopStint | null,
+  currentStint: PitstopStint,
+  fuelTankCapacity: number = 100,
+  pitLaneTime: number = 0,
+): number {
   if (!previousStint) return 0
 
   const fuelAmount = ((currentStint.fuel - 1) / 100) * fuelTankCapacity
@@ -37,5 +49,5 @@ export function calculatePitstopTime(previousStint: PitstopStint | null, current
     ? TIME_DRIVER_CHANGE + DRIVER_RANDOM_DELAY
     : 0
 
-  return Math.max(fuelTime, carTime, driverTime)
+  return pitLaneTime + Math.max(fuelTime, carTime, driverTime)
 }

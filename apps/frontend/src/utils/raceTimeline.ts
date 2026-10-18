@@ -60,10 +60,11 @@ export function raceTimeline(
   raceLengthHours: number,
   avgLapTime: number,
   fuelTankCapacity: number,
+  pitLaneTime: number = 0,
 ): RaceTimeline {
   const lapSeconds = avgLapTime > 0 ? avgLapTime : DEFAULT_LAP_TIME
   const raceMinutes = Math.max(0, raceLengthHours) * 60
-  const starts = stintStartTimes(stints, fuelTankCapacity)
+  const starts = stintStartTimes(stints, fuelTankCapacity, pitLaneTime)
   const ends = stints.map((stint, i) => starts[i] + stint.duration)
   const drivingBefore: number[] = []
   stints.reduce((sum, stint, i) => {
@@ -139,18 +140,18 @@ export function raceTimeline(
 
 // Minutes a new stint at the end of the plan has until the checkered flag, counting the
 // pit stop before it (driver change, full tank).
-export function newStintMinutesToFlag(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number): number {
+export function newStintMinutesToFlag(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number, pitLaneTime: number = 0): number {
   const pitMinutes = lastStint
-    ? calculatePitstopTime(lastStint, { ...lastStint, driver: `${lastStint.driver}-next`, fuel: 100, repairs: [] }, fuelTankCapacity) / 60
+    ? calculatePitstopTime(lastStint, { ...lastStint, driver: `${lastStint.driver}-next`, fuel: 100, repairs: [] }, fuelTankCapacity, pitLaneTime) / 60
     : 0
   return timeline.finish.flagAt - timeline.plannedEnd - pitMinutes
 }
 
 // Longest new stint (whole minutes) that still ends by the checkered flag. 0 once the plan
 // covers the race.
-export function maxNewStintDuration(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number): number {
+export function maxNewStintDuration(timeline: RaceTimeline, lastStint: TimelineInput | null, fuelTankCapacity: number, pitLaneTime: number = 0): number {
   if (timeline.coversRace) return 0
-  return Math.max(0, Math.ceil(newStintMinutesToFlag(timeline, lastStint, fuelTankCapacity)))
+  return Math.max(0, Math.ceil(newStintMinutesToFlag(timeline, lastStint, fuelTankCapacity, pitLaneTime)))
 }
 
 // Laps of fuel kept in the tank on top of what the last stint needs.

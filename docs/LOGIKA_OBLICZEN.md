@@ -43,18 +43,21 @@ Zmiana `avgStintTime` wyścigu aktualizuje czas **tylko** stintów z `durationAu
 
 ## 4. Czas pit stopu
 
-`calculatePitstopTime(previous, current, fuelTankCapacity)` w `utils/pitstop.ts` (testy: `utils/pitstop.test.ts`). Model odwzorowuje parametry LMU:
+`calculatePitstopTime(previous, current, fuelTankCapacity, pitLaneTime)` w `utils/pitstop.ts` (testy: `utils/pitstop.test.ts`). Model odwzorowuje parametry LMU:
 
 | Składnik | Wzór |
 |---|---|
 | Tankowanie | `((fuel − 1) / 100 * capacity) / 3.0 L/s + 2.0 + 1.2 + 0.7` s |
 | Opony | 1–2 opony: `15 + 7` s, 3–4 opony: `32 + 7` s, 0 opon: 0 |
 | Zmiana kierowcy | `40 + 6` s, gdy `driver` różni się od poprzedniego stintu |
+| Przejazd przez aleję | `pitLaneTime` wyścigu (domyślnie 25 s) |
 | Naprawy (`repairs`) | suma części: nadwozie 30 s, przednie skrzydło `8.5 + 1.5` s, tylne skrzydło `33 + 7` s, zawieszenie 40 s na każdy narożnik |
 
-`pit = max(tankowanie, opony + naprawy, zmiana kierowcy)`: mechanicy najpierw zmieniają opony, potem naprawiają (LMU naprawia uszkodzenia na końcu), a tankowanie i zmiana kierowcy idą równolegle. Pierwszy stint nie ma pit stopu (i nie ma w modalu wyboru napraw).
+`pit = aleja + max(tankowanie, opony + naprawy, zmiana kierowcy)`: mechanicy najpierw zmieniają opony, potem naprawiają (LMU naprawia uszkodzenia na końcu), a tankowanie i zmiana kierowcy idą równolegle. Pierwszy stint nie ma pit stopu (i nie ma w modalu wyboru napraw).
 
 Czasy napraw (`utils/repairs.ts`): LMU ich nie publikuje. Skrzydła to domyślne wartości z sekcji `PitstopDelays` plików RFM rFactora (z niej pochodzą też czasy tankowania), nadwozie i zawieszenie to szacunki z czasów widocznych w menu pit stopu LMU.
+
+Przejazd przez aleję (`pitLaneTime`, pole wyścigu): strata czasu na przejazd alejką z limiterem zamiast torem, bez postoju. Okrążenia stintów liczone są średnim czasem okrążenia, więc dodajemy tylko tę różnicę, a nie cały czas przejazdu alejką. Zależy od toru, a LMU ani społeczność nie publikują tych wartości, więc każdy wyścig ma własne pole z domyślnymi 25 s (szacunek). Linia pomiaru czasu przecina aleję, więc strata rozkłada się na okrążenie zjazdowe (in-lap) i wyjazdowe (out-lap); dla harmonogramu liczy się tylko ich suma, dodawana raz na pit stop. Zmierzyć w grze: `(in-lap + out-lap − czas postoju) − 2 × zwykłe okrążenie`. Wyścigi zapisane przed dodaniem pola dostają 25 s.
 
 Założenie: `fuel` to procent zbiornika dolewany w pit stopie, przy prawie pustym baku (−1 %).
 
