@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { type Race } from 'types/Race'
 import { availabilityLabel, driverBlocks } from 'utils/availability'
 import { formatLapTime } from 'utils/time'
+import { ELECTRONICS_LEVELS, formatBrakeBias } from 'utils/electronics'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import EditIcon from 'assets/svg/edit.svg'
 import {
@@ -33,6 +34,7 @@ export function DriverDetails({ race, onEdit }: DriverDetailsProps) {
   const details = (driver: string): { label: string; value: ReactNode; inherited?: boolean }[] => {
     const hours = availabilityLabel(driverBlocks(race.driverAvailability, driver), race.startTime || '19:30', t)
     const pace = race.driverPace?.find(entry => entry.driver === driver)
+    const electronics = race.driverElectronics?.find(entry => entry.driver === driver)
     const raceLap = race.avgLapTime ? formatLapTime(race.avgLapTime) : '-'
     return [
       { label: t('availability'), value: hours ?? t('wholeRace'), inherited: !hours },
@@ -42,6 +44,12 @@ export function DriverDetails({ race, onEdit }: DriverDetailsProps) {
       pace?.avgFuelPerLap
         ? { label: t('avgFuelPerLap'), value: `${pace.avgFuelPerLap}%` }
         : { label: t('avgFuelPerLap'), value: t('raceAverage', { value: `${race.avgFuelPerLap || 0}%` }), inherited: true },
+      ...ELECTRONICS_LEVELS.map(level => ({ label: t(`electronics.${level}`), value: electronics?.[level] ?? '-', inherited: !electronics?.[level] })),
+      {
+        label: t('electronics.brakeBias'),
+        value: electronics?.brakeBias ? formatBrakeBias(electronics.brakeBias) : '-',
+        inherited: !electronics?.brakeBias,
+      },
     ]
   }
 

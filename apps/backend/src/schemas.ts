@@ -5,6 +5,7 @@ const objectId = { type: "string", pattern: "^[0-9a-fA-F]{24}$" } as const;
 const clockTime = { type: "string", pattern: "^\\d{2}:\\d{2}(:\\d{2})?$" } as const;
 const tire = { type: "string", maxLength: 3 } as const;
 const person = { type: "string", maxLength: 50 } as const;
+const electronicsLevel = { type: "integer", minimum: 1, maximum: 9 } as const;
 // "HH:MM" ("HH:MM+1" for its second time in a session over 24 h), or empty for no limit.
 const availabilityHour = { type: "string", pattern: "^(([01]\\d|2[0-3]):[0-5]\\d(\\+1)?)?$" } as const;
 
@@ -62,6 +63,25 @@ export const patchRaceBody = {
                     driver: person,
                     avgLapTime: { type: "number", minimum: 0 },
                     avgFuelPerLap: { type: "number", minimum: 0, maximum: 100 }
+                }
+            }
+        },
+        // Car electronics per driver; a missing field is not noted.
+        driverElectronics: {
+            type: "array",
+            maxItems: 20,
+            items: {
+                type: "object",
+                required: ["driver"],
+                additionalProperties: false,
+                properties: {
+                    driver: person,
+                    abs: electronicsLevel,
+                    tc: electronicsLevel,
+                    tcSlip: electronicsLevel,
+                    tcCut: electronicsLevel,
+                    // % of braking force on the front axle; the rear gets the rest.
+                    brakeBias: { type: "number", minimum: 40, maximum: 70 }
                 }
             }
         },

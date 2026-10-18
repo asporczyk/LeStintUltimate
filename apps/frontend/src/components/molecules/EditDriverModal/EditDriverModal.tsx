@@ -4,8 +4,10 @@ import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { type Race, type DriverAvailability, type DriverPace } from 'types/Race'
 import { DriverAvailabilityFields } from 'components/molecules/EditRaceModal/DriverAvailabilityFields'
 import { PaceFields } from 'components/molecules/PaceFields/PaceFields'
+import { ElectronicsFields } from 'components/molecules/ElectronicsFields/ElectronicsFields'
 import { driverBlocks } from 'utils/availability'
 import { paceInput, parsePaceInput, validatePaceInput, type PaceInputErrors } from 'utils/pace'
+import { electronicsInput, parseElectronicsInput, validateElectronicsInput, type ElectronicsInputErrors } from 'utils/electronics'
 import { addMinutesToClock } from 'utils/time'
 import {
   Overlay,
@@ -24,11 +26,11 @@ interface EditDriverModalProps {
   // Minutes from the event start (training) to the race start, after qualification.
   raceStartOffset: number
   // The race fields to save: the driver's entries replaced, everyone else's kept.
-  onConfirm: (patch: Pick<Race, 'driverAvailability' | 'driverPace'>) => void
+  onConfirm: (patch: Pick<Race, 'driverAvailability' | 'driverPace' | 'driverElectronics'>) => void
   onCancel: () => void
 }
 
-// One driver's settings: hours they can drive and their pace.
+// One driver's settings: hours they can drive, their pace and car electronics.
 export function EditDriverModal({ race, driver, raceStartOffset, onConfirm, onCancel }: EditDriverModalProps) {
   const { t } = useTranslation('raceDetails')
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -36,6 +38,8 @@ export function EditDriverModal({ race, driver, raceStartOffset, onConfirm, onCa
   const [availability, setAvailability] = useState<DriverAvailability[]>(driverBlocks(race.driverAvailability, driver))
   const [pace, setPace] = useState(paceInput(race.driverPace?.find(entry => entry.driver === driver)))
   const [errors, setErrors] = useState<PaceInputErrors>({})
+  const [electronics, setElectronics] = useState(electronicsInput(race.driverElectronics?.find(entry => entry.driver === driver)))
+  const [electronicsErrors, setElectronicsErrors] = useState<ElectronicsInputErrors>({})
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
@@ -53,13 +57,16 @@ export function EditDriverModal({ race, driver, raceStartOffset, onConfirm, onCa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const paceErrors = validatePaceInput(pace)
+    const settingsErrors = validateElectronicsInput(electronics)
     setErrors(paceErrors)
-    if (Object.keys(paceErrors).length > 0) return
+    setElectronicsErrors(settingsErrors)
+    if (Object.keys(paceErrors).length > 0 || Object.keys(settingsErrors).length > 0) return
 
     const { avgLapTime, avgFuelPerLap } = parsePaceInput(pace)
     const ownPace: DriverPace[] = avgLapTime || avgFuelPerLap
       ? [{ driver, ...(avgLapTime && { avgLapTime }), ...(avgFuelPerLap && { avgFuelPerLap }) }]
       : []
+    const ownElectronics = parseElectronicsInput(driver, electronics)
     onConfirm({
       // Only blocks with hours set.
       driverAvailability: [
@@ -67,6 +74,10 @@ export function EditDriverModal({ race, driver, raceStartOffset, onConfirm, onCa
         ...availability.filter(entry => entry.from || entry.to).map(({ from, to }) => ({ driver, from: from || '', to: to || '' })),
       ],
       driverPace: [...(race.driverPace || []).filter(entry => entry.driver !== driver), ...ownPace],
+      driverElectronics: [
+        ...(race.driverElectronics || []).filter(entry => entry.driver !== driver),
+        ...(ownElectronics ? [ownElectronics] : []),
+      ],
     })
   }
 
@@ -100,6 +111,19 @@ export function EditDriverModal({ race, driver, raceStartOffset, onConfirm, onCa
               onChange={(value) => {
                 setPace(value)
                 setErrors({})
+              }}
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label as="span">{t('electronics.title')}</Label>
+            <FieldHint>{t('electronicsHint')}</FieldHint>
+            <ElectronicsFields
+              value={electronics}
+              errors={electronicsErrors}
+              onChange={(value) => {
+                setElectronics(value)
+                setElectronicsErrors({})
               }}
             />
           </FormGroup>

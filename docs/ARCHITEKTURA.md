@@ -50,7 +50,7 @@ Race (1) ──┬── (0..1) Training        [raceId: string]
 ```
 
 **Race** – wyścig i jego parametry:
-`name`, `startDate`, `startTime` (`"HH:MM"`, domyślnie `19:30`), `raceLength` (h), `drivers[]`, `tireSets`, `fuelTankCapacity` (L), `avgLapTime` (s), `avgFuelPerLap` (% zbiornika), `driverPace[]` (`{ driver, avgLapTime?, avgFuelPerLap? }`, opcjonalne tempo kierowcy), `avgStintTime` (min), `notes` (≤ 200 znaków).
+`name`, `startDate`, `startTime` (`"HH:MM"`, domyślnie `19:30`), `raceLength` (h), `drivers[]`, `tireSets`, `fuelTankCapacity` (L), `avgLapTime` (s), `avgFuelPerLap` (% zbiornika), `driverPace[]` (`{ driver, avgLapTime?, avgFuelPerLap? }`, opcjonalne tempo kierowcy), `driverElectronics[]` (`{ driver, abs?, tc?, tcSlip?, tcCut?, brakeBias? }`, elektronika auta kierowcy: poziomy 1–9, `brakeBias` = % hamowania na przód 40–70, tył = 100 − przód), `avgStintTime` (min), `notes` (≤ 200 znaków).
 
 **Training** – trening przed kwalifikacjami: `raceId`, `startTime`, `duration` (min).
 

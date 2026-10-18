@@ -97,6 +97,20 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect((await api("PATCH", `/races/${raceId}`, { driverAvailability: [{ driver: "Adam", to: "06:00+2" }] })).status).toBe(400);
         });
 
+        it("stores driver electronics and rejects levels and brake bias out of range", async () => {
+            const raceId = await createRace();
+            const driverElectronics = [
+                { driver: "Adam", abs: 3, tc: 4, tcSlip: 2, tcCut: 5, brakeBias: 54.6 },
+                { driver: "Ola", tc: 9 }
+            ];
+            const { body } = await api("PATCH", `/races/${raceId}`, { drivers: ["Adam", "Ola"], driverElectronics });
+            expect(body.driverElectronics).toEqual(driverElectronics);
+            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", abs: 0 }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", tc: 10 }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", tcCut: 2.5 }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", brakeBias: 75 }] })).status).toBe(400);
+        });
+
         it("requires raceId (not the old scheduleId) when adding a stint", async () => {
             const raceId = await createRace();
             expect((await api("POST", "/stints", { scheduleId: raceId, order: 1, duration: 50 })).status).toBe(400);
