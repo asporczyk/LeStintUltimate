@@ -3,6 +3,8 @@ import styled from 'styled-components'
 export const LevelsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  // A label wrapped to two lines keeps its select in line with the others.
+  align-items: end;
   gap: 0.75rem;
 
   @media (max-width: 500px) {
