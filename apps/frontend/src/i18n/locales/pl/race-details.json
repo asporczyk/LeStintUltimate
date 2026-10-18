@@ -112,6 +112,7 @@
     "beyondRaceEnd": "Stint skończyłby się po mecie. Maksymalnie {{max}} min",
     "incidentLapRange": "Okrążenie musi być między {{min}} a {{max}}",
     "pitLaneTimeRange": "Wartość musi być między 0 a 300 s",
+    "penaltyStop": "Postój musi być między 0 a 300 s",
     "brakeBiasRange": "Balans musi być między {{min}} a {{max}}% na przód"
   },
   "editTraining": "Edytuj trening",
@@ -179,5 +180,21 @@
   "next": "Dalej",
   "deleteIncident": "Usuń incydent",
   "confirmDeleteIncident": "Usunąć incydent? Stint zachowa skrócony czas trwania.",
-  "raceOver": "Koniec wyścigu: uszkodzenie całkowite w stincie {{order}} na okr. {{lap}}."
+  "raceOver": "Koniec wyścigu: uszkodzenie całkowite w stincie {{order}} na okr. {{lap}}.",
+  "penalty": "Kara",
+  "penalties": "Kary",
+  "addPenaltyTitle": "Dodaj karę w stincie {{order}}",
+  "penaltyType": "Rodzaj kary",
+  "penaltyTypes": {"driveThrough": "Drive through", "stopAndGo": "Stop and go"},
+  "penaltyStopAndGo": "Stop and go {{seconds}} s",
+  "penaltyLap": "Okrążenie odbycia kary",
+  "penaltyLapHint": "Podpowiedź: okrążenie na teraz · w tym stincie okr. {{min}}–{{max}}",
+  "penaltyStop": "Postój w boksie",
+  "penaltyLossDrive": "Strata: {{seconds}} s (przejazd aleją).",
+  "penaltyLossStop": "Strata: {{seconds}} s (aleja {{lane}} s + postój {{stop}} s).",
+  "penaltyEnd": "Stint {{order}} skończy się o {{clock}}, z tą samą liczbą okrążeń.",
+  "penaltyShift": "Kolejne stinty przesuną się o tyle samo.",
+  "penaltyMarkTitle": "{{type}} · okr. {{lap}} · {{clock}} · {{time}}",
+  "deletePenalty": "Usuń karę",
+  "confirmDeletePenalty": "Usunąć karę? Stint i kolejne stinty wrócą o czas tej kary."
 }

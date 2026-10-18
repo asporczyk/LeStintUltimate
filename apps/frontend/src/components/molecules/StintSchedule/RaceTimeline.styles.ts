@@ -176,6 +176,54 @@ export const HourMark = styled.div`
   }
 `
 
+// "DT" / "SG" on the rail where the penalty is served during the stint. Black and white
+// like the black flag, so it reads apart from the hour marks.
+export const PenaltyRailMark = styled(HourMark)`
+  span {
+    border-color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.surface};
+    letter-spacing: 0.04em;
+  }
+`
+
+// Penalties at the bottom of the stint card, inside its frame: the stint goes on.
+export const PenaltyList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem 0.5rem;
+  border-top: 1px dashed ${({ theme }) => theme.colors.borderStrong};
+`
+
+export const PenaltyRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 0.5rem;
+  color: ${({ theme }) => theme.colors.text};
+
+  > svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+`
+
+export const PenaltyShort = styled.span`
+  padding: 0 0.3125rem;
+  border-radius: 4px;
+  background: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.surface};
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+`
+
+export const PenaltyText = styled(IncidentText)`
+  font-size: 0.8125rem;
+`
+
 export const FinishCard = styled.div`
   margin: 0.25rem 0 0;
   padding: 1rem 1.25rem;
@@ -367,6 +415,26 @@ export const StripNow = styled.span`
   width: 2px;
   margin-left: -1px;
   background: ${({ theme }) => theme.colors.primary};
+`
+
+// Penalty on the race strip: a thin line with a notch on top, where it is served.
+export const StripPenalty = styled.span`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: ${({ theme }) => theme.colors.text};
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -4px;
+    border: 5px solid transparent;
+    border-top: 6px solid ${({ theme }) => theme.colors.text};
+    border-bottom: none;
+  }
 `
 
 export const StripLegend = styled.div`

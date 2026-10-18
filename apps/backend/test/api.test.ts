@@ -199,6 +199,27 @@ describe.skipIf(!MONGO)("API (integration)", () => {
         });
     });
 
+    describe("penalties", () => {
+        it("are saved with the stint, validated and removed with an empty list", async () => {
+            const raceId = await createRace();
+            await addStint(raceId, 1, 50);
+            const [stint] = await schedule(raceId);
+
+            const bad = await api("PUT", `/stints/${stint._id}`, { penalties: [{ type: "blackFlag", lap: 3 }] });
+            expect(bad.status).toBe(400);
+
+            const penalties = [{ type: "driveThrough", lap: 4 }, { type: "stopAndGo", lap: 12, stopSeconds: 10 }];
+            await api("PUT", `/stints/${stint._id}`, { penalties });
+            expect((await schedule(raceId) as any[])[0]).toMatchObject({ duration: 50, penalties });
+
+            await api("PUT", `/stints/${stint._id}`, { fuel: 80 });
+            expect((await schedule(raceId) as any[])[0].penalties).toEqual(penalties);
+
+            await api("PUT", `/stints/${stint._id}`, { penalties: [] });
+            expect((await schedule(raceId) as any[])[0].penalties ?? []).toEqual([]);
+        });
+    });
+
     describe("average stint time", () => {
         it("updates only stints filled in automatically", async () => {
             const raceId = await createRace({ avgLapTime: 120, avgStintTime: 50 });

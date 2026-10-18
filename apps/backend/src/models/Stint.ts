@@ -11,6 +11,19 @@ const IncidentSchema = new Schema(
     { _id: false }
 );
 
+export const PENALTY_TYPES = ["driveThrough", "stopAndGo"] as const;
+
+// Penalty served during the stint: a pass through the pit lane after `lap` laps (with a
+// stop of `stopSeconds` for a stop and go). The stint goes on with the same driver.
+const PenaltySchema = new Schema(
+    {
+        type: { type: String, enum: PENALTY_TYPES, required: true },
+        lap: { type: Number, required: true },
+        stopSeconds: Number
+    },
+    { _id: false }
+);
+
 const StintSchema = new Schema(
     {
         scheduleId: { type: Types.ObjectId, ref: "Schedule", required: true },
@@ -32,7 +45,8 @@ const StintSchema = new Schema(
         // Parts repaired at the pit stop before the stint
         repairs: { type: [String], default: undefined },
         // null once removed
-        incident: { type: IncidentSchema, default: undefined }
+        incident: { type: IncidentSchema, default: undefined },
+        penalties: { type: [PenaltySchema], default: undefined }
     },
     { timestamps: true }
 );

@@ -21,6 +21,7 @@ interface StintBody {
     tireRR: string
     repairs: string[]
     incident: { type: string; lap: number } | null
+    penalties: { type: string; lap: number; stopSeconds?: number }[]
 }
 
 export default async function scheduleRoutes(app: FastifyInstance) {
@@ -64,7 +65,8 @@ export default async function scheduleRoutes(app: FastifyInstance) {
             tireRL: body.tireRL,
             tireRR: body.tireRR,
             repairs: body.repairs,
-            incident: body.incident ?? undefined
+            incident: body.incident ?? undefined,
+            penalties: body.penalties
         });
 
         await recalculateFuelLaps(schedule);
@@ -92,7 +94,8 @@ export default async function scheduleRoutes(app: FastifyInstance) {
                 tireRL: body.tireRL,
                 tireRR: body.tireRR,
                 repairs: body.repairs,
-                incident: body.incident
+                incident: body.incident,
+                penalties: body.penalties
             },
             { new: true }
         );

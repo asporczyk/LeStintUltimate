@@ -70,6 +70,65 @@ describe('raceTimeline', () => {
   })
 })
 
+describe('raceTimeline with penalties', () => {
+  const PIT_LANE = 25
+  const drive = { type: 'driveThrough' as const, lap: 6 }
+  const stopGo = { type: 'stopAndGo' as const, lap: 12, stopSeconds: 10 }
+  // Pit stop between stints with the race's pit lane: nozzle and delay plus the lane.
+  const pitWithLane = (3.9 + PIT_LANE) / 60
+
+  it('makes the stint end later by the time lost, with the same driving time', () => {
+    const plain = raceTimeline([stint(30), stint(30)], 2, 100, 100, PIT_LANE)
+    const penalized = raceTimeline([{ ...stint(30), penalties: [drive, stopGo] }, stint(30)], 2, 100, 100, PIT_LANE)
+    const lost = (25 + 25 + 10) / 60
+    expect(penalized.stints[0].penaltyMinutes).toBeCloseTo(lost)
+    expect(penalized.stints[0].end).toBeCloseTo(30 + lost)
+    expect(penalized.stints[1].start).toBeCloseTo(30 + lost + pitWithLane)
+    expect(penalized.stints[1].startLap).toBe(plain.stints[1].startLap)
+    expect(penalized.totalDriving).toBe(plain.totalDriving)
+    expect(penalized.plannedEnd).toBeCloseTo(plain.plannedEnd + lost)
+  })
+
+  it('places each penalty on the clock at its lap, after the ones before it', () => {
+    const timeline = raceTimeline([{ ...stint(30), penalties: [stopGo, drive] }], 2, 100, 100, PIT_LANE)
+    const [first, second] = timeline.stints[0].penalties
+    // Lap 6 of 100 s = 10 min of driving; lap 12 = 20 min, after the 25 s drive through.
+    expect(first).toMatchObject({ penalty: drive, index: 1 })
+    expect(first.at).toBeCloseTo(10)
+    expect(second).toMatchObject({ penalty: stopGo, index: 0 })
+    expect(second.at).toBeCloseTo(20 + 25 / 60)
+    expect(second.offset).toBeCloseTo((20 + 25 / 60) / (30 + 60 / 60))
+  })
+
+  it('stops the lap count while the penalty is served', () => {
+    // 1 h race of one stint; a drive through after 30 min. The hour mark comes 25 s of
+    // driving earlier, so on the same lap or one earlier than without it.
+    const plain = raceTimeline([stint(90)], 2, 100, 100, PIT_LANE)
+    const penalized = raceTimeline([{ ...stint(90), penalties: [{ type: 'driveThrough' as const, lap: 18 }] }], 2, 100, 100, PIT_LANE)
+    expect(plain.stints[0].hourMarks[0].lap).toBe(36)
+    expect(penalized.stints[0].hourMarks[0].lap).toBe(35)
+  })
+
+  it('moves the flag when the penalty is served after the time is up', () => {
+    // 1 h race, 100 s laps: time up on lap 37 (36 done), flag after 37 laps at 61:40.
+    const plain = raceTimeline([stint(70)], 1, 100, 100, PIT_LANE)
+    const late = raceTimeline([{ ...stint(70), penalties: [{ type: 'driveThrough' as const, lap: 36 }] }], 1, 100, 100, PIT_LANE)
+    expect(late.finish.totalLaps).toBe(plain.finish.totalLaps)
+    expect(late.finish.flagAt).toBeCloseTo(plain.finish.flagAt + 25 / 60)
+  })
+
+  it('leaves out penalties of stints after the flag', () => {
+    const timeline = raceTimeline([stint(70), { ...stint(30), penalties: [drive] }], 1, 100, 100, PIT_LANE)
+    expect(timeline.stints[1].status).toBe('after')
+    expect(timeline.stints[1].penalties).toEqual([])
+  })
+
+  it('lets the finishing stint reach the flag, penalties excluded', () => {
+    const timeline = raceTimeline([{ ...stint(70), penalties: [drive] }], 1, 100, 100, PIT_LANE)
+    expect(maxStintDuration(timeline, 0, 70)).toBe(Math.ceil(timeline.finish.flagAt - 25 / 60))
+  })
+})
+
 describe('maxNewStintDuration', () => {
   it('leaves room for the pit stop before the new stint', () => {
     const stints = [stint(30)]

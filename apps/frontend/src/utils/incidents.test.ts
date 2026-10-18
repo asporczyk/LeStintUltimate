@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { durationToLap, incidentLapAt, incidentLapRange, retiredIndex } from 'utils/incidents'
+import { durationToLap, incidentLapAt, incidentLapRange, penaltyLapAt, penaltyLapRange, retiredIndex } from 'utils/incidents'
 import { stintStartLap } from 'utils/laps'
 
 // Second stint of a plan with 2-minute laps: 50 min driven before, starts on lap 25.
-const stint = { start: 51, end: 101, lapsBefore: 25, startLap: 25, lapSeconds: 120 }
+const stint = { start: 51, end: 101, lapsBefore: 25, startLap: 25, lapSeconds: 120, penaltyMinutes: 0 }
 
 describe('incidentLapRange', () => {
   it('runs from the first lap of the stint to the lap it ends on', () => {
@@ -11,7 +11,23 @@ describe('incidentLapRange', () => {
   })
 
   it('stays valid for a stint shorter than a lap', () => {
-    expect(incidentLapRange({ start: 0, end: 1, lapsBefore: 0, startLap: 0, lapSeconds: 120 })).toEqual({ min: 0, max: 0 })
+    expect(incidentLapRange({ start: 0, end: 1, lapsBefore: 0, startLap: 0, lapSeconds: 120, penaltyMinutes: 0 })).toEqual({ min: 0, max: 0 })
+  })
+})
+
+describe('penalty laps', () => {
+  // The same stint with a 30 s drive through in it: the clock runs longer, the laps don't.
+  const penalized = { ...stint, end: 101.5, penaltyMinutes: 0.5 }
+
+  it('runs from the start lap to the lap the stint ends on, penalties excluded', () => {
+    expect(penaltyLapRange(penalized)).toEqual({ min: 25, max: 50 })
+    expect(incidentLapRange(penalized)).toEqual({ min: 26, max: 50 })
+  })
+
+  it('suggests the lap the car is on, within the stint', () => {
+    expect(penaltyLapAt(penalized, 51 + 21)).toBe(35)
+    expect(penaltyLapAt(penalized, 0)).toBe(25)
+    expect(penaltyLapAt(penalized, 300)).toBe(50)
   })
 })
 

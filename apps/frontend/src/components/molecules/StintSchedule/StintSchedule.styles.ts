@@ -190,6 +190,14 @@ export const IncidentButton = styled.button`
   }
 `
 
+// Adds a penalty served in the stint above, next to the incident button. Black and white
+// like the race director's black flag.
+export const PenaltyButton = styled(IncidentButton)<{ $alone?: boolean }>`
+  margin-left: ${({ $alone }) => $alone ? 'auto' : '0.375rem'};
+  background: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.surface};
+`
+
 // Divider between stints. Pointing at it opens a gap with an "insert stint" button
 // on the left and an "incident" one on the right; touch screens get small round buttons
 // sitting on the divider instead. Under the stint in progress the incident button stays.

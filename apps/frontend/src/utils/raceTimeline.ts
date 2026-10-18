@@ -1,10 +1,11 @@
 import { calculatePitstopTime } from 'utils/pitstop'
 import { stintStartTimes } from 'utils/schedule'
+import { penaltyPauses, type PenaltyPause } from 'utils/penalties'
 import { fullLaps, lapSecondsOf, lapsAfter, minutesForLaps } from 'utils/laps'
 import { type Stint } from 'types/Schedule'
 
 // avgLapTime: the lap time the stint is driven at (utils/pace); unset = the race's.
-type TimelineInput = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR' | 'repairs' | 'avgLapTime'>
+type TimelineInput = Pick<Stint, 'duration' | 'driver' | 'fuel' | 'tireFL' | 'tireFR' | 'tireRL' | 'tireRR' | 'repairs' | 'avgLapTime' | 'penalties'>
 
 // Stint durations are planned in whole minutes.
 const PLAN_PRECISION = 1
@@ -15,6 +16,14 @@ export interface HourMark {
   // Where the hour falls within the stint card, 0 = its start, 1 = its end.
   offset: number
   lap: number
+}
+
+// A penalty served in the stint, where it lies on the race clock.
+export interface PenaltyMark extends PenaltyPause {
+  // Race minute when the car leaves the track for the pit lane.
+  at: number
+  // Where it falls within the stint card, 0 = its start, 1 = its end.
+  offset: number
 }
 
 export interface TimelineStint {
@@ -29,6 +38,9 @@ export interface TimelineStint {
   // Seconds per lap in this stint.
   lapSeconds: number
   hourMarks: HourMark[]
+  penalties: PenaltyMark[]
+  // Minutes the penalties add on the race clock (driving time excludes them).
+  penaltyMinutes: number
   // 'after': starts after the checkered flag, so it is never driven.
   status: 'race' | 'finish' | 'after'
 }
@@ -63,6 +75,8 @@ export interface RaceTimeline {
 // Laps count driving time only, like the start lap of a stint (pit stops excluded);
 // past the end of a short plan the car is assumed to keep driving. Each stint is driven at
 // its own lap time; stints without one, and driving past the plan, at `avgLapTime`.
+// Penalties stop the driving clock within a stint, like a pit stop between stints: the
+// stint drives as many laps, only it ends later.
 export function raceTimeline(
   stints: TimelineInput[],
   raceLengthHours: number,
@@ -74,12 +88,18 @@ export function raceTimeline(
   const lapsAt = (driving: number) => lapsAfter(segments, driving, avgLapTime)
   const raceMinutes = Math.max(0, raceLengthHours) * 60
   const starts = stintStartTimes(stints, fuelTankCapacity, pitLaneTime)
-  const ends = stints.map((stint, i) => starts[i] + stint.duration)
   const drivingBefore: number[] = []
   stints.reduce((sum, stint, i) => {
     drivingBefore[i] = sum
     return sum + stint.duration
   }, 0)
+  const pauses = stints.map((stint, i) => penaltyPauses(
+    stint.penalties,
+    { lapsBefore: lapsAt(drivingBefore[i]), lapSeconds: lapSecondsOf(segments[i].avgLapTime), duration: stint.duration },
+    pitLaneTime,
+  ))
+  const penaltyMinutes = pauses.map(list => list.reduce((sum, pause) => sum + pause.minutes, 0))
+  const ends = stints.map((stint, i) => starts[i] + stint.duration + penaltyMinutes[i])
   const totalDriving = stints.reduce((sum, stint) => sum + stint.duration, 0)
   const plannedEnd = stints.length ? ends[ends.length - 1] : 0
 
@@ -91,7 +111,17 @@ export function raceTimeline(
         return { driving: drivingBefore[i], resumesAt: starts[i] }
       }
       if (minute < ends[i]) {
-        return { driving: drivingBefore[i] + minute - starts[i], resumesAt: minute }
+        // Minutes on the clock since the stint start, less the penalties served by then.
+        let served = 0
+        for (const pause of pauses[i]) {
+          const pauseStart = starts[i] + pause.driving + served
+          if (minute < pauseStart) break
+          if (minute < pauseStart + pause.minutes) {
+            return { driving: drivingBefore[i] + pause.driving, resumesAt: pauseStart + pause.minutes }
+          }
+          served += pause.minutes
+        }
+        return { driving: drivingBefore[i] + minute - starts[i] - served, resumesAt: minute }
       }
     }
     return { driving: totalDriving + minute - plannedEnd, resumesAt: minute }
@@ -99,7 +129,13 @@ export function raceTimeline(
 
   const timeUp = drivingAt(raceMinutes)
   const totalLaps = Math.floor(lapsAt(timeUp.driving)) + 1
-  const flagAt = timeUp.resumesAt + minutesForLaps(segments, totalLaps, avgLapTime) - timeUp.driving
+  const flagDriving = minutesForLaps(segments, totalLaps, avgLapTime)
+  // Penalties served on the last lap hold up the flag too.
+  const lastLapPenalties = pauses
+    .flatMap((list, i) => list.map(pause => ({ ...pause, driving: drivingBefore[i] + pause.driving })))
+    .filter(pause => pause.driving > timeUp.driving && pause.driving < flagDriving)
+    .reduce((sum, pause) => sum + pause.minutes, 0)
+  const flagAt = timeUp.resumesAt + flagDriving - timeUp.driving + lastLapPenalties
 
   let finishingIndex = -1
   starts.forEach((start, i) => {
@@ -124,6 +160,15 @@ export function raceTimeline(
         hourMarks.push({ hour, offset, lap: Math.floor(lapsAt(drivingAt(minute).driving)) })
       }
     }
+    // Penalties after the flag are never served.
+    let served = 0
+    const penalties: PenaltyMark[] = []
+    pauses[i].forEach(pause => {
+      const at = start + pause.driving + served
+      served += pause.minutes
+      if (status === 'after' || at >= end) return
+      penalties.push({ ...pause, at, offset: Math.min(1, (at - start) / (end - start)) })
+    })
     return {
       start,
       end,
@@ -132,6 +177,8 @@ export function raceTimeline(
       startLap: fullLaps(lapsAt(drivingBefore[i])),
       lapSeconds: lapSecondsOf(segments[i].avgLapTime),
       hourMarks,
+      penalties,
+      penaltyMinutes: penaltyMinutes[i],
       status,
     }
   })
@@ -204,7 +251,7 @@ export function maxStintDuration(timeline: RaceTimeline, index: number, duration
   if (!stint) return null
   const isLast = index === timeline.stints.length - 1
   if (index === timeline.finishingIndex || isLast) {
-    return Math.max(0, Math.ceil(timeline.finish.flagAt - stint.start))
+    return Math.max(0, Math.ceil(timeline.finish.flagAt - stint.start - stint.penaltyMinutes))
   }
   if (!timeline.coversRace) {
     return duration + Math.ceil(timeline.gap)

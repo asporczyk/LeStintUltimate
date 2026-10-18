@@ -39,3 +39,11 @@ export function IncidentIcon({ type }: { type: IncidentType }) {
   if (type === 'damage') return <WrenchIcon />
   return <WrittenOffIcon />
 }
+
+// Black flag: a penalty from the race director (drive through, stop and go).
+export const PenaltyIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 21V4" />
+    <path d="M5 4h13v9H5z" fill="currentColor" />
+  </svg>
+)

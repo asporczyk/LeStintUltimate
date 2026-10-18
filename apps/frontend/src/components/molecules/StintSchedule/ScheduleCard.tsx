@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NO_SPOTTER } from 'utils/crew'
+import { PenaltyIcon } from 'components/atoms/IncidentIcon/IncidentIcon'
 import { compoundOf } from 'utils/tires'
 import { ActiveIndicator, MutedValue } from './StintSchedule.styles'
 import {
@@ -11,6 +12,7 @@ import {
   Duration,
   ClockChangeNote,
   RepairNote,
+  PenaltyNote,
   CardActions,
   People,
   DriverName,
@@ -33,6 +35,8 @@ interface ScheduleCardProps {
   clockChange?: string
   // Repairs at the pit stop before the stint: the time they add, and the parts for its tooltip.
   repair?: { label: string; details: string }
+  // Penalties served in the stint: the time they add, and each one for its tooltip.
+  penalty?: { label: string; details: string }
   isActive?: boolean
   driver?: string
   // Shown under the driver, e.g. when they are not available at this time.
@@ -45,7 +49,7 @@ interface ScheduleCardProps {
 }
 
 // Phone version of one table row: time range first, then who drives, then the numbers.
-export function ScheduleCard({ badge, start, end, duration, clockChange, repair, isActive = false, driver, driverWarning, pace, spotter, stats, actions }: ScheduleCardProps) {
+export function ScheduleCard({ badge, start, end, duration, clockChange, repair, penalty, isActive = false, driver, driverWarning, pace, spotter, stats, actions }: ScheduleCardProps) {
   const { t } = useTranslation('raceDetails')
 
   return (
@@ -62,6 +66,12 @@ export function ScheduleCard({ badge, start, end, duration, clockChange, repair,
               </svg>
               {repair.label}
             </RepairNote>
+          )}
+          {penalty && (
+            <PenaltyNote role="note" title={penalty.details} aria-label={`${t('penalties')} ${penalty.label}: ${penalty.details}`}>
+              <PenaltyIcon />
+              {penalty.label}
+            </PenaltyNote>
           )}
         </Duration>
         {clockChange && <ClockChangeNote role="note">{clockChange}</ClockChangeNote>}

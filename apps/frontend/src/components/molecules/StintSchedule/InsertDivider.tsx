@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { WarningIcon } from 'components/atoms/IncidentIcon/IncidentIcon'
-import { InsertBar, InsertButton, IncidentButton } from './StintSchedule.styles'
+import { PenaltyIcon, WarningIcon } from 'components/atoms/IncidentIcon/IncidentIcon'
+import { InsertBar, InsertButton, IncidentButton, PenaltyButton } from './StintSchedule.styles'
 
 interface InsertDividerProps {
   after: number
@@ -8,19 +8,22 @@ interface InsertDividerProps {
   onInsert?: () => void
   // Omitted when the stint above can't get an incident (it already has one).
   onIncident?: () => void
+  // Omitted when the stint above isn't driven.
+  onPenalty?: () => void
   // Keeps the incident button in view, e.g. under the stint in progress.
   pinned?: boolean
 }
 
 // Divider below a stint that offers inserting the next stint right there, or reporting
-// an incident in the stint above.
-export function InsertDivider({ after, onInsert, onIncident, pinned = false }: InsertDividerProps) {
+// an incident or a penalty in the stint above.
+export function InsertDivider({ after, onInsert, onIncident, onPenalty, pinned = false }: InsertDividerProps) {
   const { t } = useTranslation('raceDetails')
   const label = t('insertAfter', { after })
   const incidentLabel = t('reportIncident', { order: after })
+  const penaltyLabel = t('addPenaltyTitle', { order: after })
 
   return (
-    <InsertBar $pinned={pinned && !!onIncident} $canInsert={!!onInsert}>
+    <InsertBar $pinned={pinned && (!!onIncident || !!onPenalty)} $canInsert={!!onInsert}>
       {onInsert && (
         <InsertButton type="button" onClick={onInsert} aria-label={label} title={label}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -35,6 +38,12 @@ export function InsertDivider({ after, onInsert, onIncident, pinned = false }: I
           <WarningIcon />
           <span className="label">{t('incident')}</span>
         </IncidentButton>
+      )}
+      {onPenalty && (
+        <PenaltyButton type="button" onClick={onPenalty} aria-label={penaltyLabel} title={penaltyLabel} $alone={!onIncident}>
+          <PenaltyIcon />
+          <span className="label">{t('penalty')}</span>
+        </PenaltyButton>
       )}
     </InsertBar>
   )
