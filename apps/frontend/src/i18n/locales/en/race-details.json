@@ -92,7 +92,8 @@
     "tireSetsRange": "Maximum 100 tires",
     "stintTimeRange": "Duration must be between 0 and 120 minutes",
     "nameTooLong": "Name max 100 characters",
-    "beyondRaceEnd": "The stint would end after the finish. Up to {{max}} min"
+    "beyondRaceEnd": "The stint would end after the finish. Up to {{max}} min",
+    "incidentLapRange": "Lap must be between {{min}} and {{max}}"
   },
   "editTraining": "Edit Training",
   "extraLap": "+1 lap",
@@ -141,5 +142,20 @@
   "spotterPartlyAvailable": "{{name}} is available for part of the stint only",
   "fromStart": "From start",
   "toFinish": "To finish",
-  "dayN": "Day {{day}}"
+  "dayN": "Day {{day}}",
+  "incident": "Incident",
+  "reportIncident": "Report an incident in stint {{order}}",
+  "incidentLap": "Incident lap",
+  "incidentLapHint": "Suggested: the lap now · this stint: laps {{min}}–{{max}}",
+  "incidentType": "Incident type",
+  "incidentTypes": {"weatherChange": "Weather change", "damage": "Damage needing repair", "totalDamage": "Car written off"},
+  "incidentCut": "Stint {{order}} will be cut to lap {{lap}} ({{duration}} min).",
+  "incidentNextStint": "Then you edit the next stint.",
+  "incidentNewStint": "Then you add the next stint.",
+  "incidentRaceOver": "Later stints get greyed out – the race is over.",
+  "incidentOnLap": "lap {{lap}}",
+  "next": "Next",
+  "deleteIncident": "Delete incident",
+  "confirmDeleteIncident": "Delete the incident? The stint keeps its shortened duration.",
+  "raceOver": "Race over: car written off in stint {{order}} on lap {{lap}}."
 }

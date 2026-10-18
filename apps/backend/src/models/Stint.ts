@@ -1,5 +1,16 @@
 import { Schema, model, Types } from "mongoose";
 
+export const INCIDENT_TYPES = ["weatherChange", "damage", "totalDamage"] as const;
+
+// What cut the stint short and on which lap; the stint's duration already ends there.
+const IncidentSchema = new Schema(
+    {
+        type: { type: String, enum: INCIDENT_TYPES, required: true },
+        lap: { type: Number, required: true }
+    },
+    { _id: false }
+);
+
 const StintSchema = new Schema(
     {
         scheduleId: { type: Types.ObjectId, ref: "Schedule", required: true },
@@ -16,7 +27,9 @@ const StintSchema = new Schema(
         tireRL: String,
         tireRR: String,
         // Parts repaired at the pit stop before the stint
-        repairs: { type: [String], default: undefined }
+        repairs: { type: [String], default: undefined },
+        // null once removed
+        incident: { type: IncidentSchema, default: undefined }
     },
     { timestamps: true }
 );

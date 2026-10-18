@@ -80,9 +80,13 @@ Body stintu:
   "spotter": "Ola",
   "fuelLaps": 0,
   "fuel": 100,
-  "tireFL": "N", "tireFR": "N", "tireRL": "-", "tireRR": "-"
+  "tireFL": "N", "tireFR": "N", "tireRL": "-", "tireRR": "-",
+  "repairs": ["frontWing"],
+  "incident": { "type": "damage", "lap": 32 }
 }
 ```
+
+`incident` (opcjonalne) – incydent, który skrócił stint: `type` to `weatherChange`, `damage` albo `totalDamage`, `lap` to okrążenie (ukończone), na którym stint się kończy. `duration` stintu jest już skrócony do tego okrążenia (liczy go frontend). `"incident": null` w `PUT` usuwa incydent. Po `totalDamage` dalsze stinty nie są jechane (koniec wyścigu).
 
 ## Trening
 

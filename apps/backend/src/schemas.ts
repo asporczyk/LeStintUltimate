@@ -75,6 +75,16 @@ const stintFields = {
         maxItems: 7,
         uniqueItems: true,
         items: { type: "string", enum: ["bodywork", "frontWing", "rearWing", "suspFL", "suspFR", "suspRL", "suspRR"] }
+    },
+    // null removes the incident
+    incident: {
+        type: ["object", "null"],
+        required: ["type", "lap"],
+        additionalProperties: false,
+        properties: {
+            type: { type: "string", enum: ["weatherChange", "damage", "totalDamage"] },
+            lap: { type: "integer", minimum: 0 }
+        }
     }
 } as const;
 

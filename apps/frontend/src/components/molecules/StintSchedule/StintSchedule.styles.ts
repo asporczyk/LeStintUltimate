@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { fieldStyles, fullBleedOnMobile, MOBILE_QUERY } from 'styles/theme'
 
 export const ScheduleContainer = styled.section`
@@ -140,14 +140,75 @@ export const InsertButton = styled.button`
   }
 `
 
+// Reports an incident in the stint above, on the right of the divider. Yellow like a
+// warning flag; offered even when the plan already covers the race.
+export const IncidentButton = styled.button`
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.625rem;
+  margin-left: auto;
+  padding: 0 0.75rem 0 0.5rem;
+  border: none;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.tireUsed};
+  color: #0B1238;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, filter 0.15s ease;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    stroke-width: 2.5;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.text};
+    outline-offset: 2px;
+  }
+
+  /* Bigger tap target than the visible button. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+`
+
 // Divider between stints. Pointing at it opens a gap with an "insert stint" button
-// on the left; touch screens get a small "+" sitting on the divider instead.
-export const InsertBar = styled.div`
+// on the left and an "incident" one on the right; touch screens get small round buttons
+// sitting on the divider instead. Under the stint in progress the incident button stays.
+export const InsertBar = styled.div<{ $pinned?: boolean; $canInsert?: boolean }>`
   position: relative;
   display: flex;
   align-items: center;
   height: 10px;
   transition: height 0.15s ease;
+
+  ${({ $pinned }) => $pinned && css`
+    height: 36px;
+
+    ${IncidentButton} {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+    }
+  `}
 
   /* Hidden until hovered: a red line that fades out to the right. */
   &::before {
@@ -166,13 +227,16 @@ export const InsertBar = styled.div`
     &:focus-within {
       height: 36px;
 
-      &::before {
-        height: 2px;
-        margin-top: -1px;
-        background: linear-gradient(90deg, ${({ theme }) => theme.colors.primary} 0%, transparent 70%);
-      }
+      /* The line belongs to the insert button: none without it or over the incident one. */
+      ${({ $canInsert }) => $canInsert && css`
+        &:not(:has(${IncidentButton}:hover, ${IncidentButton}:focus-visible))::before {
+          height: 2px;
+          margin-top: -1px;
+          background: linear-gradient(90deg, ${({ theme }) => theme.colors.primary} 0%, transparent 70%);
+        }
+      `}
 
-      ${InsertButton} {
+      ${InsertButton}, ${IncidentButton} {
         opacity: 1;
         pointer-events: auto;
         transform: none;
@@ -210,6 +274,25 @@ export const InsertBar = styled.div`
         background: ${({ theme }) => theme.colors.primary};
         border-color: ${({ theme }) => theme.colors.primary};
         color: ${({ theme }) => theme.colors.onPrimary};
+      }
+    }
+
+    ${IncidentButton} {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+      width: 1.375rem;
+      height: 1.375rem;
+      padding: 0;
+      justify-content: center;
+
+      svg {
+        width: 0.8125rem;
+        height: 0.8125rem;
+      }
+
+      .label {
+        display: none;
       }
     }
   }

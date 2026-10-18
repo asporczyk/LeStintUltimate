@@ -1,3 +1,12 @@
+export const INCIDENT_TYPES = ['weatherChange', 'damage', 'totalDamage'] as const
+export type IncidentType = typeof INCIDENT_TYPES[number]
+
+// What cut a stint short, and on which lap (laps completed, like the start lap).
+export interface Incident {
+  type: IncidentType
+  lap: number
+}
+
 export interface Stint {
   _id: string
   scheduleId: string
@@ -14,6 +23,9 @@ export interface Stint {
   tireRR: string
   // Parts repaired at the pit stop before the stint (utils/repairs).
   repairs?: string[]
+  // Set when the stint was cut short; its duration already ends on the incident's lap.
+  // null once removed.
+  incident?: Incident | null
 }
 
 export interface Schedule {
