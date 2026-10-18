@@ -98,31 +98,6 @@ export const StatValue = styled.dd`
   color: ${({ theme }) => theme.colors.text};
 `
 
-export const DriverList = styled.dd`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-top: 0.125rem;
-  color: ${({ theme }) => theme.colors.textMuted};
-`
-
-export const DriverTag = styled.span`
-  padding: 0.25rem 0.625rem;
-  border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
-  background: ${({ theme }) => theme.colors.surfaceRaised};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-`
-
-export const DriverHours = styled.span`
-  margin-left: 0.375rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: ${({ theme }) => theme.colors.textSecondary};
-`
-
 export const ErrorState = styled.div`
   display: flex;
   flex-direction: column;

@@ -3,6 +3,7 @@ import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { CustomSelect } from 'components/atoms/CustomSelect/CustomSelect'
 import { useTranslation } from 'react-i18next'
 import { type Qualification } from 'api/QualificationApi'
+import { driverPace, type RacePace } from 'utils/pace'
 import {
   Overlay,
   ModalContent,
@@ -20,8 +21,8 @@ interface EditQualificationModalProps {
   isOpen: boolean
   qualification: Qualification | null
   raceStartTime: string
-  avgLapTime: number
-  avgFuelPerLap: number
+  // Laps and fuel follow the qualifying driver's pace, else the race's.
+  racePace: RacePace
   drivers: string[]
   onConfirm: (updatedQualification: Partial<Qualification>) => void
   onCancel: () => void
@@ -31,8 +32,7 @@ export function EditQualificationModal({
   isOpen, 
   qualification,
   raceStartTime,
-  avgLapTime,
-  avgFuelPerLap,
+  racePace,
   drivers,
   onConfirm, 
   onCancel 
@@ -64,6 +64,7 @@ export function EditQualificationModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const { avgLapTime, avgFuelPerLap } = driverPace(racePace, formData.driver)
     const totalSeconds = Number(formData.duration) * 60
     const fullLaps = Math.floor(totalSeconds / avgLapTime)
     const remainingSeconds = totalSeconds % avgLapTime

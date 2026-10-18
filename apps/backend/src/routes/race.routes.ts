@@ -49,7 +49,7 @@ export default async function raceRoutes(app: FastifyInstance) {
 
     app.patch("/races/:id", { schema: { params: idParams, body: patchRaceBody } }, async (req, reply) => {
         const { id } = req.params as any;
-        const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; driverAvailability?: { driver: string; from?: string; to?: string }[]; tireSets?: number; fuelTankCapacity?: number; pitLaneTime?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
+        const patch = req.body as { name?: string; startDate?: Date; startTime?: string; raceLength?: number; drivers?: string[]; driverAvailability?: { driver: string; from?: string; to?: string }[]; driverPace?: { driver: string; avgLapTime?: number; avgFuelPerLap?: number }[]; tireSets?: number; fuelTankCapacity?: number; pitLaneTime?: number; avgLapTime?: number; avgFuelPerLap?: number; avgStintTime?: number; notes?: string; qualification?: any; };
         
         const oldRace = await Race.findById(id);
         if (!oldRace) {
@@ -68,8 +68,10 @@ export default async function raceRoutes(app: FastifyInstance) {
 
         const avgStintChanged = patch.avgStintTime !== undefined && patch.avgStintTime !== oldRace.avgStintTime;
         const avgLapChanged = patch.avgLapTime !== undefined && patch.avgLapTime !== oldRace.avgLapTime;
+        // Drivers' lap times change the start laps of their stints.
+        const paceChanged = patch.driverPace !== undefined;
 
-        if (avgStintChanged || avgLapChanged) {
+        if (avgStintChanged || avgLapChanged || paceChanged) {
             const schedule = await Schedule.findOne({ raceId: id });
             if (schedule) {
                 if (avgStintChanged) {

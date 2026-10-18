@@ -50,7 +50,7 @@ Race (1) ──┬── (0..1) Training        [raceId: string]
 ```
 
 **Race** – wyścig i jego parametry:
-`name`, `startDate`, `startTime` (`"HH:MM"`, domyślnie `19:30`), `raceLength` (h), `drivers[]`, `tireSets`, `fuelTankCapacity` (L), `avgLapTime` (s), `avgFuelPerLap` (% zbiornika), `avgStintTime` (min), `notes` (≤ 200 znaków).
+`name`, `startDate`, `startTime` (`"HH:MM"`, domyślnie `19:30`), `raceLength` (h), `drivers[]`, `tireSets`, `fuelTankCapacity` (L), `avgLapTime` (s), `avgFuelPerLap` (% zbiornika), `driverPace[]` (`{ driver, avgLapTime?, avgFuelPerLap? }`, opcjonalne tempo kierowcy), `avgStintTime` (min), `notes` (≤ 200 znaków).
 
 **Training** – trening przed kwalifikacjami: `raceId`, `startTime`, `duration` (min).
 
@@ -58,7 +58,7 @@ Race (1) ──┬── (0..1) Training        [raceId: string]
 
 **Schedule** – kontener na stinty jednego wyścigu: `raceId`.
 
-**Stint** – pojedynczy stint: `scheduleId`, `order` (od 1), `duration` (min), `driver`, `spotter`, `durationAuto` (czas z średniej wyścigu), `fuelLaps` (okrążenie startu, liczone na serwerze), `fuel` (% tankowania), `tireFL/FR/RL/RR` (`'N'` = zmiana, `'-'` = bez zmiany).
+**Stint** – pojedynczy stint: `scheduleId`, `order` (od 1), `duration` (min), `driver`, `spotter`, `durationAuto` (czas z średniej wyścigu), `fuelLaps` (okrążenie startu, liczone na serwerze), `fuel` (% tankowania), `avgLapTime`, `avgFuelPerLap` (opcjonalne tempo stintu, `null` = z kierowcy/wyścigu), `tireFL/FR/RL/RR` (`'N'` = zmiana, `'-'` = bez zmiany).
 
 > Uwaga: `raceId` w Training/Qualification/Schedule to zwykły `String`, nie `ObjectId` z referencją.
 

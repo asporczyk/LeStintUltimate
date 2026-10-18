@@ -15,6 +15,13 @@ const RaceSchema = new Schema(
             from: { type: String, default: '' },
             to: { type: String, default: '' }
         }],
+        // Per-driver pace; unset fields fall back to the race's averages.
+        driverPace: [{
+            _id: false,
+            driver: { type: String, required: true },
+            avgLapTime: Number,
+            avgFuelPerLap: Number
+        }],
         tireSets: { type: Number, default: 0 },
         fuelTankCapacity: { type: Number, default: 100 },
         // Seconds lost driving through the pit lane (stop excluded), per track.

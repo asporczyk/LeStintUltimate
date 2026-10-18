@@ -101,43 +101,68 @@ describe('maxStintDuration', () => {
   })
 })
 
+describe('raceTimeline with lap times per stint', () => {
+  it('drives each stint at its own lap time', () => {
+    // 2 h race, stint 1 at 120 s (25 laps in 50 min), stint 2 at 100 s (30 laps in 50 min).
+    const timeline = raceTimeline([{ ...stint(50), avgLapTime: 120 }, { ...stint(50), avgLapTime: 100 }, stint(30)], 2, 110, 100)
+    expect(timeline.stints.map(s => s.startLap)).toEqual([0, 25, 55])
+    expect(timeline.stints.map(s => s.lapSeconds)).toEqual([120, 100, 110])
+    expect(timeline.plannedLaps).toBeCloseTo(55 + (30 * 60) / 110)
+  })
+
+  it('finishes on the lap during which the time runs out, at the lap time of that stint', () => {
+    // 1 h race: stint 2 at 90 s. 15 laps in stint 1, then (30 - PIT) min at 90 s = 19.96 laps.
+    const timeline = raceTimeline([{ ...stint(30), avgLapTime: 120 }, { ...stint(40), avgLapTime: 90 }], 1, 110, 100)
+    expect(timeline.finish.totalLaps).toBe(35)
+    // The flag falls when lap 35 is done: 20 laps into stint 2.
+    expect(timeline.finish.flagAt).toBeCloseTo(timeline.stints[1].start + (20 * 90) / 60)
+  })
+
+  it('drives past a short plan at the race lap time', () => {
+    // 30 min at 120 s = 15 laps, then 100 s laps: 15 + 18 = 33 laps at 60:00, flag after 34.
+    const timeline = raceTimeline([{ ...stint(30), avgLapTime: 120 }], 1, 100, 100)
+    expect(timeline.finish.totalLaps).toBe(34)
+    expect(timeline.finish.flagAt).toBeCloseTo(30 + (19 * 100) / 60)
+  })
+})
+
 describe('finishFuel', () => {
   // 1 h race with 110 s laps: 32.7 laps at 60:00, so the flag falls after lap 33.
   const plan = (duration: number) => raceTimeline([stint(duration)], 1, 110, 100)
 
   it('fuels the laps left to the flag plus one reserve lap', () => {
     // 50 min planned = 27.3 laps done, so 6 laps to go: (6 + 1) * 3 % = 21 %.
-    expect(finishFuel(plan(50), 50, 10, 110, 3)).toEqual({ laps: 6, fuel: 21, minDuration: 9 })
+    expect(finishFuel(plan(50), plan(50).plannedLaps, 10, 3)).toEqual({ laps: 6, fuel: 21, minDuration: 9 })
   })
 
   it('counts a started lap in full and rounds the fuel up', () => {
     // 45 min planned = 24.5 laps done, so 9 laps to go: (9 + 1) * 2.55 % = 25.5 => 26 %.
-    expect(finishFuel(plan(45), 45, 15, 110, 2.55)).toMatchObject({ laps: 9, fuel: 26 })
+    expect(finishFuel(plan(45), plan(45).plannedLaps, 15, 2.55)).toMatchObject({ laps: 9, fuel: 26 })
   })
 
   it('never asks for more than a full tank', () => {
-    expect(finishFuel(plan(5), 5, 55, 110, 10)?.fuel).toBe(100)
+    expect(finishFuel(plan(5), plan(5).plannedLaps, 55, 10)?.fuel).toBe(100)
   })
 
   it('fuels the finishing stint of a full plan from its own start', () => {
     // Stint 2 starts after 30 min of driving (16.4 laps) and drives to the flag after lap 33.
     const timeline = raceTimeline([stint(30), stint(40)], 1, 110, 100)
     const finishing = timeline.stints[1]
-    expect(finishFuel(timeline, finishing.drivingBefore, timeline.finish.flagAt - finishing.start, 110, 3))
+    expect(finishFuel(timeline, finishing.lapsBefore, timeline.finish.flagAt - finishing.start, 3))
       .toMatchObject({ laps: 17, fuel: 54 })
   })
 
   it('treats a stint ending less than a minute before the flag as running to it', () => {
     // 10.5 min to the flag: the 10 min stint the timeline lets drive on to the flag counts,
     // even though the duration limit rounds up to 11 min.
-    const fuel = finishFuel(plan(50), 50, 10.5, 110, 3)
+    const fuel = finishFuel(plan(50), plan(50).plannedLaps, 10.5, 3)
     expect(fuel?.minDuration).toBeCloseTo(9.5)
     expect(10 > fuel!.minDuration).toBe(true)
     expect(9 > fuel!.minDuration).toBe(false)
   })
 
   it('has nothing to suggest without fuel use', () => {
-    expect(finishFuel(plan(50), 50, 10, 110, 0)).toBeNull()
+    expect(finishFuel(plan(50), plan(50).plannedLaps, 10, 0)).toBeNull()
   })
 })
 

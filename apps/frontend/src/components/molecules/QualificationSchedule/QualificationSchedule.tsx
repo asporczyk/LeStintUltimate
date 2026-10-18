@@ -16,6 +16,8 @@ import { CardList } from '../StintSchedule/ScheduleCard.styles'
 import { useSocket } from '@/hooks/useSocket'
 import { addMinutesToClock, formatClock } from 'utils/time'
 import { useToast } from '@/hooks/useToast'
+import { type DriverPace } from 'types/Race'
+import { driverPace as paceOfDriver } from 'utils/pace'
 
 interface QualificationScheduleProps {
   raceId: string
@@ -23,17 +25,21 @@ interface QualificationScheduleProps {
   tireSets: number
   avgLapTime: number
   avgFuelPerLap: number
+  driverPace?: DriverPace[]
   drivers: string[]
   onCalculatedRaceStart?: (calculatedStartTime: string) => void
 }
 
-export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapTime, avgFuelPerLap, drivers, onCalculatedRaceStart }: QualificationScheduleProps) {
+export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapTime: raceAvgLapTime, avgFuelPerLap: raceAvgFuelPerLap, driverPace, drivers, onCalculatedRaceStart }: QualificationScheduleProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const [qualification, setQualification] = useState<Qualification | null>(null)
   const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const { onQualificationUpdated } = useSocket()
+  const racePace = { avgLapTime: raceAvgLapTime, avgFuelPerLap: raceAvgFuelPerLap, driverPace }
+  // The qualifying driver's pace, else the race's.
+  const { avgLapTime, avgFuelPerLap } = paceOfDriver(racePace, qualification?.driver ?? '')
 
   useEffect(() => {
     const loadQualification = async () => {
@@ -129,8 +135,7 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
           isOpen={editModalOpen}
           qualification={null}
           raceStartTime={raceStartTime}
-          avgLapTime={avgLapTime}
-          avgFuelPerLap={avgFuelPerLap}
+          racePace={racePace}
           drivers={drivers}
           onConfirm={(updated) => {
             handleCreate(updated)
@@ -166,8 +171,7 @@ export function QualificationSchedule({ raceId, raceStartTime, tireSets, avgLapT
         isOpen={editModalOpen}
         qualification={qualification}
         raceStartTime={raceStartTime}
-        avgLapTime={avgLapTime}
-        avgFuelPerLap={avgFuelPerLap}
+        racePace={racePace}
         drivers={drivers}
         onConfirm={(updated) => {
           if (qualification) {

@@ -2,6 +2,20 @@
 
 Opis reguł domenowych, które aplikacja stosuje przy planowaniu wyścigu. Godziny treningu i kwalifikacji są „zegarowe” (`HH:MM` / `HH:MM:SS`) i zawijają się po północy (`% 24`). Czas wyścigu liczony jest w minutach realnego czasu od startu, a godziny zegarowe stintów, mety i dostępności kierowców przeliczane są przez datę wyścigu w lokalnej strefie czasowej, więc zmiana czasu w trakcie wyścigu jest uwzględniona (sekcja 6).
 
+## 0. Tempo: wyścig → kierowca → stint
+
+Średni czas okrążenia (`avgLapTime`, s) i średnie zużycie paliwa (`avgFuelPerLap`, % baku) mają trzy poziomy. Wygrywa najbardziej szczegółowy ustawiony:
+
+```
+tempo stintu = stint.avgLapTime ?? race.driverPace[kierowca].avgLapTime ?? race.avgLapTime   (tak samo avgFuelPerLap)
+```
+
+- `race.avgLapTime` / `race.avgFuelPerLap` – średnie wyścigu (wymagane w formularzu wyścigu).
+- `race.driverPace[]` – opcjonalne wartości kierowcy (`{ driver, avgLapTime?, avgFuelPerLap? }`). Ustawiane razem z dostępnością w modalu kierowcy: kliknięcie w kierowcę na stronie wyścigu pokazuje jego dane i przycisk edycji. Formularz wyścigu ma tylko listę kierowców; usunięcie kierowcy usuwa też jego dostępność i tempo.
+- `stint.avgLapTime` / `stint.avgFuelPerLap` – opcjonalne nadpisanie w stincie (`null` = brak).
+
+Puste pole i 0 oznaczają „nieustawione”. Rozstrzyganie: `utils/pace.ts` (frontend) i `stintLapTime` w `calculations.ts` (backend). Kwalifikacje używają tempa kierowcy kwalifikacji. Gdy stint ma tempo inne niż wyścig, karta pokazuje je pod spotterem.
+
 ## 1. Trening → Kwalifikacje → Wyścig
 
 | Etap | Start | Koniec |
@@ -16,24 +30,24 @@ Jeśli kwalifikacje nie istnieją, tabela stintów startuje od `Race.startTime`.
 
 ## 2. Kwalifikacje – okrążenia, paliwo, opony
 
-- **Okrążenia:** `ceil(duration * 60 / avgLapTime)` – niepełne okrążenie liczone jako pełne.
+- **Okrążenia:** `ceil(duration * 60 / avgLapTime)` – niepełne okrążenie liczone jako pełne. `avgLapTime` i `avgFuelPerLap` to tempo kierowcy kwalifikacji (sekcja 0).
 - **Paliwo:** `ceil(qualification.laps * avgFuelPerLap)` [%] – liczone z pola `laps` zapisanego w kwalifikacjach, a nie z wyliczonych okrążeń.
 - **Opony:** w kwalifikacjach zakładany jest nowy komplet; do wyścigu zostaje `max(0, tireSets − 4)` opon.
 
 ## 3. Okrążenie startu stintu (`fuelLaps`)
 
-Okrążenie, od którego zaczyna się stint = liczba pełnych okrążeń przejechanych we **wszystkich wcześniejszych** stintach. Stint #1 zaczyna się na okrążeniu 0.
+Okrążenie, od którego zaczyna się stint = liczba pełnych okrążeń przejechanych we **wszystkich wcześniejszych** stintach. Stint #1 zaczyna się na okrążeniu 0. Każdy stint jedzie swoim czasem okrążenia (sekcja 0):
 
 ```
-fuelLaps(stint #n) = floor( (duration_1 + … + duration_{n−1}) * 60 / avgLapTime )
+fuelLaps(stint #n) = floor( duration_1 * 60 / lapTime_1 + … + duration_{n−1} * 60 / lapTime_{n−1} )
 ```
 
-- Okrążenia liczone są z **łącznego** czasu wcześniejszych stintów, więc zaokrąglenia się nie kumulują (2 × 40 min przy 225,5 s → 21, a nie 10 + 10 = 20).
+- Okrążenia sumowane są **z ułamkami**, a zaokrąglane dopiero na końcu, więc zaokrąglenia się nie kumulują (2 × 40 min przy 225,5 s → 21, a nie 10 + 10 = 20).
 - Czas trwania samego stintu nie wpływa na jego okrążenie startu.
 - Czas pit stopów nie jest wliczany.
 - `avgLapTime` domyślnie 120 s, gdy wyścig go nie ma.
 
-Liczone na backendzie (`computeFuelLaps` w `calculations.ts`, `services/stints.ts`) po każdej zmianie stintów, po zmianie `avgLapTime` lub `avgStintTime` wyścigu i przy każdym odczycie harmonogramu (to migruje stare dane). Frontend pokazuje tę samą wartość w modalach (`utils/laps.ts`).
+Liczone na backendzie (`computeFuelLaps` w `calculations.ts`, `services/stints.ts`) po każdej zmianie stintów, po zmianie `avgLapTime`, `driverPace` lub `avgStintTime` wyścigu i przy każdym odczycie harmonogramu (to migruje stare dane). Frontend pokazuje tę samą wartość w modalach (`utils/laps.ts`).
 
 ## 3a. Automatyczny czas stintu (`durationAuto`)
 
@@ -111,8 +125,8 @@ Czas kierowcy to suma czasu jego stintów tak, jak zostaną przejechane: stint n
 
 Liczone w `utils/raceTimeline.ts` (testy: `utils/raceTimeline.test.ts`). Czasy w minutach od startu wyścigu.
 
-- **Czas mija** po `raceLength` godzinach. Okrążenia liczone są z czasu jazdy (bez pit stopów), tak jak okrążenie startu stintu (sekcja 3).
-- **Flaga w szachownicę**: wyścig na czas kończy się po okrążeniu, w trakcie którego minął czas. `totalLaps = floor(jazda_w_chwili_końca * 60 / avgLapTime) + 1`, a flaga pada, gdy czas jazdy osiągnie `totalLaps * avgLapTime`. Jeśli plan kończy się wcześniej, zakładamy jazdę bez kolejnych pit stopów.
+- **Czas mija** po `raceLength` godzinach. Okrążenia liczone są z czasu jazdy (bez pit stopów), każdy stint swoim czasem okrążenia, tak jak okrążenie startu stintu (sekcja 3).
+- **Flaga w szachownicę**: wyścig na czas kończy się po okrążeniu, w trakcie którego minął czas. `totalLaps = floor(okrążenia_w_chwili_końca) + 1`, a flaga pada, gdy przejechane okrążenia osiągną `totalLaps` (w tempie stintu, w którym to wypada). Jeśli plan kończy się wcześniej, zakładamy jazdę bez kolejnych pit stopów w tempie wyścigu.
 - **Stint na metę**: stint, w którym pada flaga, kończy się razem z nią. Karta pokazuje jego rzeczywisty czas („do mety”), nawet jeśli zapisany czas jest dłuższy.
 - **Dokładność planu**: czasy stintów są w pełnych minutach, więc plan kończący się mniej niż minutę przed flagą uznajemy za pełny. Ostatni stint dojeżdża wtedy do flagi i nie da się dodać kolejnego.
 - **Stinty po mecie**: stinty zaczynające się po fladze są wyszarzone i oznaczone na osi. Karta mety podpowiada, żeby je usunąć albo skrócić wcześniejsze.
@@ -127,9 +141,11 @@ Limity w modalach:
 Paliwo na ostatni stint: gdy stint dojeżdża do flagi (jego czas równa się limitowi „do mety”), modal dodawania i edycji proponuje najmniejsze tankowanie, które wystarczy do mety, i nie pozwala ustawić więcej. Dotyczy nowego stintu dodawanego na końcu oraz edycji stintu na metę (albo ostatniego stintu):
 
 ```
-okrążenia = ceil(totalLaps − czas_jazdy_przed_stintem * 60 / avgLapTime)   // zaczęte okrążenie liczy się w całości
-paliwo    = min(100, ceil((okrążenia + 1) * avgFuelPerLap))         // +1 okrążenie zapasu
+okrążenia = ceil(totalLaps − okrążenia_przed_stintem)          // zaczęte okrążenie liczy się w całości
+paliwo    = min(100, ceil((okrążenia + 1) * avgFuelPerLap))   // +1 okrążenie zapasu, tempo stintu
 ```
+
+Tempo stintu w modalu zależy od wybranego kierowcy i pól nadpisania, więc flaga, limit czasu i paliwo na metę są przeliczane na bieżąco. Nowy stint na końcu planu wyznacza też tempo jazdy po planie.
 
 Krótszy stint zdejmuje limit i wraca pełny bak. Bez `avgFuelPerLap` nic nie jest proponowane (`finishFuel` w `utils/raceTimeline.ts`).
 

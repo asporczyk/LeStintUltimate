@@ -17,6 +17,9 @@ export interface Stint {
   spotter: string
   fuelLaps: number
   fuel: number
+  // Pace of this stint; unset (null) falls back to the driver's, then the race's.
+  avgLapTime?: number | null
+  avgFuelPerLap?: number | null
   tireFL: string
   tireFR: string
   tireRL: string

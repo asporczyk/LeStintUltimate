@@ -25,6 +25,8 @@ import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
 import { TireField } from 'components/molecules/TireField/TireField'
 import { RepairField } from 'components/molecules/RepairField/RepairField'
+import { PaceFields } from 'components/molecules/PaceFields/PaceFields'
+import { driverPace, paceInput, parsePaceInput, stintPace, validatePaceInput, type Pace, type PaceInputErrors, type RacePace } from 'utils/pace'
 import { useToast } from '@/hooks/useToast'
 
 interface AddStintModalProps {
@@ -43,10 +45,11 @@ interface AddStintModalProps {
   flagAt: number
   avgStintTime: number
   startLap: number
-  // Longest stint that still ends by the checkered flag (minutes).
-  maxDuration?: number
-  // Fuel for a stint added at the end that drives on to the flag.
-  finishFuel?: FinishFuel | null
+  // Race and driver pace an empty pace field falls back to.
+  racePace: RacePace
+  // For the new stint driven at a pace: the longest one that still ends by the checkered
+  // flag (minutes) and, added at the end, its fuel if it drives on to the flag.
+  limitsFor: (pace: Pace) => { maxDuration: number; finishFuel: FinishFuel | null }
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
@@ -61,31 +64,28 @@ function getInitialFormData(avgStintTime: number) {
     tireFR: '-',
     tireRL: '-',
     tireRR: '-',
-    repairs: [] as string[]
+    repairs: [] as string[],
+    pace: paceInput(undefined)
   }
 }
 
-interface FormErrors {
+interface FormErrors extends PaceInputErrors {
   duration?: string
   driver?: string
   spotter?: string
 }
 
-export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, driverAvailability, eventDate, eventStartClock, raceStartClock, stintStart, flagAt, avgStintTime, startLap, maxDuration, finishFuel, onStintAdded, onCancel }: AddStintModalProps) {
+export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, drivers, driverAvailability, eventDate, eventStartClock, raceStartClock, stintStart, flagAt, avgStintTime, startLap, racePace, limitsFor, onStintAdded, onCancel }: AddStintModalProps) {
   const { t } = useTranslation('raceDetails')
   const { showError } = useToast()
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const durationLimit = maxDuration !== undefined && maxDuration < 120 ? maxDuration : undefined
-  // The average stint time, or less when the race ends sooner.
-  const [formData, setFormData] = useState(getInitialFormData(
-    durationLimit !== undefined ? Math.min(avgStintTime, durationLimit) : avgStintTime
-  ))
+  const limitOf = (maxDuration: number) => maxDuration < 120 ? maxDuration : undefined
+  // The average stint time, or less when the race ends sooner (at the race's pace).
+  const [formData, setFormData] = useState(() => {
+    const initialLimit = limitOf(limitsFor(driverPace(racePace, '')).maxDuration)
+    return getInitialFormData(initialLimit !== undefined ? Math.min(avgStintTime, initialLimit) : avgStintTime)
+  })
   const [errors, setErrors] = useState<FormErrors>({})
-  // A stint that runs to the flag needs only the fuel for the laps left (plus a reserve),
-  // so the fuel is capped there; a shorter duration lifts the cap again.
-  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
-  const activeFinishFuel = runsToFlag ? finishFuel ?? null : null
-  const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
   const crew = stintCrew({
     drivers,
     availability: driverAvailability,
@@ -97,6 +97,17 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     driver: formData.driver,
     spotter: formData.spotter,
   })
+  // Pace: the stint's own, else its driver's, else the race's. It moves the flag and the
+  // fuel needed to reach it.
+  const paceOverride = parsePaceInput(formData.pace)
+  const pace = stintPace(racePace, { driver: crew.driver, ...paceOverride })
+  const { maxDuration, finishFuel } = limitsFor(pace)
+  const durationLimit = limitOf(maxDuration)
+  // A stint that runs to the flag needs only the fuel for the laps left (plus a reserve),
+  // so the fuel is capped there; a shorter duration lifts the cap again.
+  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
+  const activeFinishFuel = runsToFlag ? finishFuel : null
+  const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
@@ -127,6 +138,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
     if (!crew.spotter) {
       newErrors.spotter = 'validation.required'
     }
+    Object.assign(newErrors, validatePaceInput(formData.pace))
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -147,6 +159,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
         spotter: crew.spotter,
         fuelLaps: startLap,
         fuel,
+        ...paceOverride,
         tireFL: formData.tireFL,
         tireFR: formData.tireFR,
         tireRL: formData.tireRL,
@@ -224,6 +237,16 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
             value={formData.fuel}
             onChange={(value) => setFormData(prev => ({ ...prev, fuel: value }))}
             finishFuel={activeFinishFuel}
+          />
+
+          <PaceFields
+            value={formData.pace}
+            inherited={driverPace(racePace, crew.driver)}
+            errors={errors}
+            onChange={(pace) => {
+              setFormData(prev => ({ ...prev, pace }))
+              setErrors(prev => ({ ...prev, avgLapTime: undefined, avgFuelPerLap: undefined }))
+            }}
           />
 
           <TireField

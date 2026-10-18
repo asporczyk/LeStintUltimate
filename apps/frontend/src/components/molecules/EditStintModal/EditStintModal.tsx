@@ -23,6 +23,8 @@ import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
 import { TireField } from 'components/molecules/TireField/TireField'
 import { RepairField } from 'components/molecules/RepairField/RepairField'
+import { PaceFields } from 'components/molecules/PaceFields/PaceFields'
+import { driverPace, paceInput, parsePaceInput, stintPace, validatePaceInput, type Pace, type PaceInputErrors, type RacePace } from 'utils/pace'
 
 interface EditStintModalProps {
   isOpen: boolean
@@ -38,15 +40,16 @@ interface EditStintModalProps {
   flagAt: number
   avgStintTime: number
   startLap: number
-  // Longest duration that keeps the stint within the race (minutes); null when unlimited.
-  maxDuration?: number | null
-  // Fuel for this stint if it drives on to the flag.
-  finishFuel?: FinishFuel | null
+  // Race and driver pace an empty pace field falls back to.
+  racePace: RacePace
+  // For the stint driven at a pace: the longest duration that keeps it within the race
+  // (minutes; null when unlimited) and its fuel if it drives on to the flag.
+  limitsFor: (pace: Pace) => { maxDuration: number | null; finishFuel: FinishFuel | null }
   onConfirm: (updatedStint: Partial<Stint>) => void
   onCancel: () => void
 }
 
-interface FormErrors {
+interface FormErrors extends PaceInputErrors {
   duration?: string
   driver?: string
   spotter?: string
@@ -62,7 +65,8 @@ function getInitialFormData(stint: Stint, avgStintTime: number) {
     tireFR: stint.tireFR || '-',
     tireRL: stint.tireRL || '-',
     tireRR: stint.tireRR || '-',
-    repairs: stint.repairs ?? []
+    repairs: stint.repairs ?? [],
+    pace: paceInput(stint)
   }
 }
 
@@ -83,19 +87,14 @@ function validateForm(formData: ReturnType<typeof getInitialFormData>, crew: Sti
     errors.spotter = 'validation.required'
   }
 
-  return errors
+  return { ...errors, ...validatePaceInput(formData.pace) }
 }
 
-export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eventDate, eventStartClock, raceStartClock, stintStart, flagAt, avgStintTime, startLap, maxDuration = null, finishFuel = null, onConfirm, onCancel }: EditStintModalProps) {
+export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eventDate, eventStartClock, raceStartClock, stintStart, flagAt, avgStintTime, startLap, racePace, limitsFor, onConfirm, onCancel }: EditStintModalProps) {
   const { t } = useTranslation('raceDetails')
-  const durationLimit = maxDuration !== null && maxDuration < 120 ? maxDuration : null
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [formData, setFormData] = useState(getInitialFormData(stint, avgStintTime))
   const [errors, setErrors] = useState<FormErrors>({})
-  // While the stint runs to the flag, its fuel is capped at what it needs to get there.
-  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
-  const activeFinishFuel = runsToFlag ? finishFuel : null
-  const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
   const crew = stintCrew({
     drivers,
     availability: driverAvailability,
@@ -107,6 +106,16 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
     driver: formData.driver,
     spotter: formData.spotter,
   })
+  // Pace: the stint's own, else its driver's, else the race's. It moves the flag and the
+  // fuel needed to reach it.
+  const paceOverride = parsePaceInput(formData.pace)
+  const pace = stintPace(racePace, { driver: crew.driver, ...paceOverride })
+  const { maxDuration, finishFuel } = limitsFor(pace)
+  const durationLimit = maxDuration !== null && maxDuration < 120 ? maxDuration : null
+  // While the stint runs to the flag, its fuel is capped at what it needs to get there.
+  const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
+  const activeFinishFuel = runsToFlag ? finishFuel : null
+  const fuel = Math.min(formData.fuel, activeFinishFuel ? activeFinishFuel.fuel : 100)
 
   // Parent remounts the modal (key) each time it opens, so state starts fresh.
   useEffect(() => {
@@ -149,6 +158,7 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
       durationAuto,
       fuelLaps: startLap,
       fuel,
+      ...paceOverride,
       driver: crew.driver,
       spotter: crew.spotter,
       tireFL: formData.tireFL,
@@ -210,6 +220,16 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
             value={formData.fuel}
             onChange={(value) => setFormData(prev => ({ ...prev, fuel: value }))}
             finishFuel={activeFinishFuel}
+          />
+
+          <PaceFields
+            value={formData.pace}
+            inherited={driverPace(racePace, crew.driver)}
+            errors={errors}
+            onChange={(pace) => {
+              setFormData(prev => ({ ...prev, pace }))
+              setErrors(prev => ({ ...prev, avgLapTime: undefined, avgFuelPerLap: undefined }))
+            }}
           />
 
           <TireField

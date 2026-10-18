@@ -13,6 +13,8 @@ interface StintBody {
     spotter: string
     fuelLaps: number
     fuel: number
+    avgLapTime: number | null
+    avgFuelPerLap: number | null
     tireFL: string
     tireFR: string
     tireRL: string
@@ -55,6 +57,8 @@ export default async function scheduleRoutes(app: FastifyInstance) {
             spotter: body.spotter,
             fuelLaps: body.fuelLaps,
             fuel: body.fuel,
+            avgLapTime: body.avgLapTime ?? undefined,
+            avgFuelPerLap: body.avgFuelPerLap ?? undefined,
             tireFL: body.tireFL,
             tireFR: body.tireFR,
             tireRL: body.tireRL,
@@ -81,6 +85,8 @@ export default async function scheduleRoutes(app: FastifyInstance) {
                 spotter: body.spotter,
                 fuelLaps: body.fuelLaps,
                 fuel: body.fuel,
+                avgLapTime: body.avgLapTime,
+                avgFuelPerLap: body.avgFuelPerLap,
                 tireFL: body.tireFL,
                 tireFR: body.tireFR,
                 tireRL: body.tireRL,
