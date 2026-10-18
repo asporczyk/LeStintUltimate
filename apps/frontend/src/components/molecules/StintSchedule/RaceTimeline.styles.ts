@@ -18,14 +18,14 @@ export const TimelineRow = styled.div`
   }
 `
 
-export const TimelineLabel = styled.div<{ $tone?: 'default' | 'danger' | 'strong' }>`
+export const TimelineLabel = styled.div<{ $tone?: 'default' | 'danger' | 'strong' | 'muted' }>`
   padding: 1rem 0 0 0.75rem;
   text-align: right;
   font-size: 0.8125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.3;
-  color: ${({ $tone, theme }) => $tone === 'danger' ? theme.colors.danger : theme.colors.text};
+  color: ${({ $tone, theme }) => $tone === 'danger' ? theme.colors.danger : $tone === 'muted' ? theme.colors.textMuted : theme.colors.text};
 
   span {
     display: block;
@@ -55,7 +55,7 @@ export const Rail = styled.div<{ $first?: boolean; $last?: boolean }>`
   }
 `
 
-export const RailDot = styled.span<{ $state?: 'default' | 'active' | 'after' | 'finish' }>`
+export const RailDot = styled.span<{ $state?: 'default' | 'active' | 'after' | 'finish' | 'retired' }>`
   position: relative;
   margin-top: calc(${DOT_TOP} - 6px);
   width: 12px;
@@ -69,15 +69,17 @@ export const RailDot = styled.span<{ $state?: 'default' | 'active' | 'after' | '
     $state === 'active' ? theme.colors.success
     : $state === 'after' ? theme.colors.danger
     : $state === 'finish' ? theme.colors.text
+    : $state === 'retired' ? theme.colors.borderStrong
     : theme.colors.textSecondary};
   box-shadow: ${({ $state, theme }) => $state === 'active' ? `0 0 0 4px ${theme.colors.successSoft}` : 'none'};
 `
 
 // Column with the stint card and the gap below it (which can hold the insert button).
-export const TimelineContent = styled.div<{ $after?: boolean; $spaced?: boolean }>`
+export const TimelineContent = styled.div<{ $after?: boolean; $retired?: boolean; $spaced?: boolean }>`
   min-width: 0;
   padding-bottom: ${({ $spaced }) => $spaced ? '10px' : '0'};
-  opacity: ${({ $after }) => $after ? 0.55 : 1};
+  opacity: ${({ $after, $retired }) => $retired ? 0.45 : $after ? 0.55 : 1};
+  filter: ${({ $retired }) => $retired ? 'grayscale(1)' : 'none'};
 
   @media ${MOBILE_QUERY} {
     padding-right: 0.5rem;
@@ -99,6 +101,46 @@ export const CardSlot = styled.div`
 
   article {
     border-radius: inherit;
+  }
+`
+
+// What cut the stint above short: tinted by type (weather blue, damage yellow,
+// written-off red), between the stint and the divider below it.
+export const IncidentTile = styled.div<{ $color: string; $soft: string }>`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  border: 1px solid ${({ $color }) => $color};
+  border-left-width: 4px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ $soft }) => $soft};
+  color: ${({ theme }) => theme.colors.text};
+
+  > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: ${({ $color }) => $color};
+  }
+`
+
+export const IncidentText = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-variant-numeric: tabular-nums;
   }
 `
 

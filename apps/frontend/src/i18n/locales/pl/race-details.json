@@ -92,7 +92,8 @@
     "tireSetsRange": "Maksymalnie 100 opon",
     "stintTimeRange": "Czas trwania musi być między 0 a 120 minut",
     "nameTooLong": "Nazwa max 100 znaków",
-    "beyondRaceEnd": "Stint skończyłby się po mecie. Maksymalnie {{max}} min"
+    "beyondRaceEnd": "Stint skończyłby się po mecie. Maksymalnie {{max}} min",
+    "incidentLapRange": "Okrążenie musi być między {{min}} a {{max}}"
   },
   "editTraining": "Edytuj trening",
   "extraLap": "+1 okr.",
@@ -145,5 +146,20 @@
   "spotterPartlyAvailable": "{{name}} jest dostępny tylko przez część stintu",
   "fromStart": "Od startu",
   "toFinish": "Do mety",
-  "dayN": "Dzień {{day}}"
+  "dayN": "Dzień {{day}}",
+  "incident": "Incydent",
+  "reportIncident": "Zgłoś incydent w stincie {{order}}",
+  "incidentLap": "Okrążenie incydentu",
+  "incidentLapHint": "Podpowiedź: okrążenie na teraz · w tym stincie okr. {{min}}–{{max}}",
+  "incidentType": "Typ incydentu",
+  "incidentTypes": {"weatherChange": "Zmiana warunków pogodowych", "damage": "Uszkodzenie wymagające naprawy", "totalDamage": "Uszkodzenie całkowite pojazdu"},
+  "incidentCut": "Stint {{order}} zostanie skrócony do okr. {{lap}} ({{duration}} min).",
+  "incidentNextStint": "Potem edytujesz kolejny stint.",
+  "incidentNewStint": "Potem dodasz kolejny stint.",
+  "incidentRaceOver": "Dalsze stinty zostaną wyszarzone – to koniec wyścigu.",
+  "incidentOnLap": "okr. {{lap}}",
+  "next": "Dalej",
+  "deleteIncident": "Usuń incydent",
+  "confirmDeleteIncident": "Usunąć incydent? Stint zachowa skrócony czas trwania.",
+  "raceOver": "Koniec wyścigu: uszkodzenie całkowite w stincie {{order}} na okr. {{lap}}."
 }

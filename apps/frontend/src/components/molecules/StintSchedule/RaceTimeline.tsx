@@ -5,6 +5,11 @@ import { formatHoursMinutes } from 'utils/time'
 import { clockAt } from 'utils/raceClock'
 import { driverColor } from 'utils/drivers'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
+import { IconButton } from 'components/atoms/IconButton/IconButton'
+import { IncidentIcon } from 'components/atoms/IncidentIcon/IncidentIcon'
+import { INCIDENT_COLORS, incidentSoft } from 'components/atoms/IncidentIcon/incidentColors'
+import { type Incident } from 'types/Schedule'
+import TrashIcon from 'assets/svg/trash.svg'
 import { StatItem, StatLabel } from './ScheduleCard.styles'
 import {
   TimelineRow,
@@ -14,6 +19,8 @@ import {
   TimelineContent,
   CardSlot,
   HourMark,
+  IncidentTile,
+  IncidentText,
   FinishCard,
   FinishTitle,
   FinishStats,
@@ -43,26 +50,30 @@ interface TimelineItemProps {
   raceStart: Date
   isActive: boolean
   isFirst: boolean
+  // After the car was written off: the stint is never driven.
+  retired?: boolean
   card: ReactNode
+  // Incident that cut the stint short, under its card.
+  incident?: ReactNode
   divider?: ReactNode
 }
 
 // One stint on the race rail: race time and lap at its start, hour marks along the card.
-export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, card, divider }: TimelineItemProps) {
+export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, retired = false, card, incident, divider }: TimelineItemProps) {
   const { t } = useTranslation('raceDetails')
   const { start, startLap, hourMarks, status } = timelineStint
-  const after = status === 'after'
+  const after = status === 'after' && !retired
 
   return (
     <TimelineRow>
-      <TimelineLabel $tone={after ? 'danger' : 'default'}>
+      <TimelineLabel $tone={retired ? 'muted' : after ? 'danger' : 'default'}>
         {after ? t('afterFinish') : `T+${formatRaceTime(start)}`}
         <span>{t('lapN', { lap: startLap })}</span>
       </TimelineLabel>
       <Rail $first={isFirst}>
-        <RailDot $state={after ? 'after' : isActive ? 'active' : 'default'} />
+        <RailDot $state={retired ? 'retired' : after ? 'after' : isActive ? 'active' : 'default'} />
       </Rail>
-      <TimelineContent $after={after} $spaced={!divider}>
+      <TimelineContent $after={after} $retired={retired} $spaced={!divider}>
         <CardSlot>
           {card}
           {hourMarks.map(mark => (
@@ -79,9 +90,33 @@ export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, card
             </HourMark>
           ))}
         </CardSlot>
+        {incident}
         {divider}
       </TimelineContent>
     </TimelineRow>
+  )
+}
+
+interface IncidentItemProps {
+  incident: Incident
+  // Clock when it happened: the end of the cut stint.
+  clock: string
+  onDelete: () => void
+}
+
+// Tile under a stint cut short by an incident.
+export function IncidentItem({ incident, clock, onDelete }: IncidentItemProps) {
+  const { t } = useTranslation('raceDetails')
+
+  return (
+    <IncidentTile role="note" $color={INCIDENT_COLORS[incident.type]} $soft={incidentSoft(incident.type)}>
+      <IncidentIcon type={incident.type} />
+      <IncidentText>
+        {t(`incidentTypes.${incident.type}`)}
+        <span>{t('incidentOnLap', { lap: incident.lap })} · {clock}</span>
+      </IncidentText>
+      <IconButton onClick={onDelete} title={t('deleteIncident')} icon={TrashIcon} size="sm" />
+    </IncidentTile>
   )
 }
 
@@ -89,11 +124,13 @@ interface FinishItemProps {
   timeline: Timeline
   raceStart: Date
   afterFinishOrders: number[]
+  // The car was written off: the race ended in this stint, on this lap.
+  retirement?: { order: number; lap: number }
   onAddStint: () => void
 }
 
 // Checkered flag under the last stint: when the time runs out and when the race ends.
-export function FinishItem({ timeline, raceStart, afterFinishOrders, onAddStint }: FinishItemProps) {
+export function FinishItem({ timeline, raceStart, afterFinishOrders, retirement, onAddStint }: FinishItemProps) {
   const { t } = useTranslation('raceDetails')
   const { finish, gap, coversRace } = timeline
 
@@ -133,7 +170,9 @@ export function FinishItem({ timeline, raceStart, afterFinishOrders, onAddStint 
             </FinishValue>
           </StatItem>
         </FinishStats>
-        {afterFinishOrders.length > 0 ? (
+        {retirement ? (
+          <FinishNote $tone="danger">{t('raceOver', retirement)}</FinishNote>
+        ) : afterFinishOrders.length > 0 ? (
           <FinishNote $tone="danger">{t('afterFinishWarning', { count: afterFinishOrders.length, list: afterFinishOrders.join(', ') })}</FinishNote>
         ) : coversRace ? (
           <FinishNote $tone="success">{t('planCovered')}</FinishNote>
