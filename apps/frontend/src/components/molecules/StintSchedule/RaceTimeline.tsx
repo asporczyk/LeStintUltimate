@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type RaceTimeline as Timeline, type TimelineStint, formatRaceTime } from 'utils/raceTimeline'
+import { type RaceTimeline as Timeline, type PenaltyMark, type TimelineStint, formatRaceTime } from 'utils/raceTimeline'
+import { PENALTY_SHORT, formatPenaltyTime } from 'utils/penalties'
 import { formatHoursMinutes } from 'utils/time'
 import { clockAt } from 'utils/raceClock'
 import { driverColor } from 'utils/drivers'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
-import { IncidentIcon } from 'components/atoms/IncidentIcon/IncidentIcon'
+import { IncidentIcon, PenaltyIcon } from 'components/atoms/IncidentIcon/IncidentIcon'
 import { INCIDENT_COLORS, incidentSoft } from 'components/atoms/IncidentIcon/incidentColors'
 import { type Incident } from 'types/Schedule'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -19,6 +20,11 @@ import {
   TimelineContent,
   CardSlot,
   HourMark,
+  PenaltyRailMark,
+  PenaltyList,
+  PenaltyRow,
+  PenaltyShort,
+  PenaltyText,
   IncidentTile,
   IncidentText,
   FinishCard,
@@ -33,6 +39,7 @@ import {
   StripSegment,
   StripGap,
   StripNow,
+  StripPenalty,
   StripLegend,
   LegendItem,
   LegendSwatch
@@ -44,6 +51,9 @@ const FlagIcon = () => (
   </svg>
 )
 
+// Share of the card height within which a penalty mark would cover an hour mark.
+const PENALTY_MARK_GAP = 0.12
+
 interface TimelineItemProps {
   timelineStint: TimelineStint
   // Moment of the race start: clocks are read at real moments (summer/winter time).
@@ -53,15 +63,18 @@ interface TimelineItemProps {
   // After the car was written off: the stint is never driven.
   retired?: boolean
   card: ReactNode
+  // Penalties served in the stint, listed at the bottom of its card.
+  penalties?: ReactNode[] | false
   // Incident that cut the stint short, under its card.
   incident?: ReactNode
   divider?: ReactNode
 }
 
 // One stint on the race rail: race time and lap at its start, hour marks along the card.
-export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, retired = false, card, incident, divider }: TimelineItemProps) {
+export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, retired = false, card, penalties, incident, divider }: TimelineItemProps) {
   const { t } = useTranslation('raceDetails')
   const { start, startLap, hourMarks, status } = timelineStint
+  const penaltyMarks = penalties ? timelineStint.penalties : []
   const after = status === 'after' && !retired
 
   return (
@@ -89,11 +102,58 @@ export function TimelineItem({ timelineStint, raceStart, isActive, isFirst, reti
               <span>{mark.hour} h</span>
             </HourMark>
           ))}
+          {penaltyMarks.map(mark => {
+            // Next to an hour mark it moves aside (above it when served before the hour).
+            const hour = hourMarks.find(hourMark => Math.abs(hourMark.offset - mark.offset) < PENALTY_MARK_GAP)
+            const shift = hour ? (mark.offset < hour.offset ? ' - 1.25rem' : ' + 1.25rem') : ''
+            return (
+              <PenaltyRailMark
+                key={`penalty-${mark.index}`}
+                style={{ top: `calc(max(${mark.offset * 100}%, 3.5rem)${shift})` }}
+                title={t('penaltyMarkTitle', {
+                  type: t(`penaltyTypes.${mark.penalty.type}`),
+                  lap: mark.penalty.lap,
+                  clock: clockAt(raceStart, mark.at),
+                  time: formatPenaltyTime(mark.minutes * 60),
+                })}
+              >
+                <span>{PENALTY_SHORT[mark.penalty.type]}</span>
+              </PenaltyRailMark>
+            )
+          })}
+          {penalties && penalties.length > 0 && <PenaltyList>{penalties}</PenaltyList>}
         </CardSlot>
         {incident}
         {divider}
       </TimelineContent>
     </TimelineRow>
+  )
+}
+
+interface PenaltyItemProps {
+  mark: PenaltyMark
+  // Clock when the car enters the pit lane.
+  clock: string
+  onDelete: () => void
+}
+
+// One penalty in the list at the bottom of its stint's card.
+export function PenaltyItem({ mark, clock, onDelete }: PenaltyItemProps) {
+  const { t } = useTranslation('raceDetails')
+  const { penalty } = mark
+
+  return (
+    <PenaltyRow role="note">
+      <PenaltyIcon />
+      <PenaltyShort>{PENALTY_SHORT[penalty.type]}</PenaltyShort>
+      <PenaltyText>
+        {penalty.type === 'stopAndGo'
+          ? t('penaltyStopAndGo', { seconds: penalty.stopSeconds ?? 0 })
+          : t('penaltyTypes.driveThrough')}
+        <span>{t('incidentOnLap', { lap: penalty.lap })} · {clock} · {formatPenaltyTime(mark.minutes * 60)}</span>
+      </PenaltyText>
+      <IconButton onClick={onDelete} title={t('deletePenalty')} icon={TrashIcon} size="sm" />
+    </PenaltyRow>
   )
 }
 
@@ -265,9 +325,27 @@ export function RaceStrip({ timeline, stints, drivers, currentRaceTime, onSelect
             {formatHoursMinutes(timeline.gap)}
           </StripGap>
         )}
+        {driven.flatMap(stint => stint.penalties.map(mark => {
+          const label = `${PENALTY_SHORT[mark.penalty.type]} · ${stint.driver} · ${t('incidentOnLap', { lap: mark.penalty.lap })} · T+${formatRaceTime(mark.at)} · ${formatPenaltyTime(mark.minutes * 60)}`
+          return (
+            <StripPenalty
+              key={`${stint.id}-${mark.index}`}
+              style={{ left: pct(mark.at) }}
+              title={label}
+              aria-label={label}
+              role="img"
+            />
+          )
+        }))}
         {isLive && <StripNow style={{ left: pct(currentRaceTime) }} />}
       </Strip>
       <StripLegend>
+        {driven.some(stint => stint.penalties.length > 0) && (
+          <LegendItem>
+            <LegendSwatch $line $bg="var(--text)" />
+            {t('penalties')}
+          </LegendItem>
+        )}
         {isLive && (
           <LegendItem>
             <LegendSwatch $line $bg="var(--primary)" />

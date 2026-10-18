@@ -7,6 +7,17 @@ export interface Incident {
   lap: number
 }
 
+export const PENALTY_TYPES = ['driveThrough', 'stopAndGo'] as const
+export type PenaltyType = typeof PENALTY_TYPES[number]
+
+// Penalty served during a stint: a pass through the pit lane after `lap` laps (laps
+// completed, like the start lap), with a stop of `stopSeconds` for a stop and go.
+export interface Penalty {
+  type: PenaltyType
+  lap: number
+  stopSeconds?: number
+}
+
 export interface Stint {
   _id: string
   scheduleId: string
@@ -29,6 +40,8 @@ export interface Stint {
   // Set when the stint was cut short; its duration already ends on the incident's lap.
   // null once removed.
   incident?: Incident | null
+  // Served during the stint; it goes on with the same driver, only later on the clock.
+  penalties?: Penalty[]
 }
 
 export interface Schedule {

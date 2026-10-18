@@ -112,6 +112,7 @@
     "beyondRaceEnd": "The stint would end after the finish. Up to {{max}} min",
     "incidentLapRange": "Lap must be between {{min}} and {{max}}",
     "pitLaneTimeRange": "Value must be between 0 and 300 s",
+    "penaltyStop": "The stop must be between 0 and 300 s",
     "brakeBiasRange": "The bias must be between {{min}} and {{max}}% to the front"
   },
   "editTraining": "Edit Training",
@@ -175,5 +176,21 @@
   "next": "Next",
   "deleteIncident": "Delete incident",
   "confirmDeleteIncident": "Delete the incident? The stint keeps its shortened duration.",
-  "raceOver": "Race over: car written off in stint {{order}} on lap {{lap}}."
+  "raceOver": "Race over: car written off in stint {{order}} on lap {{lap}}.",
+  "penalty": "Penalty",
+  "penalties": "Penalties",
+  "addPenaltyTitle": "Add a penalty in stint {{order}}",
+  "penaltyType": "Penalty type",
+  "penaltyTypes": {"driveThrough": "Drive through", "stopAndGo": "Stop and go"},
+  "penaltyStopAndGo": "Stop and go {{seconds}} s",
+  "penaltyLap": "Lap the penalty is served",
+  "penaltyLapHint": "Suggested: the lap now · this stint: laps {{min}}–{{max}}",
+  "penaltyStop": "Stop in the box",
+  "penaltyLossDrive": "Time lost: {{seconds}} s (through the pit lane).",
+  "penaltyLossStop": "Time lost: {{seconds}} s (pit lane {{lane}} s + stop {{stop}} s).",
+  "penaltyEnd": "Stint {{order}} will end at {{clock}}, with the same number of laps.",
+  "penaltyShift": "Later stints move back by the same time.",
+  "penaltyMarkTitle": "{{type}} · lap {{lap}} · {{clock}} · {{time}}",
+  "deletePenalty": "Delete penalty",
+  "confirmDeletePenalty": "Delete the penalty? The stint and later ones move forward by its time."
 }

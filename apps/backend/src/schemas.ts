@@ -124,6 +124,21 @@ const stintFields = {
             type: { type: "string", enum: ["weatherChange", "damage", "totalDamage"] },
             lap: { type: "integer", minimum: 0 }
         }
+    },
+    // Drive throughs and stop and gos served during the stint; [] removes them all.
+    penalties: {
+        type: "array",
+        maxItems: 10,
+        items: {
+            type: "object",
+            required: ["type", "lap"],
+            additionalProperties: false,
+            properties: {
+                type: { type: "string", enum: ["driveThrough", "stopAndGo"] },
+                lap: { type: "integer", minimum: 0 },
+                stopSeconds: { type: "number", minimum: 0, maximum: 300 }
+            }
+        }
     }
 } as const;
 

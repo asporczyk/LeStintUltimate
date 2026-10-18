@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type Incident, type Stint } from 'types/Schedule'
+import { type Incident, type Penalty, type Stint } from 'types/Schedule'
 import { type DriverAvailability, type DriverPace } from 'types/Race'
 import { availabilityLabel, availabilityWindows, driverBlocks, isAvailable } from 'utils/availability'
 import { remainingTiresAt } from 'utils/tires'
@@ -10,7 +10,8 @@ import { formatLapTime } from 'utils/time'
 import { raceTimeline, formatRaceTime, maxNewStintDuration, maxStintDuration, finishFuel, newStintMinutesToFlag } from 'utils/raceTimeline'
 import { clockAt, clockChanges, minutesSinceRaceStart, raceStartDateTime } from 'utils/raceClock'
 import { calculatePitstopTime } from 'utils/pitstop'
-import { durationToLap, incidentLapAt, incidentLapRange, retiredIndex } from 'utils/incidents'
+import { durationToLap, incidentLapAt, incidentLapRange, penaltyLapAt, penaltyLapRange, retiredIndex } from 'utils/incidents'
+import { PENALTY_SHORT, formatPenaltyTime } from 'utils/penalties'
 import { REPAIR_PARTS, SUSPENSION_PARTS, calculateRepairTime } from 'utils/repairs'
 import { TextButton } from 'components/atoms/TextButton/TextButton'
 import { useSocket } from '@/hooks/useSocket'
@@ -18,12 +19,13 @@ import { AddStintModal } from 'components/molecules/AddStintModal/AddStintModal'
 import { EditStintModal } from 'components/molecules/EditStintModal/EditStintModal'
 import { ConfirmModal } from 'components/molecules/ConfirmModal/ConfirmModal'
 import { IncidentModal } from 'components/molecules/IncidentModal/IncidentModal'
+import { PenaltyModal } from 'components/molecules/PenaltyModal/PenaltyModal'
 import { StintsApi } from 'api/StintsApi'
 import { ScheduleApi } from 'api/ScheduleApi'
 import { ScheduleCard, TireMap } from './ScheduleCard'
 import { CardList } from './ScheduleCard.styles'
 import { InsertDivider } from './InsertDivider'
-import { TimelineItem, FinishItem, IncidentItem, RaceStrip } from './RaceTimeline'
+import { TimelineItem, FinishItem, IncidentItem, PenaltyItem, RaceStrip } from './RaceTimeline'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import EditIcon from 'assets/svg/edit.svg'
 import TrashIcon from 'assets/svg/trash.svg'
@@ -67,6 +69,9 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
   const [deletingStint, setDeletingStint] = useState<Stint | null>(null)
   const [incidentIndex, setIncidentIndex] = useState<number | null>(null)
   const [deletingIncident, setDeletingIncident] = useState<Stint | null>(null)
+  const [penaltyIndex, setPenaltyIndex] = useState<number | null>(null)
+  // Stint and the place of the penalty in its list.
+  const [deletingPenalty, setDeletingPenalty] = useState<{ stint: Stint; index: number } | null>(null)
 
   useEffect(() => {
     if (!raceId) return
@@ -136,6 +141,15 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
           : t(`repairPart.${part}`)).join(', '),
       }
       : undefined
+    // Penalties add time on the clock, next to the duration; each one is listed in the card.
+    const penaltyNote = driven && timelineStint.penalties.length > 0
+      ? {
+        label: formatPenaltyTime(timelineStint.penalties.reduce((sum, mark) => sum + mark.minutes, 0) * 60),
+        details: timelineStint.penalties
+          .map(mark => `${PENALTY_SHORT[mark.penalty.type]} ${t('incidentOnLap', { lap: mark.penalty.lap })} ${formatPenaltyTime(mark.minutes * 60)}`)
+          .join(', '),
+      }
+      : undefined
     // Shown when the stint is not driven at the race's pace.
     const pace = pacedStints[index]
     const paceNote = pace.avgLapTime !== (avgLapTime || 0) || pace.avgFuelPerLap !== (avgFuelPerLap || 0)
@@ -146,6 +160,7 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
       paceNote,
       index,
       repair,
+      penaltyNote,
       timelineStint,
       retired,
       driven,
@@ -176,6 +191,8 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
   const stripTimeline = retiredAt >= 0
     ? { ...timeline, gap: 0, stints: timeline.stints.map((stint, i) => i > retiredAt ? { ...stint, status: 'after' as const } : stint) }
     : timeline
+  const penaltyStint = penaltyIndex !== null ? stints[penaltyIndex] : null
+  const penaltyTimelineStint = penaltyIndex !== null ? timeline.stints[penaltyIndex] : null
   const incidentStint = incidentIndex !== null ? stints[incidentIndex] : null
   const incidentTimelineStint = incidentIndex !== null ? timeline.stints[incidentIndex] : null
   const scrollToStint = (id: string) =>
@@ -250,6 +267,7 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
                 duration={row.duration}
                 clockChange={row.clockChange}
                 repair={row.repair}
+                penalty={row.penaltyNote}
                 isActive={row.isActive}
                 driver={row.stint.driver}
                 driverWarning={row.driverWarning}
@@ -279,6 +297,14 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
                 }
               />
                 }
+                penalties={row.driven && row.timelineStint.penalties.map(mark => (
+                  <PenaltyItem
+                    key={mark.index}
+                    mark={mark}
+                    clock={clockAt(raceStart, mark.at)}
+                    onDelete={() => setDeletingPenalty({ stint: row.stint, index: mark.index })}
+                  />
+                ))}
                 incident={row.stint.incident && (
                   <IncidentItem
                     incident={row.stint.incident}
@@ -286,12 +312,13 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
                     onDelete={() => setDeletingIncident(row.stint)}
                   />
                 )}
-                divider={row.driven && (canInsert || !row.stint.incident) && (
+                divider={row.driven && (
                   <InsertDivider
                     after={row.order}
                     onInsert={canInsert ? () => openAddModal(row.order) : undefined}
                     // One incident per stint: it ends there.
                     onIncident={row.stint.incident ? undefined : () => setIncidentIndex(row.index)}
+                    onPenalty={() => setPenaltyIndex(row.index)}
                     pinned={row.isActive}
                   />
                 )}
@@ -388,6 +415,51 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
           onCancel={() => setIncidentIndex(null)}
         />
       )}
+      {penaltyStint && penaltyTimelineStint && penaltyIndex !== null && (
+        <PenaltyModal
+          key={`penalty-${penaltyStint._id}`}
+          stintOrder={penaltyStint.order}
+          lapRange={penaltyLapRange(penaltyTimelineStint)}
+          suggestedLap={penaltyLapAt(penaltyTimelineStint, currentRaceTime)}
+          pitLaneTime={pitLaneTime}
+          endClockFor={(seconds) => clockAt(raceStart, penaltyTimelineStint.end + seconds / 60)}
+          hasNextStint={penaltyIndex < stints.length - 1}
+          onConfirm={async (penalty: Penalty) => {
+            try {
+              // The stint keeps its laps; the rest of the plan moves back by the time lost.
+              const updated = await StintsApi.update(penaltyStint._id, {
+                penalties: [...(penaltyStint.penalties ?? []), penalty],
+              })
+              setStints(prev => prev.map(s => s._id === penaltyStint._id ? updated : s))
+              setPenaltyIndex(null)
+            } catch (err) {
+              console.error('Failed to save penalty', err)
+              showError(t('save-failed', { ns: 'common' }))
+            }
+          }}
+          onCancel={() => setPenaltyIndex(null)}
+        />
+      )}
+      <ConfirmModal
+        isOpen={deletingPenalty !== null}
+        title={t('deletePenalty')}
+        message={t('confirmDeletePenalty')}
+        onConfirm={async () => {
+          if (!deletingPenalty) return
+          const { stint, index } = deletingPenalty
+          try {
+            const updated = await StintsApi.update(stint._id, {
+              penalties: (stint.penalties ?? []).filter((_, i) => i !== index),
+            })
+            setStints(prev => prev.map(s => s._id === stint._id ? updated : s))
+            setDeletingPenalty(null)
+          } catch (err) {
+            console.error('Failed to delete penalty', err)
+            showError(t('delete-failed', { ns: 'common' }))
+          }
+        }}
+        onCancel={() => setDeletingPenalty(null)}
+      />
       <ConfirmModal
         isOpen={deletingIncident !== null}
         title={t('deleteIncident')}

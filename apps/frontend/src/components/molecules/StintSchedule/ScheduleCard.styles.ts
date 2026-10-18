@@ -112,6 +112,11 @@ export const RepairNote = styled.span`
   }
 `
 
+// Time the penalties served in the stint add, next to the duration.
+export const PenaltyNote = styled(RepairNote)`
+  color: ${({ theme }) => theme.colors.text};
+`
+
 export const CardActions = styled.div`
   grid-area: actions;
   display: flex;
