@@ -47,13 +47,15 @@ describe('electronics input', () => {
     expect(validateElectronicsInput({ ...empty, brakeBias: 'abc' })).toEqual({ brakeBias: 'validation.brakeBiasRange' })
   })
 
-  it('keeps a 0° rear wing and rejects angles out of range or off the 0.5° step', () => {
+  it('keeps a 0° rear wing, accepts any angle in range and rejects the rest', () => {
     expect(electronicsInput({ driver: 'Adam', rearWing: 0 }).rearWing).toBe('0.0')
     expect(parseElectronicsInput('Adam', { ...empty, rearWing: '0' })).toEqual({ driver: 'Adam', rearWing: 0 })
     expect(parseElectronicsInput('Adam', { ...empty, rearWing: '-1,5°' })).toEqual({ driver: 'Adam', rearWing: -1.5 })
     expect(validateElectronicsInput({ ...empty, rearWing: '-10' })).toEqual({})
     expect(validateElectronicsInput({ ...empty, rearWing: '10.5' })).toEqual({ rearWing: 'validation.rearWingRange' })
-    expect(validateElectronicsInput({ ...empty, rearWing: '1.3' })).toEqual({ rearWing: 'validation.rearWingRange' })
+    expect(validateElectronicsInput({ ...empty, rearWing: '-1.1' })).toEqual({})
+    expect(parseElectronicsInput('Adam', { ...empty, rearWing: '-1.1' })).toEqual({ driver: 'Adam', rearWing: -1.1 })
+    expect(validateElectronicsInput({ ...empty, rearWing: 'abc' })).toEqual({ rearWing: 'validation.rearWingRange' })
   })
 
   it('is null when nothing is set', () => {

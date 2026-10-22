@@ -102,7 +102,7 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             const driverElectronics = [
                 { driver: "Adam", abs: 3, tc: 4, tcSlip: 2, tcCut: 5, brakeBias: 54.6 },
                 { driver: "Ola", tc: 9, rearWing: 0 },
-                { driver: "Piotr", rearWing: -3.5 }
+                { driver: "Piotr", rearWing: -1.1 }
             ];
             const { body } = await api("PATCH", `/races/${raceId}`, { drivers: ["Adam", "Ola", "Piotr"], driverElectronics });
             expect(body.driverElectronics).toEqual(driverElectronics);
@@ -111,7 +111,6 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", tcCut: 2.5 }] })).status).toBe(400);
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", brakeBias: 75 }] })).status).toBe(400);
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", rearWing: -10.5 }] })).status).toBe(400);
-            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", rearWing: 2.3 }] })).status).toBe(400);
         });
 
         it("accepts driver names of one or two words and rejects the rest", async () => {

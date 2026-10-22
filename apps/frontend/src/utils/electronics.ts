@@ -15,6 +15,7 @@ export const BRAKE_BIAS_STEP = 0.5
 
 // Rear wing angle in degrees. Its real range differs per car and isn't published;
 // this bounds them all (it can go below zero), 0 is the starting point.
+// Any angle can be typed; the buttons move it by a step.
 export const REAR_WING_MIN = -10
 export const REAR_WING_MAX = 10
 export const REAR_WING_DEFAULT = 0
@@ -72,9 +73,8 @@ export function parseRearWing(text: string): number | null {
   return text.trim() && Number.isFinite(degrees) ? Math.round(degrees * 10) / 10 : null
 }
 
-// Within the limits and on a 0.5° step.
 export function isValidRearWing(degrees: number | null): degrees is number {
-  return degrees !== null && degrees >= REAR_WING_MIN && degrees <= REAR_WING_MAX && Number.isInteger(degrees / REAR_WING_STEP)
+  return degrees !== null && degrees >= REAR_WING_MIN && degrees <= REAR_WING_MAX
 }
 
 // Validation messages (raceDetails keys); levels come from a list, so only the brake bias and the wing are checked.

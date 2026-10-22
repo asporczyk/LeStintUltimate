@@ -80,7 +80,7 @@
   "rearWingMore": "Zwiększ kąt skrzydła o 0,5°",
   "rearWingLower": "Mniej",
   "rearWingHigher": "Więcej",
-  "rearWingHint": "Kąt w stopniach (może być ujemny). Wpisz wartość (np. -1,5) albo zmieniaj przyciskami co 0,5°. Puste = nie ustawiono.",
+  "rearWingHint": "Kąt w stopniach (może być ujemny). Wpisz wartość (np. -1,1) albo zmieniaj przyciskami co 0,5°. Puste = nie ustawiono.",
   "stintPaceHint": "Opcjonalnie dla tego stintu. Puste pole = wartość kierowcy, a bez niej średnia wyścigu.",
   "paceNote": "Tempo: {{lap}} · {{fuel}}%",
   "avgStintTime": "Śr. czas stintu",
@@ -121,7 +121,7 @@
     "pitLaneTimeRange": "Wartość musi być między 0 a 300 s",
     "penaltyStop": "Postój musi być między 0 a 300 s",
     "brakeBiasRange": "Balans musi być między {{min}} a {{max}}% na przód",
-    "rearWingRange": "Kąt musi być między {{min}}° a {{max}}°, co 0,5°"
+    "rearWingRange": "Kąt musi być liczbą między {{min}}° a {{max}}°"
   },
   "editTraining": "Edytuj trening",
   "extraLap": "+1 okr.",
