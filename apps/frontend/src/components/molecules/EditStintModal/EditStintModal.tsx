@@ -21,6 +21,7 @@ import {
 } from './EditStintModal.styles'
 import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
+import { FuelRangeHint } from 'components/molecules/FuelRangeHint/FuelRangeHint'
 import { TireField } from 'components/molecules/TireField/TireField'
 import { RepairField } from 'components/molecules/RepairField/RepairField'
 import { PaceFields } from 'components/molecules/PaceFields/PaceFields'
@@ -190,6 +191,7 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
             </InputWithUnit>
             {errors.duration && <ErrorText>{t(errors.duration, { max: durationLimit })}</ErrorText>}
             {!errors.duration && durationLimit !== null && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
+            <FuelRangeHint duration={formData.duration} fuel={fuel} pace={pace} />
           </FormGroup>
 
           <FormGroup>

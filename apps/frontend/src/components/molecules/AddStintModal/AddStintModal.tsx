@@ -23,6 +23,7 @@ import {
 } from './AddStintModal.styles'
 import { type FinishFuel } from 'utils/raceTimeline'
 import { FuelField } from 'components/molecules/FuelField/FuelField'
+import { FuelRangeHint } from 'components/molecules/FuelRangeHint/FuelRangeHint'
 import { TireField } from 'components/molecules/TireField/TireField'
 import { RepairField } from 'components/molecules/RepairField/RepairField'
 import { PaceFields } from 'components/molecules/PaceFields/PaceFields'
@@ -207,6 +208,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
             </InputWithUnit>
             {errors.duration && <ErrorText>{t(errors.duration, { max: durationLimit })}</ErrorText>}
             {!errors.duration && durationLimit !== undefined && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
+            <FuelRangeHint duration={formData.duration} fuel={fuel} pace={pace} />
           </FormGroup>
 
           <FormGroup>
