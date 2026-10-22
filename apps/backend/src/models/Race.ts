@@ -22,7 +22,8 @@ const RaceSchema = new Schema(
             avgLapTime: Number,
             avgFuelPerLap: Number
         }],
-        // Per-driver car electronics; unset fields = not noted. Levels 1-9, brakeBias = % to the front.
+        // Per-driver car electronics; unset fields = not noted. Levels 1-9, brakeBias = % to the front,
+        // rearWing = rear wing angle in degrees.
         driverElectronics: [{
             _id: false,
             driver: { type: String, required: true },
@@ -30,7 +31,8 @@ const RaceSchema = new Schema(
             tc: Number,
             tcSlip: Number,
             tcCut: Number,
-            brakeBias: Number
+            brakeBias: Number,
+            rearWing: Number
         }],
         tireSets: { type: Number, default: 0 },
         fuelTankCapacity: { type: Number, default: 100 },

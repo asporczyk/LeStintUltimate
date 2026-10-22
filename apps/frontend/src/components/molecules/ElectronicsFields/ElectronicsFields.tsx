@@ -5,10 +5,16 @@ import {
   BRAKE_BIAS_MAX,
   BRAKE_BIAS_MIN,
   ELECTRONICS_LEVELS,
+  isValidRearWing,
   LEVEL_MAX,
   LEVEL_MIN,
   parseBrakeBias,
+  parseRearWing,
+  REAR_WING_DEFAULT,
+  REAR_WING_MAX,
+  REAR_WING_MIN,
   stepBrakeBias,
+  stepRearWing,
   type ElectronicsInput,
   type ElectronicsInputErrors
 } from 'utils/electronics'
@@ -34,7 +40,7 @@ const levelOptions = (notSet: string) => [
   ...Array.from({ length: LEVEL_MAX - LEVEL_MIN + 1 }, (_, i) => String(LEVEL_MIN + i)).map(level => ({ value: level, label: level })),
 ]
 
-// A driver's ABS, traction control (slip, power cut) levels and brake bias; all optional.
+// A driver's ABS, traction control (slip, power cut) levels, brake bias and rear wing; all optional.
 export function ElectronicsFields({ value, errors, onChange }: ElectronicsFieldsProps) {
   const { t } = useTranslation('raceDetails')
   const options = levelOptions('-')
@@ -43,6 +49,10 @@ export function ElectronicsFields({ value, errors, onChange }: ElectronicsFields
   // The buttons start from the default when nothing is typed yet.
   const step = (steps: number) =>
     onChange({ ...value, brakeBias: stepBrakeBias(inRange ? front : BRAKE_BIAS_DEFAULT, steps).toFixed(1) })
+  const wing = parseRearWing(value.rearWing)
+  const wingValid = isValidRearWing(wing)
+  const stepWing = (steps: number) =>
+    onChange({ ...value, rearWing: stepRearWing(wingValid ? wing : REAR_WING_DEFAULT, steps).toFixed(1) })
 
   return (
     <>
@@ -81,6 +91,32 @@ export function ElectronicsFields({ value, errors, onChange }: ElectronicsFields
         </BiasRow>
         {errors.brakeBias && <ErrorText>{t(errors.brakeBias, { min: BRAKE_BIAS_MIN, max: BRAKE_BIAS_MAX })}</ErrorText>}
         <FieldHint id="driver-brake-bias-hint">{t('brakeBiasHint')}</FieldHint>
+      </FormGroup>
+      <FormGroup>
+        <Label htmlFor="driver-rear-wing">{t('electronics.rearWing')}</Label>
+        <BiasRow>
+          <BiasStep type="button" onClick={() => stepWing(-1)} disabled={wingValid && wing <= REAR_WING_MIN} title={t('rearWingLess')}>
+            − {t('rearWingLower')}
+          </BiasStep>
+          <InputWithUnit>
+            <InputWithUnitStyle
+              id="driver-rear-wing"
+              type="text"
+              inputMode="decimal"
+              value={value.rearWing}
+              onChange={(e) => onChange({ ...value, rearWing: e.target.value })}
+              placeholder={REAR_WING_DEFAULT.toFixed(1)}
+              aria-invalid={!!errors.rearWing}
+              aria-describedby="driver-rear-wing-hint"
+            />
+            <InputUnit>°</InputUnit>
+          </InputWithUnit>
+          <BiasStep type="button" onClick={() => stepWing(1)} disabled={wingValid && wing >= REAR_WING_MAX} title={t('rearWingMore')}>
+            {t('rearWingHigher')} +
+          </BiasStep>
+        </BiasRow>
+        {errors.rearWing && <ErrorText>{t(errors.rearWing, { min: REAR_WING_MIN, max: REAR_WING_MAX })}</ErrorText>}
+        <FieldHint id="driver-rear-wing-hint">{t('rearWingHint')}</FieldHint>
       </FormGroup>
     </>
   )

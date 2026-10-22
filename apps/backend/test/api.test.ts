@@ -97,18 +97,21 @@ describe.skipIf(!MONGO)("API (integration)", () => {
             expect((await api("PATCH", `/races/${raceId}`, { driverAvailability: [{ driver: "Adam", to: "06:00+2" }] })).status).toBe(400);
         });
 
-        it("stores driver electronics and rejects levels and brake bias out of range", async () => {
+        it("stores driver electronics and rejects levels, brake bias and rear wing out of range", async () => {
             const raceId = await createRace();
             const driverElectronics = [
                 { driver: "Adam", abs: 3, tc: 4, tcSlip: 2, tcCut: 5, brakeBias: 54.6 },
-                { driver: "Ola", tc: 9 }
+                { driver: "Ola", tc: 9, rearWing: 0 },
+                { driver: "Piotr", rearWing: -3.5 }
             ];
-            const { body } = await api("PATCH", `/races/${raceId}`, { drivers: ["Adam", "Ola"], driverElectronics });
+            const { body } = await api("PATCH", `/races/${raceId}`, { drivers: ["Adam", "Ola", "Piotr"], driverElectronics });
             expect(body.driverElectronics).toEqual(driverElectronics);
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", abs: 0 }] })).status).toBe(400);
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", tc: 10 }] })).status).toBe(400);
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", tcCut: 2.5 }] })).status).toBe(400);
             expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", brakeBias: 75 }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", rearWing: -10.5 }] })).status).toBe(400);
+            expect((await api("PATCH", `/races/${raceId}`, { driverElectronics: [{ driver: "Adam", rearWing: 2.3 }] })).status).toBe(400);
         });
 
         it("accepts driver names of one or two words and rejects the rest", async () => {
