@@ -244,18 +244,18 @@ export function finishFuel(
 }
 
 export interface FuelRange {
-  // Laps the fuel lasts, keeping FUEL_RESERVE_LAPS in the tank.
+  // Whole laps the fuel lasts.
   laps: number
   // Longest stint (whole minutes) that stays within those laps.
   minutes: number
 }
 
 // How long a stint can run on its fuel (% of the tank). The car can't reach the pit lane
-// below 0 % VE, so one lap of fuel stays in reserve, and the lap in progress when the time
+// below 0 % VE, so only whole laps of fuel count, and the lap in progress when the time
 // runs out is driven in full. avgFuelPerLap and avgLapTime are the stint's own.
 export function fuelRange(fuel: number, avgFuelPerLap: number, avgLapTime: number): FuelRange | null {
   if (avgFuelPerLap <= 0 || fuel <= 0) return null
-  const laps = Math.max(0, Math.floor(fuel / avgFuelPerLap + 1e-9) - FUEL_RESERVE_LAPS)
+  const laps = Math.floor(fuel / avgFuelPerLap + 1e-9)
   return { laps, minutes: Math.floor((laps * lapSecondsOf(avgLapTime)) / 60 + 1e-9) }
 }
 

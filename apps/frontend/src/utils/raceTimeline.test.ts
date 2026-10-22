@@ -233,14 +233,14 @@ describe('formatRaceTime', () => {
 })
 
 describe('fuelRange', () => {
-  it('keeps one lap of fuel in reserve', () => {
-    // 100 % at 5 %/lap = 20 laps, 19 with the reserve; 19 * 100 s = 31:40 => 31 min.
-    expect(fuelRange(100, 5, 100)).toEqual({ laps: 19, minutes: 31 })
+  it('reaches the pits on the last drop: 0 % VE is enough', () => {
+    // 100 % at 5 %/lap = 20 laps; 20 * 100 s = 33:20 => 33 min.
+    expect(fuelRange(100, 5, 100)).toEqual({ laps: 20, minutes: 33 })
   })
 
   it('counts only whole laps of fuel', () => {
-    // 100 % at 4.5 %/lap = 22.2 laps => 22, 21 with the reserve; 21 * 110 s = 38:30 => 38 min.
-    expect(fuelRange(100, 4.5, 110)).toEqual({ laps: 21, minutes: 38 })
+    // 100 % at 4.5 %/lap = 22.2 laps => 22, the 23rd would end below 0 %; 22 * 110 s = 40:20 => 40 min.
+    expect(fuelRange(100, 4.5, 110)).toEqual({ laps: 22, minutes: 40 })
   })
 
   it('drives the lap in progress in full, so the stint never needs more laps', () => {
@@ -249,7 +249,7 @@ describe('fuelRange', () => {
   })
 
   it('falls back to 120 s laps', () => {
-    expect(fuelRange(50, 10, 0)).toEqual({ laps: 4, minutes: 8 })
+    expect(fuelRange(50, 10, 0)).toEqual({ laps: 5, minutes: 10 })
   })
 
   it('needs the fuel use per lap', () => {
