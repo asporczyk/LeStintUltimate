@@ -149,10 +149,10 @@ Tempo stintu w modalu zależy od wybranego kierowcy i pól nadpisania, więc fla
 
 Krótszy stint zdejmuje limit i wraca pełny bak. Bez `avgFuelPerLap` nic nie jest proponowane (`finishFuel` w `utils/raceTimeline.ts`).
 
-Zasięg paliwa: pod czasem trwania w modalu dodawania i edycji widać, jak długo stint może jechać na swoim paliwie. Do pitu nie da się zjechać poniżej 0 % VE, więc w baku zostaje jedno okrążenie zapasu, a okrążenie, w którym mija czas stintu, jest dokańczane:
+Zasięg paliwa: pod czasem trwania w modalu dodawania i edycji widać, jak długo stint może jechać na swoim paliwie. Do pitu nie da się zjechać poniżej 0 % VE, więc liczą się tylko pełne okrążenia, na które starcza paliwa (zjazd z 0 % jest jeszcze możliwy), a okrążenie, w którym mija czas stintu, jest dokańczane:
 
 ```
-okrążenia = floor(paliwo / avgFuelPerLap) − 1                 // pełne okrążenia, −1 okrążenie zapasu
+okrążenia = floor(paliwo / avgFuelPerLap)                     // pełne okrążenia, kolejne skończyłoby się poniżej 0 %
 minuty    = floor(okrążenia * avgLapTime / 60)                // tempo stintu
 ```
 
