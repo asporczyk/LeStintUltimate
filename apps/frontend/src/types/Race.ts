@@ -14,7 +14,8 @@ export interface DriverPace {
 }
 
 // Car electronics a driver uses; an unset field is not noted.
-// Levels 1-9; brakeBias = % of braking force on the front axle (the rear gets the rest).
+// Levels 1-9; brakeBias = % of braking force on the front axle (the rear gets the rest);
+// rearWing = rear wing angle in degrees, 0 is a real setting.
 export interface DriverElectronics {
   driver: string
   abs?: number
@@ -22,6 +23,7 @@ export interface DriverElectronics {
   tcSlip?: number
   tcCut?: number
   brakeBias?: number
+  rearWing?: number
 }
 
 export interface Race {

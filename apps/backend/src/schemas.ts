@@ -85,7 +85,9 @@ export const patchRaceBody = {
                     tcSlip: electronicsLevel,
                     tcCut: electronicsLevel,
                     // % of braking force on the front axle; the rear gets the rest.
-                    brakeBias: { type: "number", minimum: 40, maximum: 70 }
+                    brakeBias: { type: "number", minimum: 40, maximum: 70 },
+                    // Rear wing angle in degrees; it can go below zero.
+                    rearWing: { type: "number", minimum: -10, maximum: 10 }
                 }
             }
         },

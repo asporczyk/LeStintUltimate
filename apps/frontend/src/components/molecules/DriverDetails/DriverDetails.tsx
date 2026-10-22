@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { type Race } from 'types/Race'
 import { availabilityLabel, driverBlocks } from 'utils/availability'
 import { formatLapTime } from 'utils/time'
-import { ELECTRONICS_LEVELS, formatBrakeBias } from 'utils/electronics'
+import { ELECTRONICS_LEVELS, formatBrakeBias, formatRearWing } from 'utils/electronics'
 import { IconButton } from 'components/atoms/IconButton/IconButton'
 import EditIcon from 'assets/svg/edit.svg'
 import {
@@ -49,6 +49,11 @@ export function DriverDetails({ race, onEdit }: DriverDetailsProps) {
         label: t('electronics.brakeBias'),
         value: electronics?.brakeBias ? formatBrakeBias(electronics.brakeBias) : '-',
         inherited: !electronics?.brakeBias,
+      },
+      {
+        label: t('electronics.rearWing'),
+        value: electronics?.rearWing !== undefined ? formatRearWing(electronics.rearWing) : '-',
+        inherited: electronics?.rearWing === undefined,
       },
     ]
   }
