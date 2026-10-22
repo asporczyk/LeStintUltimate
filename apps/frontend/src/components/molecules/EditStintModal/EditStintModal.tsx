@@ -44,8 +44,9 @@ interface EditStintModalProps {
   // Race and driver pace an empty pace field falls back to.
   racePace: RacePace
   // For the stint driven at a pace: the longest duration that keeps it within the race
-  // (minutes; null when unlimited) and its fuel if it drives on to the flag.
-  limitsFor: (pace: Pace) => { maxDuration: number | null; finishFuel: FinishFuel | null }
+  // (minutes; null when unlimited), whether it is the stint that drives to the flag (or the
+  // last one) and its fuel if it drives on to the flag.
+  limitsFor: (pace: Pace) => { maxDuration: number | null; toFlag: boolean; finishFuel: FinishFuel | null }
   onConfirm: (updatedStint: Partial<Stint>) => void
   onCancel: () => void
 }
@@ -111,7 +112,7 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
   // fuel needed to reach it.
   const paceOverride = parsePaceInput(formData.pace)
   const pace = stintPace(racePace, { driver: crew.driver, ...paceOverride })
-  const { maxDuration, finishFuel } = limitsFor(pace)
+  const { maxDuration, toFlag, finishFuel } = limitsFor(pace)
   const durationLimit = maxDuration !== null && maxDuration < 120 ? maxDuration : null
   // While the stint runs to the flag, its fuel is capped at what it needs to get there.
   const runsToFlag = !!finishFuel && formData.duration > finishFuel.minDuration
@@ -190,7 +191,7 @@ export function EditStintModal({ isOpen, stint, drivers, driverAvailability, eve
               <InputUnit>min</InputUnit>
             </InputWithUnit>
             {errors.duration && <ErrorText>{t(errors.duration, { max: durationLimit })}</ErrorText>}
-            {!errors.duration && durationLimit !== null && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
+            {!errors.duration && toFlag && durationLimit !== null && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
             <FuelRangeHint duration={formData.duration} fuel={fuel} pace={pace} />
           </FormGroup>
 

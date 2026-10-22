@@ -49,8 +49,9 @@ interface AddStintModalProps {
   // Race and driver pace an empty pace field falls back to.
   racePace: RacePace
   // For the new stint driven at a pace: the longest one that still ends by the checkered
-  // flag (minutes) and, added at the end, its fuel if it drives on to the flag.
-  limitsFor: (pace: Pace) => { maxDuration: number; finishFuel: FinishFuel | null }
+  // flag (minutes), whether it is added at the end (the only stint that drives to the flag)
+  // and, then, its fuel if it drives on to the flag.
+  limitsFor: (pace: Pace) => { maxDuration: number; toFlag: boolean; finishFuel: FinishFuel | null }
   onStintAdded: (stint: Stint) => void
   onCancel: () => void
 }
@@ -102,7 +103,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
   // fuel needed to reach it.
   const paceOverride = parsePaceInput(formData.pace)
   const pace = stintPace(racePace, { driver: crew.driver, ...paceOverride })
-  const { maxDuration, finishFuel } = limitsFor(pace)
+  const { maxDuration, toFlag, finishFuel } = limitsFor(pace)
   const durationLimit = limitOf(maxDuration)
   // A stint that runs to the flag needs only the fuel for the laps left (plus a reserve),
   // so the fuel is capped there; a shorter duration lifts the cap again.
@@ -207,7 +208,7 @@ export function AddStintModal({ isOpen, insertAfterStint, totalStints, raceId, d
               <InputUnit>min</InputUnit>
             </InputWithUnit>
             {errors.duration && <ErrorText>{t(errors.duration, { max: durationLimit })}</ErrorText>}
-            {!errors.duration && durationLimit !== undefined && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
+            {!errors.duration && toFlag && durationLimit !== undefined && <FieldHint>{t('untilFlag', { max: durationLimit })}</FieldHint>}
             <FuelRangeHint duration={formData.duration} fuel={fuel} pace={pace} />
           </FormGroup>
 
