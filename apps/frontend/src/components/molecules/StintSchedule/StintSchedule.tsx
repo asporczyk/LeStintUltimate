@@ -217,6 +217,7 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
     const last = stints[stints.length - 1] ?? null
     return {
       maxDuration: maxNewStintDuration(withNew, stints[addAfterStint - 1] ?? null, fuelTankCapacity, pitLaneTime),
+      toFlag: addAfterStint === stints.length,
       finishFuel: addAfterStint === stints.length && !withNew.coversRace
         ? finishFuel(withNew, withNew.plannedLaps, newStintMinutesToFlag(withNew, last, fuelTankCapacity, pitLaneTime), pace.avgFuelPerLap)
         : null,
@@ -230,9 +231,11 @@ export function StintSchedule({ drivers, driverAvailability, driverPace, avgStin
       raceLength, avgLapTime, fuelTankCapacity, pitLaneTime,
     )
     const stint = edited.stints[index]
+    const toFlag = index === edited.finishingIndex || index === stints.length - 1
     return {
       maxDuration: maxStintDuration(edited, index, stints[index].duration),
-      finishFuel: stint.status !== 'after' && (index === edited.finishingIndex || index === stints.length - 1)
+      toFlag,
+      finishFuel: stint.status !== 'after' && toFlag
         ? finishFuel(edited, stint.lapsBefore, edited.finish.flagAt - stint.start, pace.avgFuelPerLap)
         : null,
     }
